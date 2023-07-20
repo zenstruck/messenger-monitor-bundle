@@ -2,6 +2,9 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Symfony\Component\Messenger\Event\WorkerRunningEvent;
+use Symfony\Component\Messenger\Event\WorkerStartedEvent;
+use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Worker\WorkerListener;
@@ -30,8 +33,8 @@ return static function (ContainerConfigurator $container): void {
             ->args([
                 service('.zenstruck_messenger_monitor.worker_cache'),
             ])
-            ->tag('kernel.event_listener', ['method' => 'onStart'])
-            ->tag('kernel.event_listener', ['method' => 'onStop'])
-            ->tag('kernel.event_listener', ['method' => 'onRunning'])
+            ->tag('kernel.event_listener', ['method' => 'onStart', 'event' => WorkerStartedEvent::class])
+            ->tag('kernel.event_listener', ['method' => 'onStop', 'event' => WorkerStoppedEvent::class])
+            ->tag('kernel.event_listener', ['method' => 'onRunning', 'event' => WorkerRunningEvent::class])
     ;
 };
