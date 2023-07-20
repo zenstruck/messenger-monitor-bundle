@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 1,16 * *'
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }}, SF ${{ matrix.symfony }} - ${{ matrix.deps }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ 8.1, 8.2 ]
+        deps: [ highest ]
+        symfony: [ 6.3.* ]
+        include:
+          - php: 8.1
+            deps: lowest
+            symfony: '*'
+    steps:
+      - uses: zenstruck/.github@php-test-symfony
+        with:
+          php: ${{ matrix.php }}
+          symfony: ${{ matrix.symfony }}
+          deps: ${{ matrix.deps }}
+
+  code-coverage:
+    uses: zenstruck/.github/.github/workflows/php-coverage-codecov.yml@main
+
+  composer-validate:
+    uses: zenstruck/.github/.github/workflows/php-composer-validate.yml@main
+
+  sca:
+    uses: zenstruck/.github/.github/workflows/php-stan.yml@main
+
+  fixcs:
+    name: Run php-cs-fixer
+    needs: sync-with-template
+    if: (github.event_name == 'push' || github.event_name == 'schedule') && !startsWith(github.ref, 'refs/tags') && github.repository_owner == 'zenstruck'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: zenstruck/.github@php-cs-fixer
+        with:
+          php: 8.1
+          key: ${{ secrets.GPG_PRIVATE_KEY }}
+          token: ${{ secrets.COMPOSER_TOKEN }}
+
+  sync-with-template:
+    name: Sync meta files
+    if: (github.event_name == 'push' || github.event_name == 'schedule') && !startsWith(github.ref, 'refs/tags') && github.repository_owner == 'zenstruck'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: zenstruck/.github@sync-with-template
+        with:
+          key: ${{ secrets.GPG_PRIVATE_KEY }}
+          token: ${{ secrets.COMPOSER_TOKEN }}
