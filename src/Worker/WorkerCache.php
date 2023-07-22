@@ -66,7 +66,11 @@ final class WorkerCache implements \IteratorAggregate
     {
         $this->cache->get(
             self::WORKER_KEY_PREFIX.$id,
-            fn() => [$metadata, $status, $id, now()->getTimestamp()],
+            function(CacheItemInterface $item) use ($metadata, $status, $id) {
+                $item->expiresAfter($this->expiredWorkerTtl);
+
+                return [$metadata, $status, $id];
+            },
             \INF // force saving
         );
     }
@@ -86,13 +90,7 @@ final class WorkerCache implements \IteratorAggregate
         );
 
         foreach ($this->cache->getItems($keys) as $item) {
-            [$metadata, $status, $id, $lastUpdated] = $item->get();
-            if ((now()->getTimestamp() - $lastUpdated) > $this->expiredWorkerTtl) {
-                // remove expired worker
-                $this->remove($id);
-
-                continue;
-            }
+            [$metadata, $status, $id] = $item->get();
 
             yield new WorkerInfo($metadata, $status, $ids[$id]);
         }
