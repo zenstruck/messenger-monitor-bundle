@@ -45,6 +45,8 @@ final class TestKernel extends Kernel
                 ],
             ],
         ]);
+
+        $c->register(TestService::class)->setAutowired(true)->setPublic(true);
     }
 
     protected function configureRoutes(RoutingConfigurator $routes): void
