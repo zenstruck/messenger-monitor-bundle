@@ -16,8 +16,10 @@ use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @implements \IteratorAggregate<WorkerInfo>
  */
-final class WorkerMonitor implements \Countable
+final class WorkerMonitor implements \Countable, \IteratorAggregate
 {
     /**
      * @internal
@@ -36,7 +38,7 @@ final class WorkerMonitor implements \Countable
      */
     public function all(): array
     {
-        return \iterator_to_array($this->cache);
+        return \iterator_to_array($this);
     }
 
     /**
@@ -59,6 +61,11 @@ final class WorkerMonitor implements \Countable
             $this->all(),
             static fn(WorkerInfo $info) => \in_array($name, $info->queues(), true),
         );
+    }
+
+    public function getIterator(): \Traversable
+    {
+        yield from $this->cache;
     }
 
     public function count(): int
