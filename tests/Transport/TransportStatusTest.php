@@ -13,7 +13,7 @@ namespace Zenstruck\Messenger\Monitor\Tests\Transport;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Transport\TransportInterface;
-use Zenstruck\Messenger\Monitor\Transport\TransportStatus;
+use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -25,7 +25,7 @@ final class TransportStatusTest extends TestCase
      */
     public function not_countable(): void
     {
-        $transport = new TransportStatus('foo', $this->createMock(TransportInterface::class));
+        $transport = new TransportInfo('foo', $this->createMock(TransportInterface::class));
 
         $this->assertFalse($transport->isCountable());
 
@@ -39,7 +39,7 @@ final class TransportStatusTest extends TestCase
      */
     public function not_listable(): void
     {
-        $transport = new TransportStatus('foo', $this->createMock(TransportInterface::class));
+        $transport = new TransportInfo('foo', $this->createMock(TransportInterface::class));
 
         $this->assertFalse($transport->isListable());
 

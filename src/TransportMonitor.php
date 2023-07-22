@@ -14,12 +14,12 @@ namespace Zenstruck\Messenger\Monitor;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Contracts\Service\ServiceProviderInterface;
-use Zenstruck\Messenger\Monitor\Transport\TransportStatus;
+use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
- * @implements \IteratorAggregate<string,TransportStatus<Envelope>>
+ * @implements \IteratorAggregate<string,TransportInfo<Envelope>>
  */
 final class TransportMonitor implements \IteratorAggregate, \Countable
 {
@@ -33,19 +33,19 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return TransportStatus<Envelope>
+     * @return TransportInfo<Envelope>
      */
-    public function get(string $name): TransportStatus
+    public function get(string $name): TransportInfo
     {
         if (!$this->transports->has($name)) {
             throw new \InvalidArgumentException(\sprintf('Transport "%s" does not exist.', $name));
         }
 
-        return new TransportStatus($name, $this->transports->get($name)); // @phpstan-ignore-line
+        return new TransportInfo($name, $this->transports->get($name)); // @phpstan-ignore-line
     }
 
     /**
-     * @return array<string,TransportStatus<Envelope>>
+     * @return array<string,TransportInfo<Envelope>>
      */
     public function all(): array
     {
@@ -53,19 +53,19 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return array<string,TransportStatus<Envelope>>
+     * @return array<string,TransportInfo<Envelope>>
      */
     public function countable(): array
     {
-        return \array_filter($this->all(), static fn(TransportStatus $status) => $status->isCountable());
+        return \array_filter($this->all(), static fn(TransportInfo $status) => $status->isCountable());
     }
 
     /**
-     * @return array<string,TransportStatus<Envelope>>
+     * @return array<string,TransportInfo<Envelope>>
      */
     public function listable(): array
     {
-        return \array_filter($this->all(), static fn(TransportStatus $status) => $status->isListable());
+        return \array_filter($this->all(), static fn(TransportInfo $status) => $status->isListable());
     }
 
     public function getIterator(): \Traversable

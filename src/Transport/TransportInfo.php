@@ -24,7 +24,7 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
  * @template T of object
  * @implements \IteratorAggregate<T>
  */
-final class TransportStatus implements \IteratorAggregate, \Countable
+final class TransportInfo implements \IteratorAggregate, \Countable
 {
     private bool $envelopes = true;
 
