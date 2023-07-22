@@ -22,7 +22,8 @@
         "symfony/console": "^6.3",
         "symfony/phpunit-bridge": "^6.1",
         "symfony/scheduler": "^6.3",
-        "symfony/var-dumper": "^5.4|^6.0"
+        "symfony/var-dumper": "^5.4|^6.0",
+        "zenstruck/console-test": "^1.4"
     },
     "config": {
         "preferred-install": "dist",
