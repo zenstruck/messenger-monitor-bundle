@@ -12,7 +12,10 @@
 namespace Zenstruck\Messenger\Monitor\Tests\Transport;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
+use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableTransport;
+use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\ListableTransport;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 
 /**
@@ -37,6 +40,17 @@ final class TransportStatusTest extends TestCase
     /**
      * @test
      */
+    public function can_count(): void
+    {
+        $transport = new TransportInfo('foo', new CountableTransport());
+
+        $this->assertTrue($transport->isCountable());
+        $this->assertCount(0, $transport);
+    }
+
+    /**
+     * @test
+     */
     public function not_listable(): void
     {
         $transport = new TransportInfo('foo', $this->createMock(TransportInterface::class));
@@ -47,4 +61,88 @@ final class TransportStatusTest extends TestCase
 
         \iterator_to_array($transport->list());
     }
+
+    /**
+     * @test
+     */
+    public function can_list_envelopes(): void
+    {
+        $transport = new TransportInfo('foo', new ListableTransport([
+            new Envelope(new \stdClass()),
+            new Envelope(new \stdClass()),
+        ]));
+
+        $this->assertTrue($transport->isListable());
+
+        $this->assertCount(1, \iterator_to_array($transport->list(1)));
+
+        $envelopes = \iterator_to_array($transport->list());
+
+        $this->assertCount(2, $envelopes);
+
+        $this->assertInstanceOf(Envelope::class, $envelopes[0]);
+        $this->assertInstanceOf(Envelope::class, $envelopes[1]);
+    }
+
+    /**
+     * @test
+     */
+    public function can_list_messages(): void
+    {
+        $transport = (new TransportInfo('foo', new ListableTransport([
+            new Envelope(new \stdClass()),
+            new Envelope(new \stdClass()),
+        ])))->messages();
+
+        $this->assertTrue($transport->isListable());
+
+        $this->assertCount(1, \iterator_to_array($transport->list(1)));
+
+        $envelopes = \iterator_to_array($transport->list());
+
+        $this->assertCount(2, $envelopes);
+
+        $this->assertInstanceOf(\stdClass::class, $envelopes[0]);
+        $this->assertInstanceOf(\stdClass::class, $envelopes[1]);
+    }
+
+    /**
+     * @test
+     */
+    public function can_list_messages_of_type(): void
+    {
+        $transport = (new TransportInfo('foo', new ListableTransport([
+            new Envelope(new Dummy1()),
+            new Envelope(new Dummy2()),
+            new Envelope(new Dummy3()),
+        ])))->of(Dummy1::class)->messages();
+
+        $this->assertTrue($transport->isListable());
+
+        $this->assertCount(1, \iterator_to_array($transport->list(1)));
+
+        $envelopes = \iterator_to_array($transport);
+
+        $this->assertCount(2, $envelopes);
+        $this->assertInstanceOf(Dummy1::class, $envelopes[0]);
+        $this->assertInstanceOf(Dummy2::class, $envelopes[1]);
+
+        $envelopes = \iterator_to_array($transport->envelopes());
+
+        $this->assertCount(2, $envelopes);
+        $this->assertInstanceOf(Envelope::class, $envelopes[0]);
+        $this->assertInstanceOf(Envelope::class, $envelopes[1]);
+    }
+}
+
+class Dummy1
+{
+}
+
+class Dummy2 extends Dummy1
+{
+}
+
+class Dummy3
+{
 }
