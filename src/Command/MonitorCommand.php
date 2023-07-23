@@ -17,9 +17,12 @@ use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Helper\TableCellStyle;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Zenstruck\Messenger\Monitor\History\Specification;
+use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
@@ -31,9 +34,29 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
 #[AsCommand('messenger:monitor', 'Display a status overview of your workers and transports')]
 final class MonitorCommand extends Command
 {
-    public function __construct(private WorkerMonitor $workers, private TransportMonitor $transports)
-    {
+    private const SNAPSHOTS = [
+        'last-hour' => [Specification::ONE_HOUR_AGO, 'Last Hour'],
+        'last-day' => [Specification::ONE_DAY_AGO, 'Last Day'],
+        'last-week' => [Specification::ONE_WEEK_AGO, 'Last Week'],
+    ];
+
+    public function __construct(
+        private WorkerMonitor $workers,
+        private TransportMonitor $transports,
+        private ?Storage $storage = null,
+    ) {
         parent::__construct();
+    }
+
+    protected function configure(): void
+    {
+        if (!$this->storage) {
+            return;
+        }
+
+        $this
+            ->addOption('snapshot', 's', InputOption::VALUE_REQUIRED, 'Historical snapshot', 'last-day', \array_keys(self::SNAPSHOTS))
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -42,14 +65,13 @@ final class MonitorCommand extends Command
         $io->title('Messenger Monitor Overview');
 
         if (!$output instanceof ConsoleOutputInterface || !$input->isInteractive()) {
-            return $this->render($io);
+            return $this->render($io, $input);
         }
 
         $io = new SymfonyStyle($input, $section = $output->section());
 
         while (true) { // @phpstan-ignore-line
-            $this->render($io);
-            $io->writeln('');
+            $this->render($io, $input);
             $io->writeln('<comment>! [NOTE] Press CTRL+C to quit</comment>');
 
             \sleep(1);
@@ -57,14 +79,58 @@ final class MonitorCommand extends Command
         }
     }
 
-    private function render(SymfonyStyle $io): int
+    private function render(SymfonyStyle $io, InputInterface $input): int
     {
         $this->renderWorkerStatus($io);
         $io->writeln('');
         $this->renderTransportStatus($io);
         $io->writeln('');
 
+        if ($this->storage) {
+            $this->renderSnapshot($io, $input);
+            $io->writeln('');
+        }
+
         return self::SUCCESS;
+    }
+
+    private function renderSnapshot(SymfonyStyle $io, InputInterface $input): void
+    {
+        [$from, $title] = self::SNAPSHOTS[$input->getOption('snapshot')] ?? self::SNAPSHOTS['last-day'];
+        $snapshot = Specification::new()->from($from)->snapshot($this->storage); // @phpstan-ignore-line
+        $waitTime = $snapshot->averageWaitTime();
+        $handlingTime = $snapshot->averageHandlingTime();
+        $failRate = \round($snapshot->failRate() * 100);
+
+        $io->createTable()
+            ->setHorizontal()
+            ->setHeaderTitle('Historical Snapshot')
+            ->setHeaders([
+                'Period',
+                'Messages Processed',
+                'Fail Rate',
+                'Avg. Wait Time',
+                'Avg. Handling Time',
+                'Handled Per Minute',
+                'Handled Per Hour',
+                'Handled Per Day',
+            ])
+            ->addRow([
+                $title,
+                $snapshot->totalCount(),
+                match (true) {
+                    $failRate < 5 => \sprintf('<info>%s%%</info>', $failRate),
+                    $failRate < 10 => \sprintf('<comment>%s%%</comment>', $failRate),
+                    default => \sprintf('<error>%s%%</error>', $failRate),
+                },
+                $waitTime ? Helper::formatTime($snapshot->averageWaitTime()) : 'n/a',
+                $handlingTime ? Helper::formatTime($snapshot->averageHandlingTime()) : 'n/a',
+                \round($snapshot->handledPerMinute(), 2),
+                \round($snapshot->handledPerHour(), 2),
+                \round($snapshot->handledPerDay(), 2),
+            ])
+            ->render()
+        ;
     }
 
     private function renderWorkerStatus(SymfonyStyle $io): void

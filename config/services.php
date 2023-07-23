@@ -42,6 +42,7 @@ return static function (ContainerConfigurator $container): void {
             ->args([
                 service('zenstruck_messenger_monitor.worker_monitor'),
                 service('zenstruck_messenger_monitor.transport_monitor'),
+                service('zenstruck_messenger_monitor.history.storage')->nullOnInvalid(),
             ])
             ->tag('console.command')
     ;
