@@ -79,13 +79,13 @@ final class TagsTest extends TestCase
      */
     public function create_from_envelope(): void
     {
-        $envelope = new Envelope(new \stdClass(), [
+        $envelope = new Envelope(new TestMessage(), [
             new Tag('foo', 'bar'),
             new Tag('bar', 'baz'),
             new Tag('qux'),
         ]);
 
-        $this->assertSame(['foo', 'bar', 'baz', 'qux'], (new Tags($envelope))->all());
+        $this->assertSame(['from', 'attribute', 'bar', 'foo', 'baz', 'qux'], (new Tags($envelope))->all());
     }
 
     /**
@@ -100,4 +100,9 @@ final class TagsTest extends TestCase
         $this->assertSame(['foo', 'schedule', 'schedule:default', 'schedule:default:id'], (new Tags(['foo', 'schedule:default:id']))->expand()->all());
         $this->assertSame('foo,schedule,schedule:default,schedule:default:id', (new Tags(['foo', 'schedule:default:id']))->expand()->implode());
     }
+}
+
+#[Tag('from', 'attribute', 'bar')]
+class TestMessage
+{
 }

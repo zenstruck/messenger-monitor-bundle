@@ -30,7 +30,7 @@ final class Tags implements \IteratorAggregate, \Countable, \Stringable
     public function __construct(array|string|Envelope|null $tags = [])
     {
         if ($tags instanceof Envelope) {
-            $tags = \array_merge(...\array_map(fn(Tag $t) => $t->values, $tags->all(Tag::class))); // @phpstan-ignore-line
+            $tags = \iterator_to_array(self::parseFrom($tags), preserve_keys: false);
         }
 
         if (null === $tags) {
@@ -91,5 +91,19 @@ final class Tags implements \IteratorAggregate, \Countable, \Stringable
         );
 
         return $clone;
+    }
+
+    /**
+     * @return \Traversable<string>
+     */
+    private static function parseFrom(Envelope $envelope): \Traversable
+    {
+        foreach ((new \ReflectionClass($envelope->getMessage()))->getAttributes(Tag::class) as $attribute) {
+            yield from $attribute->newInstance()->values;
+        }
+
+        foreach ($envelope->all(Tag::class) as $tag) {
+            yield from $tag->values; // @phpstan-ignore-line
+        }
     }
 }
