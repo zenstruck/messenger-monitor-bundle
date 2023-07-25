@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Messenger Monitor{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,{{ include('@ZenstruckMessengerMonitor/icon.svg.twig')|url_encode }}">
+
+    {% block stylesheets %}
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+        <style>
+            .card-alert {
+                border: 0;
+                border-radius: 0;
+            }
+
+            .card-table {
+                margin-bottom: 0;
+            }
+            .card-table tbody tr:last-child td {
+                border-bottom: 0;
+            }
+            .card-table tbody tr:last-child td:first-child {
+                border-bottom-left-radius: var(--bs-card-border-radius);
+            }
+            .card-table tbody tr:last-child td:last-child {
+                border-bottom-right-radius: var(--bs-card-border-radius);
+            }
+        </style>
+    {% endblock %}
+
+    {% block javascripts %}
+    {% endblock %}
+</head>
+<body>
+{% block navbar %}
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">
+                {{ include('@ZenstruckMessengerMonitor/icon.svg.twig', {size: 24, class: 'd-inline-block align-text-top'}) }}
+                {{ block('title') }}
+            </span>
+            {% block navbar_links %}{% endblock %}
+        </div>
+    </nav>
+{% endblock %}
+{% block header %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block body %}
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card position-relative">
+                    {% if workers.running %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                            {{ workers.count }} <span class="visually-hidden">workers running</span>
+                        </span>
+                    {% else %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ workers.count }} <span class="visually-hidden">No workers running</span>
+                        </span>
+                    {% endif %}
+
+                    <div class="card-header">
+                        Worker Status
+                    </div>
+
+                    {% if workers.running %}
+                        <table class="table card-table table-striped align-text-top">
+                            <thead>
+                            <tr>
+                                <th>&nbsp;</th>
+                                <th>Status</th>
+                                <th>Transports</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for worker in workers %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>
+                                        <span class="badge align-text-top text-bg-{{ worker.isIdle ? 'success' : 'primary' }}">
+                                            {{ worker.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% for transport in worker.transports %}
+                                            <span class="badge align-text-top text-bg-secondary">{{ transport }}</span>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
+                            <svg fill="currentcolor" height="1em" width="1em" class="flex-shrink-0 me-2" viewBox="0 0 16 16">
+                                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                            </svg>
+                            <div>
+                                There are no workers running.
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                transports<br/>
+                snapshot
+            </div>
+            <div class="col-md-8">
+                history
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block footer %}{% endblock %}
+</body>
+</html>

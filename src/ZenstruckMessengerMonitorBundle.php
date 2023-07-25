@@ -34,4 +34,9 @@ final class ZenstruckMessengerMonitorBundle extends Bundle
             ));
         }
     }
+
+    public function getPath(): string
+    {
+        return \dirname(__DIR__);
+    }
 }
