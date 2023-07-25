@@ -12,12 +12,15 @@
 namespace Zenstruck\Messenger\Monitor\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\NullAdapter;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableListableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\ListableTransport;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
+use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
+use Zenstruck\Messenger\Monitor\WorkerMonitor;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -75,11 +78,14 @@ final class TransportMonitorTest extends TestCase
 
     private function create(): TransportMonitor
     {
-        return new TransportMonitor(new ServiceLocator([
-            'first' => fn() => $this->createMock(TransportInterface::class),
-            'second' => fn() => new CountableTransport(),
-            'third' => fn() => new ListableTransport(),
-            'fourth' => fn() => new CountableListableTransport(),
-        ]));
+        return new TransportMonitor(
+            new ServiceLocator([
+                'first' => fn() => $this->createMock(TransportInterface::class),
+                'second' => fn() => new CountableTransport(),
+                'third' => fn() => new ListableTransport(),
+                'fourth' => fn() => new CountableListableTransport(),
+            ]),
+            new WorkerMonitor(new WorkerCache(new NullAdapter()))
+        );
     }
 }

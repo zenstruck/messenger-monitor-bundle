@@ -15,6 +15,8 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\Receiver\ListableReceiverInterface;
 use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
+use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
+use Zenstruck\Messenger\Monitor\WorkerMonitor;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -34,6 +36,7 @@ final class TransportInfo implements \IteratorAggregate, \Countable
     public function __construct(
         private string $name,
         private TransportInterface $transport,
+        private WorkerMonitor $workers,
     ) {
     }
 
@@ -110,6 +113,14 @@ final class TransportInfo implements \IteratorAggregate, \Countable
 
             yield $this->envelopes ? $envelope : $envelope->getMessage(); // @phpstan-ignore-line
         }
+    }
+
+    /**
+     * @return WorkerInfo[]
+     */
+    public function workers(): array
+    {
+        return $this->workers->forTransport($this->name);
     }
 
     public function getIterator(): \Traversable

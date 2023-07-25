@@ -42,7 +42,7 @@ final class MonitorCommandTest extends TestCase
     {
         $command = new MonitorCommand(
             new WorkerMonitor(new WorkerCache(new NullAdapter())),
-            new TransportMonitor(new ServiceLocator([]))
+            new TransportMonitor(new ServiceLocator([]), $this->workers())
         );
 
         TestCommand::for($command)
@@ -79,7 +79,7 @@ final class MonitorCommandTest extends TestCase
                 'second' => fn() => new CountableTransport(),
                 'third' => fn() => new ListableTransport(),
                 'fourth' => fn() => new CountableListableTransport(),
-            ]))
+            ]), $this->workers())
         );
 
         TestCommand::for($command)
@@ -87,10 +87,15 @@ final class MonitorCommandTest extends TestCase
             ->assertSuccessful()
             ->assertOutputContains('idle     < 1 sec   first, second   n/a')
             ->assertOutputContains('idle     < 1 sec   first, third    q2')
-            ->assertOutputContains('first    n/a')
-            ->assertOutputContains('second   0')
-            ->assertOutputContains('third    n/a')
-            ->assertOutputContains('fourth   0')
+            ->assertOutputContains('first    n/a               0')
+            ->assertOutputContains('second   0                 0')
+            ->assertOutputContains('third    n/a               0')
+            ->assertOutputContains('fourth   0                 0')
         ;
+    }
+
+    private function workers(): WorkerMonitor
+    {
+        return new WorkerMonitor(new WorkerCache(new NullAdapter()));
     }
 }

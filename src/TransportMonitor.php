@@ -28,8 +28,10 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
      *
      * @param ServiceProviderInterface<TransportInterface> $transports
      */
-    public function __construct(private ServiceProviderInterface $transports)
-    {
+    public function __construct(
+        private ServiceProviderInterface $transports,
+        private WorkerMonitor $workers,
+    ) {
     }
 
     /**
@@ -41,7 +43,7 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
             throw new \InvalidArgumentException(\sprintf('Transport "%s" does not exist.', $name));
         }
 
-        return new TransportInfo($name, $this->transports->get($name)); // @phpstan-ignore-line
+        return new TransportInfo($name, $this->transports->get($name), $this->workers); // @phpstan-ignore-line
     }
 
     /**

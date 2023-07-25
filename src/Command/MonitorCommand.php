@@ -167,12 +167,12 @@ final class MonitorCommand extends Command
     {
         $table = $io->createTable()
             ->setHeaderTitle('Messenger Transports')
-            ->setHeaders(['Name', 'Queued Messages'])
+            ->setHeaders(['Name', 'Queued Messages', 'Workers'])
         ;
 
         if (!$transports = $this->transports->all()) {
             $table->addRow([new TableCell('<error>[!] No transports configured.</error>', [
-                'colspan' => 2,
+                'colspan' => 3,
                 'style' => new TableCellStyle(['align' => 'center']),
             ])]);
             $table->render();
@@ -184,6 +184,7 @@ final class MonitorCommand extends Command
             static fn(TransportInfo $info) => [
                 $info->name(),
                 $info->isCountable() ? \count($info) : '<comment>n/a</comment>',
+                \count($info->workers()),
             ],
             $transports
         ));

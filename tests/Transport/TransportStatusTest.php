@@ -12,11 +12,14 @@
 namespace Zenstruck\Messenger\Monitor\Tests\Transport;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\NullAdapter;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\ListableTransport;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
+use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
+use Zenstruck\Messenger\Monitor\WorkerMonitor;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -28,7 +31,7 @@ final class TransportStatusTest extends TestCase
      */
     public function not_countable(): void
     {
-        $transport = new TransportInfo('foo', $this->createMock(TransportInterface::class));
+        $transport = new TransportInfo('foo', $this->createMock(TransportInterface::class), $this->workers());
 
         $this->assertFalse($transport->isCountable());
 
@@ -42,7 +45,7 @@ final class TransportStatusTest extends TestCase
      */
     public function can_count(): void
     {
-        $transport = new TransportInfo('foo', new CountableTransport());
+        $transport = new TransportInfo('foo', new CountableTransport(), $this->workers());
 
         $this->assertTrue($transport->isCountable());
         $this->assertCount(0, $transport);
@@ -53,7 +56,7 @@ final class TransportStatusTest extends TestCase
      */
     public function not_listable(): void
     {
-        $transport = new TransportInfo('foo', $this->createMock(TransportInterface::class));
+        $transport = new TransportInfo('foo', $this->createMock(TransportInterface::class), $this->workers());
 
         $this->assertFalse($transport->isListable());
 
@@ -70,7 +73,7 @@ final class TransportStatusTest extends TestCase
         $transport = new TransportInfo('foo', new ListableTransport([
             new Envelope(new \stdClass()),
             new Envelope(new \stdClass()),
-        ]));
+        ]), $this->workers());
 
         $this->assertTrue($transport->isListable());
 
@@ -92,7 +95,7 @@ final class TransportStatusTest extends TestCase
         $transport = (new TransportInfo('foo', new ListableTransport([
             new Envelope(new \stdClass()),
             new Envelope(new \stdClass()),
-        ])))->messages();
+        ]), $this->workers()))->messages();
 
         $this->assertTrue($transport->isListable());
 
@@ -115,7 +118,7 @@ final class TransportStatusTest extends TestCase
             new Envelope(new Dummy1()),
             new Envelope(new Dummy2()),
             new Envelope(new Dummy3()),
-        ])))->of(Dummy1::class)->messages();
+        ]), $this->workers()))->of(Dummy1::class)->messages();
 
         $this->assertTrue($transport->isListable());
 
@@ -132,6 +135,25 @@ final class TransportStatusTest extends TestCase
         $this->assertCount(2, $envelopes);
         $this->assertInstanceOf(Envelope::class, $envelopes[0]);
         $this->assertInstanceOf(Envelope::class, $envelopes[1]);
+    }
+
+    /**
+     * @test
+     */
+    public function can_list_workers(): void
+    {
+        $transport = new TransportInfo(
+            'foo',
+            $this->createMock(TransportInterface::class),
+            $this->workers(),
+        );
+
+        $this->assertCount(0, $transport->workers());
+    }
+
+    private function workers(): WorkerMonitor
+    {
+        return new WorkerMonitor(new WorkerCache(new NullAdapter()));
     }
 }
 

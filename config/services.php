@@ -16,6 +16,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('zenstruck_messenger_monitor.transport_monitor', TransportMonitor::class)
             ->args([
                 tagged_locator('messenger.receiver', 'alias'),
+                service('zenstruck_messenger_monitor.worker_monitor'),
             ])
             ->alias(TransportMonitor::class, 'zenstruck_messenger_monitor.transport_monitor')
 
