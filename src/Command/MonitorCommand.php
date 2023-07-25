@@ -101,6 +101,11 @@ final class MonitorCommand extends Command
         $waitTime = $snapshot->averageWaitTime();
         $handlingTime = $snapshot->averageHandlingTime();
         $failRate = \round($snapshot->failRate() * 100);
+        $total = $snapshot->totalCount();
+
+        if ($fails = $snapshot->failureCount()) {
+            $total .= \sprintf(' (<error>%s</error> failed)', $fails);
+        }
 
         $io->createTable()
             ->setHorizontal()
@@ -117,7 +122,7 @@ final class MonitorCommand extends Command
             ])
             ->addRow([
                 $title,
-                $snapshot->totalCount(),
+                $total,
                 match (true) {
                     $failRate < 5 => \sprintf('<info>%s%%</info>', $failRate),
                     $failRate < 10 => \sprintf('<comment>%s%%</comment>', $failRate),

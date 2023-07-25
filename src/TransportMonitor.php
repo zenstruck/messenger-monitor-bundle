@@ -70,9 +70,17 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
         return \array_filter($this->all(), static fn(TransportInfo $status) => $status->isListable());
     }
 
+    /**
+     * @return string[]
+     */
+    public function names(): array
+    {
+        return \array_keys($this->transports->getProvidedServices());
+    }
+
     public function getIterator(): \Traversable
     {
-        foreach (\array_keys($this->transports->getProvidedServices()) as $name) {
+        foreach ($this->names() as $name) {
             yield $name => $this->get($name);
         }
     }

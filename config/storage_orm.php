@@ -6,6 +6,7 @@ use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Zenstruck\Messenger\Monitor\Command\SnapshotCommand;
 use Zenstruck\Messenger\Monitor\History\HistoryListener;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
@@ -35,5 +36,12 @@ return static function (ContainerConfigurator $container): void {
             ->tag('kernel.event_listener', ['method' => 'receiveMessage', 'event' => WorkerMessageReceivedEvent::class])
             ->tag('kernel.event_listener', ['method' => 'handleSuccess', 'event' => WorkerMessageHandledEvent::class])
             ->tag('kernel.event_listener', ['method' => 'handleFailure', 'event' => WorkerMessageFailedEvent::class])
+
+        ->set('.zenstruck_messenger_monitor.command.snapshot', SnapshotCommand::class)
+            ->args([
+                service('zenstruck_messenger_monitor.history.storage'),
+                service('zenstruck_messenger_monitor.transport_monitor'),
+            ])
+            ->tag('console.command')
     ;
 };
