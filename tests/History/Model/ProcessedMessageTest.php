@@ -15,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\Clock;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
@@ -46,6 +47,7 @@ final class ProcessedMessageTest extends TestCase
         $message = new class($envelope) extends ProcessedMessage {};
 
         $this->assertSame($stamp->runId(), $message->runId());
+        $this->assertSame(1, $message->attempt());
         $this->assertSame(\stdClass::class, (string) $message->type());
         $this->assertSame($start, $message->dispatchedAt()->getTimestamp());
         $this->assertSame($start + 1, $message->receivedAt()->getTimestamp());
@@ -67,6 +69,7 @@ final class ProcessedMessageTest extends TestCase
     {
         $envelope = new Envelope(new \stdClass(), [
             (new MonitorStamp())->markReceived('foo'),
+            new RedeliveryStamp(2),
             new ResultStamp(['foo' => 'bar']),
             new Tag('foo', 'bar'),
             new Tag('bar', 'baz'),
@@ -75,6 +78,7 @@ final class ProcessedMessageTest extends TestCase
 
         $message = new class($envelope, new \RuntimeException('fail')) extends ProcessedMessage {};
 
+        $this->assertSame(3, $message->attempt());
         $this->assertSame(['foo', 'bar', 'baz', 'qux'], $message->tags()->all());
         $this->assertSame(['foo' => 'bar'], $message->result());
         $this->assertTrue($message->isFailure());

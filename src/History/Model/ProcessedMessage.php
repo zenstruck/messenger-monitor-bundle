@@ -12,6 +12,7 @@
 namespace Zenstruck\Messenger\Monitor\History\Model;
 
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 
@@ -23,6 +24,7 @@ use function Symfony\Component\Clock\now;
 class ProcessedMessage
 {
     private int $runId;
+    private int $attempt = 1;
 
     /** @var class-string */
     private string $type;
@@ -50,6 +52,10 @@ class ProcessedMessage
         $this->transport = $monitorStamp->transport();
         $this->tags = (new Tags($envelope))->all();
 
+        if ($retryStamp = $envelope->last(RedeliveryStamp::class)) {
+            $this->attempt += $retryStamp->getRetryCount();
+        }
+
         if ($resultStamp = $envelope->last(ResultStamp::class)) {
             $this->result = $resultStamp->value;
         }
@@ -62,6 +68,11 @@ class ProcessedMessage
     final public function runId(): int
     {
         return $this->runId;
+    }
+
+    final public function attempt(): int
+    {
+        return $this->attempt;
     }
 
     final public function type(): Type
