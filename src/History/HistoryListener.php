@@ -11,6 +11,7 @@
 
 namespace Zenstruck\Messenger\Monitor\History;
 
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -19,6 +20,7 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
+use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoring;
 use Zenstruck\Messenger\Monitor\Stamp\Tag;
 
 /**
@@ -39,9 +41,15 @@ final class HistoryListener
 
     public function receiveMessage(WorkerMessageReceivedEvent $event): void
     {
-        $stamp = $event->getEnvelope()->last(MonitorStamp::class);
+        $envelope = $event->getEnvelope();
 
-        if (\class_exists(ScheduledStamp::class) && $scheduledStamp = $event->getEnvelope()->last(ScheduledStamp::class)) {
+        if ($this->isMonitoringDisabled($envelope)) {
+            return;
+        }
+
+        $stamp = $envelope->last(MonitorStamp::class);
+
+        if (\class_exists(ScheduledStamp::class) && $scheduledStamp = $envelope->last(ScheduledStamp::class)) {
             // scheduler transport doesn't trigger SendMessageToTransportsEvent
             $stamp = new MonitorStamp($scheduledStamp->messageContext->triggeredAt);
 
@@ -57,7 +65,9 @@ final class HistoryListener
 
     public function handleSuccess(WorkerMessageHandledEvent $event): void
     {
-        if (!$stamp = $event->getEnvelope()->last(MonitorStamp::class)) {
+        $envelope = $event->getEnvelope();
+
+        if (!$stamp = $envelope->last(MonitorStamp::class)) {
             return;
         }
 
@@ -65,16 +75,18 @@ final class HistoryListener
             return;
         }
 
-        if ($stamp = $event->getEnvelope()->last(HandledStamp::class)) {
+        if ($stamp = $envelope->last(HandledStamp::class)) {
             $event->addStamps(new ResultStamp($this->normalizer->normalize($stamp->getResult())));
         }
 
-        $this->storage->save($event->getEnvelope());
+        $this->storage->save($envelope);
     }
 
     public function handleFailure(WorkerMessageFailedEvent $event): void
     {
-        if (!$stamp = $event->getEnvelope()->last(MonitorStamp::class)) {
+        $envelope = $event->getEnvelope();
+
+        if (!$stamp = $envelope->last(MonitorStamp::class)) {
             return;
         }
 
@@ -84,6 +96,19 @@ final class HistoryListener
 
         $event->addStamps(new ResultStamp($this->normalizer->normalizeException($event->getThrowable())));
 
-        $this->storage->save($event->getEnvelope(), $event->getThrowable());
+        $this->storage->save($envelope, $event->getThrowable());
+    }
+
+    private function isMonitoringDisabled(Envelope $envelope): bool
+    {
+        if ($envelope->last(DisableMonitoring::class)) {
+            return true;
+        }
+
+        if ((new \ReflectionClass($envelope->getMessage()))->getAttributes(DisableMonitoring::class)) {
+            return true;
+        }
+
+        return false;
     }
 }

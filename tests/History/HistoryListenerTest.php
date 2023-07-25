@@ -26,6 +26,7 @@ use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\History\Storage;
+use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoring;
 use Zenstruck\Messenger\Monitor\Stamp\Tag;
 
 /**
@@ -170,4 +171,37 @@ final class HistoryListenerTest extends TestCase
         $listener->handleFailure(new WorkerMessageFailedEvent(new Envelope(new \stdClass()), 'foo', new \RuntimeException()));
         $listener->handleFailure(new WorkerMessageFailedEvent(new Envelope(new \stdClass(), [new MonitorStamp()]), 'foo', new \RuntimeException()));
     }
+
+    /**
+     * @test
+     */
+    public function can_disable_monitoring_with_envelope_stamp(): void
+    {
+        $listener = new HistoryListener($this->createMock(Storage::class), new ResultNormalizer());
+        $envelope = new Envelope(new \stdClass(), [new MonitorStamp(), new DisableMonitoring()]);
+        $event = new WorkerMessageReceivedEvent($envelope, 'foo');
+
+        $listener->receiveMessage($event);
+
+        $this->assertFalse($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
+    }
+
+    /**
+     * @test
+     */
+    public function can_disable_monitoring_message_attribute(): void
+    {
+        $listener = new HistoryListener($this->createMock(Storage::class), new ResultNormalizer());
+        $envelope = new Envelope(new DisabledMonitoringMessage(), [new MonitorStamp()]);
+        $event = new WorkerMessageReceivedEvent($envelope, 'foo');
+
+        $listener->receiveMessage($event);
+
+        $this->assertFalse($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
+    }
+}
+
+#[DisableMonitoring]
+class DisabledMonitoringMessage
+{
 }
