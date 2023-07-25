@@ -29,6 +29,8 @@ final class ZenstruckMessengerMonitorBundle extends Bundle
                 [__DIR__.'/../config/doctrine/mapping' => 'Zenstruck\Messenger\Monitor\History\Model'],
                 [],
                 'zenstruck_messenger_monitor.history.orm_enabled',
+                [],
+                true,
             ));
         }
     }
