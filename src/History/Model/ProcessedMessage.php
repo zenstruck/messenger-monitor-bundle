@@ -22,6 +22,8 @@ use function Symfony\Component\Clock\now;
  */
 class ProcessedMessage
 {
+    private int $runId;
+
     /** @var class-string */
     private string $type;
     private \DateTimeImmutable $dispatchedAt;
@@ -40,6 +42,7 @@ class ProcessedMessage
     {
         $monitorStamp = $envelope->last(MonitorStamp::class) ?? throw new \LogicException('Required stamp not available');
 
+        $this->runId = $monitorStamp->runId();
         $this->type = $envelope->getMessage()::class;
         $this->dispatchedAt = $monitorStamp->dispatchedAt();
         $this->receivedAt = $monitorStamp->receivedAt();
@@ -54,6 +57,11 @@ class ProcessedMessage
         if ($exception) {
             $this->failure = new Failure($exception);
         }
+    }
+
+    final public function runId(): int
+    {
+        return $this->runId;
     }
 
     final public function type(): Type

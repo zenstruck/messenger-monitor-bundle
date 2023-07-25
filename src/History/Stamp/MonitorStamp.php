@@ -22,12 +22,14 @@ use function Symfony\Component\Clock\now;
  */
 final class MonitorStamp implements StampInterface
 {
+    private int $runId;
     private \DateTimeImmutable $dispatchedAt;
     private string $transport;
     private \DateTimeImmutable $receivedAt;
 
     public function __construct(?\DateTimeImmutable $dispatchedAt = null)
     {
+        $this->runId = \random_int(1, 1_000_000_000);
         $this->dispatchedAt = $dispatchedAt ?? now();
     }
 
@@ -43,6 +45,11 @@ final class MonitorStamp implements StampInterface
     public function isReceived(): bool
     {
         return isset($this->receivedAt);
+    }
+
+    public function runId(): int
+    {
+        return $this->runId;
     }
 
     public function dispatchedAt(): \DateTimeImmutable

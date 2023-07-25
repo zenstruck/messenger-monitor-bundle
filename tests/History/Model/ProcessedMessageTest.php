@@ -45,6 +45,7 @@ final class ProcessedMessageTest extends TestCase
 
         $message = new class($envelope) extends ProcessedMessage {};
 
+        $this->assertSame($stamp->runId(), $message->runId());
         $this->assertSame(\stdClass::class, (string) $message->type());
         $this->assertSame($start, $message->dispatchedAt()->getTimestamp());
         $this->assertSame($start + 1, $message->receivedAt()->getTimestamp());
