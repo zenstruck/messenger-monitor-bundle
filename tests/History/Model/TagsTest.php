@@ -87,4 +87,17 @@ final class TagsTest extends TestCase
 
         $this->assertSame(['foo', 'bar', 'baz', 'qux'], (new Tags($envelope))->all());
     }
+
+    /**
+     * @test
+     */
+    public function expand(): void
+    {
+        $this->assertSame([], (new Tags())->expand()->all());
+        $this->assertSame(['foo'], (new Tags(['foo']))->expand()->all());
+        $this->assertSame(['foo', 'bar'], (new Tags(['foo', 'bar']))->expand()->all());
+        $this->assertSame(['foo', 'schedule', 'schedule:default'], (new Tags(['foo', 'schedule:default']))->expand()->all());
+        $this->assertSame(['foo', 'schedule', 'schedule:default', 'schedule:default:id'], (new Tags(['foo', 'schedule:default:id']))->expand()->all());
+        $this->assertSame('foo,schedule,schedule:default,schedule:default:id', (new Tags(['foo', 'schedule:default:id']))->expand()->implode());
+    }
 }

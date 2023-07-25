@@ -71,4 +71,25 @@ final class Tags implements \IteratorAggregate, \Countable, \Stringable
     {
         return \count($this->value);
     }
+
+    public function expand(): self
+    {
+        $clone = clone $this;
+
+        $clone->value = \array_merge(
+            ...\array_map(
+                static function(string $tag): array {
+                    $parts = \explode(':', $tag);
+
+                    return \array_map(
+                        static fn(int $i) => \implode(':', \array_slice($parts, 0, $i + 1)),
+                        \array_keys($parts)
+                    );
+                },
+                $this->value
+            )
+        );
+
+        return $clone;
+    }
 }
