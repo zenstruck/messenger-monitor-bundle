@@ -36,7 +36,7 @@ final class WorkerCache implements \IteratorAggregate
     ) {
     }
 
-    public function add(int $id, WorkerMetadata $metadata): void
+    public function add(int $id, WorkerMetadata $metadata, int $messagesHandled, int $memoryUsage): void
     {
         [$ids, $item] = $this->ids();
 
@@ -45,7 +45,7 @@ final class WorkerCache implements \IteratorAggregate
         $item->set($ids);
 
         $this->cache->save($item);
-        $this->set($id, $metadata, WorkerInfo::IDLE);
+        $this->set($id, $metadata, WorkerInfo::IDLE, $messagesHandled, $memoryUsage);
     }
 
     public function remove(int $id): void
@@ -62,14 +62,14 @@ final class WorkerCache implements \IteratorAggregate
     /**
      * @param WorkerInfo::* $status
      */
-    public function set(int $id, WorkerMetadata $metadata, string $status): void
+    public function set(int $id, WorkerMetadata $metadata, string $status, int $messagesHandled, int $memoryUsage): void
     {
         $this->cache->get(
             self::WORKER_KEY_PREFIX.$id,
-            function(CacheItemInterface $item) use ($metadata, $status, $id) {
+            function(CacheItemInterface $item) use ($metadata, $status, $id, $messagesHandled, $memoryUsage) {
                 $item->expiresAfter($this->expiredWorkerTtl);
 
-                return [$metadata, $status, $id];
+                return [$metadata, $status, $id, $messagesHandled, $memoryUsage];
             },
             \INF // force saving
         );
@@ -90,9 +90,9 @@ final class WorkerCache implements \IteratorAggregate
         );
 
         foreach ($this->cache->getItems($keys) as $item) {
-            [$metadata, $status, $id] = $item->get();
+            [$metadata, $status, $id, $messagesHandled, $memoryUsage] = $item->get();
 
-            yield new WorkerInfo($metadata, $status, $ids[$id]);
+            yield new WorkerInfo($metadata, $status, $ids[$id], $messagesHandled, $memoryUsage);
         }
     }
 

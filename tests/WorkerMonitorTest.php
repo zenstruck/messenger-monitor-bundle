@@ -111,13 +111,19 @@ final class WorkerMonitorTest extends TestCase
         $listener->onStart(new WorkerStartedEvent($worker));
 
         $this->assertSame(WorkerInfo::IDLE, $monitor->all()[0]->status());
+        $this->assertSame(0, $monitor->all()[0]->messagesHandled());
+        $this->assertTrue($monitor->all()[0]->memoryUsage()->isGreaterThan(1));
 
         $listener->onRunning(new WorkerRunningEvent($worker, isWorkerIdle: false));
 
         $this->assertSame(WorkerInfo::PROCESSING, $monitor->all()[0]->status());
+        $this->assertSame(1, $monitor->all()[0]->messagesHandled());
+        $this->assertTrue($monitor->all()[0]->memoryUsage()->isGreaterThan(1));
 
         $listener->onRunning(new WorkerRunningEvent($worker, isWorkerIdle: true));
 
         $this->assertSame(WorkerInfo::IDLE, $monitor->all()[0]->status());
+        $this->assertSame(1, $monitor->all()[0]->messagesHandled());
+        $this->assertTrue($monitor->all()[0]->memoryUsage()->isGreaterThan(1));
     }
 }

@@ -22,6 +22,7 @@ use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 final class WorkerListener
 {
     private int $id;
+    private int $messagesHandled = 0;
 
     public function __construct(private WorkerCache $cache)
     {
@@ -30,7 +31,7 @@ final class WorkerListener
 
     public function onStart(WorkerStartedEvent $event): void
     {
-        $this->cache->add($this->id, $event->getWorker()->getMetadata());
+        $this->cache->add($this->id, $event->getWorker()->getMetadata(), $this->messagesHandled, \memory_get_usage(true));
     }
 
     public function onStop(): void
@@ -40,10 +41,16 @@ final class WorkerListener
 
     public function onRunning(WorkerRunningEvent $event): void
     {
+        if (!$event->isWorkerIdle()) {
+            ++$this->messagesHandled;
+        }
+
         $this->cache->set(
             $this->id,
             $event->getWorker()->getMetadata(),
             $event->isWorkerIdle() ? WorkerInfo::IDLE : WorkerInfo::PROCESSING,
+            $this->messagesHandled,
+            \memory_get_usage(true),
         );
     }
 }

@@ -22,7 +22,7 @@ use function Symfony\Component\Clock\now;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class WorkerStatusTest extends TestCase
+final class WorkerInfoTest extends TestCase
 {
     use ClockSensitiveTrait;
 
@@ -33,7 +33,7 @@ final class WorkerStatusTest extends TestCase
     {
         self::mockTime();
 
-        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::IDLE, now()->getTimestamp());
+        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::IDLE, now()->getTimestamp(), 0, 0);
 
         $this->assertSame(0, $info->runningFor());
         $this->assertSame($start = now()->getTimestamp(), $info->startTime()->getTimestamp());
@@ -49,17 +49,21 @@ final class WorkerStatusTest extends TestCase
      */
     public function can_get_status(): void
     {
-        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::IDLE, now()->getTimestamp());
+        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::IDLE, now()->getTimestamp(), 10, 20);
 
         $this->assertSame(WorkerInfo::IDLE, $info->status());
         $this->assertTrue($info->isIdle());
         $this->assertFalse($info->isProcessing());
+        $this->assertSame(10, $info->messagesHandled());
+        $this->assertSame(20, $info->memoryUsage()->value());
 
-        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::PROCESSING, now()->getTimestamp());
+        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::PROCESSING, now()->getTimestamp(), 10, 20);
 
         $this->assertSame(WorkerInfo::PROCESSING, $info->status());
         $this->assertFalse($info->isIdle());
         $this->assertTrue($info->isProcessing());
+        $this->assertSame(10, $info->messagesHandled());
+        $this->assertSame(20, $info->memoryUsage()->value());
     }
 
     /**
@@ -67,11 +71,11 @@ final class WorkerStatusTest extends TestCase
      */
     public function can_get_transports(): void
     {
-        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::IDLE, now()->getTimestamp());
+        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::IDLE, now()->getTimestamp(), 0, 0);
 
         $this->assertEmpty($info->transports());
 
-        $info = new WorkerInfo(new WorkerMetadata(['transportNames' => ['foo', 'bar']]), WorkerInfo::IDLE, now()->getTimestamp());
+        $info = new WorkerInfo(new WorkerMetadata(['transportNames' => ['foo', 'bar']]), WorkerInfo::IDLE, now()->getTimestamp(), 0, 0);
 
         $this->assertSame(['foo', 'bar'], $info->transports());
     }
@@ -81,11 +85,11 @@ final class WorkerStatusTest extends TestCase
      */
     public function can_get_queues(): void
     {
-        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::IDLE, now()->getTimestamp());
+        $info = new WorkerInfo(new WorkerMetadata([]), WorkerInfo::IDLE, now()->getTimestamp(), 0, 0);
 
         $this->assertEmpty($info->queues());
 
-        $info = new WorkerInfo(new WorkerMetadata(['queueNames' => ['foo', 'bar']]), WorkerInfo::IDLE, now()->getTimestamp());
+        $info = new WorkerInfo(new WorkerMetadata(['queueNames' => ['foo', 'bar']]), WorkerInfo::IDLE, now()->getTimestamp(), 0, 0);
 
         $this->assertSame(['foo', 'bar'], $info->queues());
     }

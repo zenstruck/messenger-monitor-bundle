@@ -73,6 +73,8 @@
                                 <th>&nbsp;</th>
                                 <th>Status</th>
                                 <th>Transports</th>
+                                <th># Handled</th>
+                                <th>Memory Usage</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -88,6 +90,12 @@
                                         {% for transport in worker.transports %}
                                             <span class="badge align-text-top text-bg-secondary">{{ transport }}</span>
                                         {% endfor %}
+                                    </td>
+                                    <td>
+                                        {{ worker.messagesHandled }}
+                                    </td>
+                                    <td>
+                                        {{ worker.memoryUsage }}
                                     </td>
                                 </tr>
                             {% endfor %}

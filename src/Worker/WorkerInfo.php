@@ -12,6 +12,7 @@
 namespace Zenstruck\Messenger\Monitor\Worker;
 
 use Symfony\Component\Messenger\WorkerMetadata;
+use Zenstruck\Bytes;
 
 use function Symfony\Component\Clock\now;
 
@@ -28,8 +29,13 @@ final class WorkerInfo
      *
      * @param self::* $status
      */
-    public function __construct(private WorkerMetadata $metadata, private string $status, private int $startTime)
-    {
+    public function __construct(
+        private WorkerMetadata $metadata,
+        private string $status,
+        private int $startTime,
+        private int $messagesHandled,
+        private int $memoryUsage,
+    ) {
     }
 
     public function status(): string
@@ -74,5 +80,15 @@ final class WorkerInfo
     public function isProcessing(): bool
     {
         return self::PROCESSING === $this->status;
+    }
+
+    public function messagesHandled(): int
+    {
+        return $this->messagesHandled;
+    }
+
+    public function memoryUsage(): Bytes
+    {
+        return new Bytes($this->memoryUsage);
     }
 }

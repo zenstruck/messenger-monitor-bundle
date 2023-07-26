@@ -24,7 +24,7 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class TransportStatusTest extends TestCase
+final class TransportInfoTest extends TestCase
 {
     /**
      * @test

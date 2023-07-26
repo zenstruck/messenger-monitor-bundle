@@ -15,6 +15,7 @@
         "php": ">=8.1",
         "symfony/framework-bundle": "^6.3",
         "symfony/messenger": "^6.3",
+        "zenstruck/bytes": "^0.2.0",
         "zenstruck/collection": "^0.2.1"
     },
     "require-dev": {

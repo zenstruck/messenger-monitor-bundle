@@ -142,12 +142,12 @@ final class MonitorCommand extends Command
     {
         $table = $io->createTable()
             ->setHeaderTitle('Messenger Workers')
-            ->setHeaders(['Status', 'Up Time', 'Transports', 'Queues'])
+            ->setHeaders(['Status', 'Up Time', 'Transports', 'Queues', 'Messages', 'Memory'])
         ;
 
         if (!$workers = $this->workers->all()) {
             $table->addRow([new TableCell('<error>[!] No workers running.</error>', [
-                'colspan' => 4,
+                'colspan' => 6,
                 'style' => new TableCellStyle(['align' => 'center']),
             ])]);
             $table->render();
@@ -161,6 +161,8 @@ final class MonitorCommand extends Command
                 Helper::formatTime($info->runningFor()),
                 \implode(', ', $info->transports()),
                 \implode(', ', $info->queues()) ?: 'n/a',
+                $info->messagesHandled(),
+                (string) $info->memoryUsage(),
             ],
             $workers,
         ));
