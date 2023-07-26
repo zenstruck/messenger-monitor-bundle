@@ -13,6 +13,7 @@ namespace Zenstruck\Messenger\Monitor\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\WorkerMonitor;
@@ -22,12 +23,16 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
  */
 abstract class MonitorDashboardController extends AbstractController
 {
-    public function __invoke(WorkerMonitor $workers, TransportMonitor $transports, Storage $storage): Response
+    public function __invoke(WorkerMonitor $workers, TransportMonitor $transports, ?Storage $storage = null): Response
     {
+        if (!$storage) {
+            throw new \LogicException('Storage must be configured to use the dashboard.');
+        }
+
         return $this->render($this->dashboardTemplate(), [
             'workers' => $workers,
             'transports' => $transports,
-            'storage' => $storage,
+            'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
         ]);
     }
 
