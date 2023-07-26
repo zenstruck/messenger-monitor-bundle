@@ -14,6 +14,8 @@ namespace Zenstruck\Messenger\Monitor\Tests;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\NullAdapter;
 use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Transport\Sync\SyncTransport;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableListableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableTransport;
@@ -84,6 +86,7 @@ final class TransportMonitorTest extends TestCase
                 'second' => fn() => new CountableTransport(),
                 'third' => fn() => new ListableTransport(),
                 'fourth' => fn() => new CountableListableTransport(),
+                'fifth' => fn() => new SyncTransport($this->createMock(MessageBusInterface::class)),
             ]),
             new WorkerMonitor(new WorkerCache(new NullAdapter()))
         );

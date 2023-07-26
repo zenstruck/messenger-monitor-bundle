@@ -12,6 +12,7 @@
 namespace Zenstruck\Messenger\Monitor;
 
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Transport\Sync\SyncTransport;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Contracts\Service\ServiceProviderInterface;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
@@ -23,6 +24,9 @@ use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
  */
 final class TransportMonitor implements \IteratorAggregate, \Countable
 {
+    /** @var string[] */
+    private array $names;
+
     /**
      * @internal
      *
@@ -75,7 +79,10 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
      */
     public function names(): array
     {
-        return \array_keys($this->transports->getProvidedServices());
+        return $this->names ??= \array_filter(
+            \array_keys($this->transports->getProvidedServices()),
+            fn(string $name) => !$this->transports->get($name) instanceof SyncTransport,
+        );
     }
 
     public function getIterator(): \Traversable
@@ -87,6 +94,6 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
 
     public function count(): int
     {
-        return \count($this->transports->getProvidedServices());
+        return \count($this->names());
     }
 }
