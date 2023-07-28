@@ -40,7 +40,7 @@ abstract class MonitorDashboardController extends AbstractController
             'workers' => $workers,
             'transports' => $transports,
             'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
-            'messages' => Specification::new()->snapshot($storage)->messages(),
+            'messages' => Specification::new()->without('schedule')->snapshot($storage)->messages(),
             'schedules' => $schedules,
             'knp' => $knp,
         ]);

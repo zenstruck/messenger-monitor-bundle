@@ -22,7 +22,8 @@ namespace Zenstruck\Messenger\Monitor\History;
  *     status?: self::SUCCESS|self::FAILED|null,
  *     message_type?: ?string,
  *     transport?: ?string,
- *     tag?: ?string
+ *     tag?: ?string,
+ *     not_tag?: ?string,
  * }
  */
 final class Specification
@@ -55,6 +56,7 @@ final class Specification
     private ?string $messageType = null;
     private ?string $transport = null;
     private ?string $tag = null;
+    private ?string $notTag = null;
 
     public static function new(): self
     {
@@ -80,6 +82,7 @@ final class Specification
         $specification->messageType = $values['message_type'] ?? null;
         $specification->transport = $values['transport'] ?? null;
         $specification->tag = $values['tag'] ?? null;
+        $specification->notTag = $values['not_tag'] ?? null;
         $specification->status = match ($values['status'] ?? null) {
             self::SUCCESS => self::SUCCESS,
             self::FAILED => self::FAILED,
@@ -129,6 +132,14 @@ final class Specification
         return $clone;
     }
 
+    public function without(?string $tag): self
+    {
+        $clone = clone $this;
+        $clone->notTag = $tag;
+
+        return $clone;
+    }
+
     public function successes(): self
     {
         $clone = clone $this;
@@ -152,7 +163,8 @@ final class Specification
      *     status: self::SUCCESS|self::FAILED|null,
      *     message_type: ?string,
      *     transport: ?string,
-     *     tag: ?string
+     *     tag: ?string,
+     *     not_tag: ?string,
      * }
      */
     public function toArray(): array
@@ -164,6 +176,7 @@ final class Specification
             'message_type' => $this->messageType,
             'transport' => $this->transport,
             'tag' => $this->tag,
+            'not_tag' => $this->notTag,
         ];
     }
 

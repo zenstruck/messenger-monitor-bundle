@@ -35,6 +35,7 @@ final class SpecificationTest extends TestCase
                 'message_type' => null,
                 'transport' => null,
                 'tag' => null,
+                'not_tag' => null,
             ],
             $spec->toArray(),
         );
@@ -55,6 +56,7 @@ final class SpecificationTest extends TestCase
                 'message_type' => null,
                 'transport' => null,
                 'tag' => null,
+                'not_tag' => null,
             ],
             $spec->toArray(),
         );
@@ -66,6 +68,7 @@ final class SpecificationTest extends TestCase
             'message_type' => 'foo',
             'transport' => 'bar',
             'tag' => 'baz',
+            'not_tag' => 'qux',
         ]);
 
         $this->assertEquals(
@@ -76,6 +79,7 @@ final class SpecificationTest extends TestCase
                 'message_type' => 'foo',
                 'transport' => 'bar',
                 'tag' => 'baz',
+                'not_tag' => 'qux',
             ],
             $spec->toArray(),
         );

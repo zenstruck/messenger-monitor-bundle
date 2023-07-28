@@ -129,7 +129,7 @@ final class ORMStorage implements Storage
 
     private function queryBuilderFor(Specification $specification, bool $order = false): QueryBuilder
     {
-        [$from, $to, $status, $messageType, $transport, $tag] = \array_values($specification->toArray());
+        [$from, $to, $status, $messageType, $transport, $tag, $notTag] = \array_values($specification->toArray());
 
         $qb = $this->repository()->createQueryBuilder('m');
 
@@ -157,6 +157,10 @@ final class ORMStorage implements Storage
 
         if ($tag) {
             $qb->andWhere('m.tags LIKE :tag')->setParameter('tag', '%'.$tag.'%');
+        }
+
+        if ($notTag) {
+            $qb->andWhere('m.tags NOT LIKE :not_tag')->setParameter('not_tag', '%'.$notTag.'%');
         }
 
         if ($order) {
