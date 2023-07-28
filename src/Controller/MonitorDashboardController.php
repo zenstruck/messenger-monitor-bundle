@@ -11,6 +11,7 @@
 
 namespace Zenstruck\Messenger\Monitor\Controller;
 
+use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Zenstruck\Messenger\Monitor\History\Specification;
@@ -23,8 +24,12 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
  */
 abstract class MonitorDashboardController extends AbstractController
 {
-    public function __invoke(WorkerMonitor $workers, TransportMonitor $transports, ?Storage $storage = null): Response
-    {
+    public function __invoke(
+        WorkerMonitor $workers,
+        TransportMonitor $transports,
+        ?Storage $storage = null,
+        ?DateTimeFormatter $knp = null, // @phpstan-ignore-line
+    ): Response {
         if (!$storage) {
             throw new \LogicException('Storage must be configured to use the dashboard.');
         }
@@ -33,6 +38,8 @@ abstract class MonitorDashboardController extends AbstractController
             'workers' => $workers,
             'transports' => $transports,
             'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
+            'messages' => Specification::new()->snapshot($storage)->messages(),
+            'knp' => $knp,
         ]);
     }
 
