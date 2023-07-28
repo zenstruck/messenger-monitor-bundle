@@ -17,6 +17,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use Symfony\Component\Scheduler\Schedule;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 
 /**
@@ -60,6 +61,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
     {
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__.'/../../config'));
         $loader->load('services.php');
+
+        if (\class_exists(Schedule::class)) {
+            $loader->load('schedule.php');
+        }
 
         if ($entity = $mergedConfig['storage']['orm']['entity_class'] ?? null) {
             $loader->load('storage_orm.php');
