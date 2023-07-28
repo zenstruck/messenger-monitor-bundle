@@ -38,16 +38,13 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     ) {
     }
 
-    /**
-     * @return TransportInfo<Envelope>
-     */
     public function get(string $name): TransportInfo
     {
         if (!$this->transports->has($name)) {
             throw new \InvalidArgumentException(\sprintf('Transport "%s" does not exist.', $name));
         }
 
-        return new TransportInfo($name, $this->transports->get($name), $this->workers); // @phpstan-ignore-line
+        return new TransportInfo($name, $this->transports->get($name), $this->workers);
     }
 
     /**

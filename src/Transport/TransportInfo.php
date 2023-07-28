@@ -15,24 +15,19 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\Receiver\ListableReceiverInterface;
 use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
+use Zenstruck\Collection;
 use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
 use Zenstruck\Messenger\Monitor\WorkerMonitor;
+
+use function Zenstruck\collect;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
- * @immutable
- *
- * @template T of object
- * @implements \IteratorAggregate<T>
+ * @implements \IteratorAggregate<Envelope>
  */
 final class TransportInfo implements \IteratorAggregate, \Countable
 {
-    private bool $envelopes = true;
-
-    /** @var class-string|null */
-    private ?string $class = null;
-
     public function __construct(
         private string $name,
         private TransportInterface $transport,
@@ -61,58 +56,15 @@ final class TransportInfo implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return self<object>
+     * @return Collection<int,Envelope>
      */
-    public function messages(): self
-    {
-        $clone = clone $this;
-        $clone->envelopes = false;
-
-        return $clone;
-    }
-
-    /**
-     * @return self<Envelope>
-     */
-    public function envelopes(): self
-    {
-        $clone = clone $this;
-        $clone->envelopes = true;
-
-        return $clone;
-    }
-
-    /**
-     * @template C of object
-     *
-     * @param class-string<C> $class
-     *
-     * @return self<C>
-     */
-    public function of(string $class): self
-    {
-        $clone = clone $this;
-        $clone->class = $class;
-
-        return $clone;
-    }
-
-    /**
-     * @return \Traversable<T>
-     */
-    public function list(?int $limit = null): \Traversable
+    public function list(?int $limit = null): Collection
     {
         if (!$this->transport instanceof ListableReceiverInterface) {
             throw new \LogicException(\sprintf('Transport "%s" does not implement "%s".', $this->name, ListableReceiverInterface::class));
         }
 
-        foreach ($this->transport->all($limit) as $envelope) {
-            if ($this->class && !\is_a($envelope->getMessage(), $this->class, true)) {
-                continue;
-            }
-
-            yield $this->envelopes ? $envelope : $envelope->getMessage(); // @phpstan-ignore-line
-        }
+        return collect($this->transport->all($limit));
     }
 
     /**

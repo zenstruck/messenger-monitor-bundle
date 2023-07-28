@@ -14,6 +14,8 @@ namespace Zenstruck\Messenger\Monitor\History;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
+ * @immutable
+ *
  * @phpstan-type Input = array{
  *     from?: \DateTimeImmutable|string|null,
  *     to?: \DateTimeImmutable|string|null,
