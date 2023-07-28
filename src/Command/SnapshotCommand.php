@@ -48,7 +48,7 @@ final class SnapshotCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $specification = Specification::fromArray([
+        $specification = Specification::create([
             'from' => $input->getOption('from'),
             'to' => $input->getOption('to'),
             'status' => $input->getOption('status'),

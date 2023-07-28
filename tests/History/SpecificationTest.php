@@ -43,9 +43,9 @@ final class SpecificationTest extends TestCase
     /**
      * @test
      */
-    public function from_array(): void
+    public function create(): void
     {
-        $spec = Specification::fromArray([]);
+        $spec = Specification::create([]);
 
         $this->assertSame(
             [
@@ -59,7 +59,7 @@ final class SpecificationTest extends TestCase
             $spec->toArray(),
         );
 
-        $spec = Specification::fromArray([
+        $spec = Specification::create([
             'from' => '2023-01-01',
             'to' => '2023-01-02',
             'status' => Specification::SUCCESS,

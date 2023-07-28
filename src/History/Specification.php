@@ -13,6 +13,15 @@ namespace Zenstruck\Messenger\Monitor\History;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @phpstan-type Input = array{
+ *     from?: \DateTimeImmutable|string|null,
+ *     to?: \DateTimeImmutable|string|null,
+ *     status?: self::SUCCESS|self::FAILED|null,
+ *     message_type?: ?string,
+ *     transport?: ?string,
+ *     tag?: ?string
+ * }
  */
 final class Specification
 {
@@ -51,17 +60,18 @@ final class Specification
     }
 
     /**
-     * @param array{
-     *     from?: \DateTimeImmutable|string|null,
-     *     to?: \DateTimeImmutable|string|null,
-     *     status?: self::SUCCESS|self::FAILED|null,
-     *     message_type?: ?string,
-     *     transport?: ?string,
-     *     tag?: ?string
-     * } $values
+     * @param Input|self|null $values
      */
-    public static function fromArray(array $values): self
+    public static function create(self|array|null $values): self
     {
+        if ($values instanceof self) {
+            return $values;
+        }
+
+        if (!\is_array($values)) {
+            $values = [];
+        }
+
         $specification = new self();
         $specification->from = self::parseDate($values['from'] ?? null);
         $specification->to = self::parseDate($values['to'] ?? null);

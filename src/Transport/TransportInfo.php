@@ -123,6 +123,11 @@ final class TransportInfo implements \IteratorAggregate, \Countable
         return $this->workers->forTransport($this->name);
     }
 
+    public function isRunning(): bool
+    {
+        return (bool) \count($this->workers());
+    }
+
     public function getIterator(): \Traversable
     {
         yield from $this->list();

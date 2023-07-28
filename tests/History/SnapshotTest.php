@@ -28,7 +28,7 @@ final class SnapshotTest extends TestCase
      */
     public function access_values(): void
     {
-        $spec = Specification::fromArray(['from' => '2023-01-01', 'to' => '2023-01-02']);
+        $spec = Specification::create(['from' => '2023-01-01', 'to' => '2023-01-02']);
         $storage = $this->createMock(Storage::class);
         $storage->expects($this->once())->method('filter')->with($spec)->willReturn(collect(['foo', 'bar']));
         $storage->expects($this->exactly(2))->method('count')->with($this->isInstanceOf(Specification::class))->willReturn(60, 40);
@@ -81,7 +81,7 @@ final class SnapshotTest extends TestCase
      */
     public function invalid_wait_times(): void
     {
-        $spec = Specification::fromArray(['from' => '2023-01-01', 'to' => '2023-01-02']);
+        $spec = Specification::create(['from' => '2023-01-01', 'to' => '2023-01-02']);
         $storage = $this->createMock(Storage::class);
         $storage->expects($this->once())->method('averageWaitTime')->with($spec)->willReturn(null);
         $storage->expects($this->once())->method('averageHandlingTime')->with($spec)->willReturn(null);
