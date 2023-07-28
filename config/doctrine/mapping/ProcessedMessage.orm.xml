@@ -10,6 +10,7 @@
         <field name="dispatchedAt" column="dispatched_at" type="datetime_immutable" />
         <field name="receivedAt" column="received_at" type="datetime_immutable" />
         <field name="handledAt" column="handled_at" type="datetime_immutable" />
+        <field name="memoryUsage" column="memory_usage" type="integer" />
         <field name="transport" column="transport" />
         <field name="tags" column="tags" type="json" />
         <field name="failure" column="failure" nullable="true" />

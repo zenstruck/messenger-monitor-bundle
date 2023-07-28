@@ -60,6 +60,7 @@ final class ProcessedMessageTest extends TestCase
         $this->assertSame(3, $message->timeToProcess());
         $this->assertFalse($message->isFailure());
         $this->assertNull($message->failure());
+        $this->assertTrue($message->memoryUsage()->isGreaterThan(0));
     }
 
     /**

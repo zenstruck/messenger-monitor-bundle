@@ -13,6 +13,7 @@ namespace Zenstruck\Messenger\Monitor\History\Model;
 
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
+use Zenstruck\Bytes;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 
@@ -31,6 +32,7 @@ class ProcessedMessage
     private \DateTimeImmutable $dispatchedAt;
     private \DateTimeImmutable $receivedAt;
     private \DateTimeImmutable $handledAt;
+    private int $memoryUsage;
     private string $transport;
 
     /** @var string[] */
@@ -49,6 +51,7 @@ class ProcessedMessage
         $this->dispatchedAt = $monitorStamp->dispatchedAt();
         $this->receivedAt = $monitorStamp->receivedAt();
         $this->handledAt = now();
+        $this->memoryUsage = \memory_get_usage(true);
         $this->transport = $monitorStamp->transport();
         $this->tags = (new Tags($envelope))->all();
 
@@ -136,5 +139,10 @@ class ProcessedMessage
     final public function timeToProcess(): int
     {
         return \max(0, $this->handledAt->getTimestamp() - $this->dispatchedAt->getTimestamp());
+    }
+
+    final public function memoryUsage(): Bytes
+    {
+        return new Bytes($this->memoryUsage);
     }
 }
