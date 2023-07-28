@@ -16,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
+use Zenstruck\Messenger\Monitor\ScheduleMonitor;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\WorkerMonitor;
 
@@ -28,6 +29,7 @@ abstract class MonitorDashboardController extends AbstractController
         WorkerMonitor $workers,
         TransportMonitor $transports,
         ?Storage $storage = null,
+        ?ScheduleMonitor $schedules = null,
         ?DateTimeFormatter $knp = null, // @phpstan-ignore-line
     ): Response {
         if (!$storage) {
@@ -39,6 +41,7 @@ abstract class MonitorDashboardController extends AbstractController
             'transports' => $transports,
             'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
             'messages' => Specification::new()->snapshot($storage)->messages(),
+            'schedules' => $schedules,
             'knp' => $knp,
         ]);
     }
