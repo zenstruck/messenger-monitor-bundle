@@ -12,8 +12,12 @@
 namespace Zenstruck\Messenger\Monitor\Tests\History;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Exception\RunCommandFailedException;
+use Symfony\Component\Console\Messenger\RunCommandContext;
+use Symfony\Component\Console\Messenger\RunCommandMessage;
+use Symfony\Component\Process\Exception\RunProcessFailedException;
+use Symfony\Component\Process\Messenger\RunProcessMessage;
+use Symfony\Component\Process\Messenger\RunProcessMessageHandler;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -111,30 +115,21 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize_process(): void
     {
+        if (!\class_exists(RunProcessMessage::class)) {
+            $this->markTestSkipped('symfony/process 6.4+ required.');
+        }
+
         $normalizer = new ResultNormalizer();
-        $process = Process::fromShellCommandline('ls');
-        $process->run();
+        $context = (new RunProcessMessageHandler())(new RunProcessMessage(['ls']));
 
         $this->assertSame(
             [
-                'exit_code' => $process->getExitCode(),
-                'output' => $process->getOutput(),
-                'error_output' => $process->getErrorOutput(),
-                'duration' => $process->getLastOutputTime() - $process->getStartTime(),
+                'exit_code' => $context->exitCode,
+                'output' => $context->output,
+                'error_output' => $context->errorOutput,
             ],
-            $normalizer->normalize($process),
+            $normalizer->normalize($context),
         );
-    }
-
-    /**
-     * @test
-     */
-    public function normalize_process_fails(): void
-    {
-        $normalizer = new ResultNormalizer();
-        $process = Process::fromShellCommandline('ls');
-
-        $this->assertSame([], $normalizer->normalize($process));
     }
 
     /**
@@ -142,18 +137,57 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize_process_exception(): void
     {
-        $normalizer = new ResultNormalizer();
-        $process = Process::fromShellCommandline('invalid');
-        $process->run();
+        if (!\class_exists(RunProcessMessage::class)) {
+            $this->markTestSkipped('symfony/process 6.4+ required.');
+        }
 
-        $this->assertSame(
-            [
-                'exit_code' => $process->getExitCode(),
-                'output' => $process->getOutput(),
-                'error_output' => $process->getErrorOutput(),
-                'duration' => $process->getLastOutputTime() - $process->getStartTime(),
-            ],
-            $normalizer->normalizeException(new ProcessFailedException($process)),
-        );
+        $normalizer = new ResultNormalizer();
+
+        try {
+            (new RunProcessMessageHandler())(new RunProcessMessage(['invalid']));
+        } catch (RunProcessFailedException $e) {
+            $this->assertSame(
+                [
+                    'exit_code' => 127,
+                    'output' => '',
+                    'error_output' => "sh: 1: exec: invalid: not found\n",
+                ],
+                $normalizer->normalizeException($e)
+            );
+
+            return;
+        }
+
+        $this->fail('Exception not thrown.');
+    }
+
+    /**
+     * @test
+     */
+    public function normalize_run_command_context(): void
+    {
+        if (!\class_exists(RunCommandContext::class)) {
+            $this->markTestSkipped('symfony/console 6.4+ required.');
+        }
+
+        $normalizer = new ResultNormalizer();
+        $context = new RunCommandContext(new RunCommandMessage('command'), 0, 'output');
+
+        $this->assertSame(['exit_code' => 0, 'output' => 'output'], $normalizer->normalize($context));
+    }
+
+    /**
+     * @test
+     */
+    public function normalize_run_command_exception(): void
+    {
+        if (!\class_exists(RunCommandContext::class)) {
+            $this->markTestSkipped('symfony/console 6.4+ required.');
+        }
+
+        $normalizer = new ResultNormalizer();
+        $context = new RunCommandFailedException('fail', new RunCommandContext(new RunCommandMessage('command'), 1, 'output'));
+
+        $this->assertSame(['exit_code' => 1, 'output' => 'output'], $normalizer->normalizeException($context));
     }
 }

@@ -11,9 +11,10 @@
 
 namespace Zenstruck\Messenger\Monitor\History;
 
-use Symfony\Component\Process\Exception\ExceptionInterface as ProcessException;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Exception\RunCommandFailedException;
+use Symfony\Component\Console\Messenger\RunCommandContext;
+use Symfony\Component\Process\Exception\RunProcessFailedException;
+use Symfony\Component\Process\Messenger\RunProcessContext;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientException;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -34,8 +35,19 @@ final class ResultNormalizer
             return [];
         }
 
-        if ($result instanceof Process) {
-            return self::normalizeProcess($result);
+        if ($result instanceof RunProcessContext) { // @phpstan-ignore-line
+            return [
+                'exit_code' => $result->exitCode, // @phpstan-ignore-line
+                'output' => $result->output, // @phpstan-ignore-line
+                'error_output' => $result->errorOutput, // @phpstan-ignore-line
+            ];
+        }
+
+        if ($result instanceof RunCommandContext) { // @phpstan-ignore-line
+            return [
+                'exit_code' => $result->exitCode, // @phpstan-ignore-line
+                'output' => $result->output, // @phpstan-ignore-line
+            ];
         }
 
         if ($result instanceof ResponseInterface) {
@@ -57,8 +69,12 @@ final class ResultNormalizer
      */
     public function normalizeException(\Throwable $exception): array
     {
-        if ($exception instanceof ProcessFailedException) {
-            return $this->normalize($exception->getProcess());
+        if ($exception instanceof RunProcessFailedException) { // @phpstan-ignore-line
+            return $this->normalize($exception->context); // @phpstan-ignore-line
+        }
+
+        if ($exception instanceof RunCommandFailedException) { // @phpstan-ignore-line
+            return $this->normalize($exception->context); // @phpstan-ignore-line
         }
 
         if ($exception instanceof HttpExceptionInterface) {
@@ -80,23 +96,6 @@ final class ResultNormalizer
                 'info' => $response->getInfo(),
             ];
         } catch (HttpClientException) {
-            return [];
-        }
-    }
-
-    /**
-     * @return array<string,mixed>
-     */
-    private static function normalizeProcess(Process $process): array
-    {
-        try {
-            return [
-                'exit_code' => $process->getExitCode(),
-                'output' => $process->getOutput(),
-                'error_output' => $process->getErrorOutput(),
-                'duration' => ($endTime = $process->getLastOutputTime()) ? $endTime - $process->getStartTime() : null,
-            ];
-        } catch (ProcessException) {
             return [];
         }
     }
