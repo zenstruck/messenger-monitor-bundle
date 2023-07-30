@@ -36,7 +36,7 @@ abstract class MonitorDashboardController extends AbstractController
             throw new \LogicException('Storage must be configured to use the dashboard.');
         }
 
-        return $this->render($this->dashboardTemplate(), [
+        return $this->render('@ZenstruckMessengerMonitor/dashboard.html.twig', [
             'workers' => $workers,
             'transports' => $transports,
             'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
@@ -44,10 +44,5 @@ abstract class MonitorDashboardController extends AbstractController
             'schedules' => $schedules,
             'knp' => $knp,
         ]);
-    }
-
-    protected function dashboardTemplate(): string
-    {
-        return '@ZenstruckMessengerMonitor/bootstrap5/dashboard.html.twig';
     }
 }
