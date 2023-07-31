@@ -14,7 +14,6 @@ namespace Zenstruck\Messenger\Monitor\Schedule;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
-use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\Snapshot;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
@@ -55,12 +54,9 @@ final class TaskInfo
         return new Type(self::unwrap($this->task->getMessage()));
     }
 
-    /**
-     * @return Type<TriggerInterface>
-     */
-    public function triggerType(): Type
+    public function trigger(): TriggerInfo
     {
-        return new Type($this->task->getTrigger());
+        return new TriggerInfo($this->task->getTrigger());
     }
 
     /**

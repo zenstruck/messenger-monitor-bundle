@@ -356,6 +356,7 @@
                                             <table class="table card-table table-striped text-nowrap align-middle">
                                                 <thead>
                                                 <tr>
+                                                    <th>ID</th>
                                                     <th>Message</th>
                                                     <th>Trigger</th>
                                                     <th>Last Run</th>
@@ -366,6 +367,7 @@
                                                 <tbody>
                                                 {% for task in schedule %}
                                                     <tr>
+                                                        <td>{{ task.id }}</td>
                                                         <td>
                                                             {% set type = task.messageType %}
                                                             {% set str = type.objectString %}
@@ -376,7 +378,10 @@
                                                             {% endif %}
                                                         </td>
                                                         <td>
-                                                            <abbr title="{{ task.triggerType }}">{{ task.triggerType.objectString }}</abbr>
+                                                            {% set trigger = task.trigger %}
+
+                                                            <abbr title="{{ trigger.type }}">{{ trigger.type.shortName }}</abbr>:
+                                                            {{ trigger.type.objectString }}
                                                         </td>
 
                                                         {% set message = task.history.messages.first %}
