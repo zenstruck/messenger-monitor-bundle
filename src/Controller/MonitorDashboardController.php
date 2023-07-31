@@ -30,7 +30,7 @@ abstract class MonitorDashboardController extends AbstractController
         TransportMonitor $transports,
         ?Storage $storage = null,
         ?ScheduleMonitor $schedules = null,
-        ?DateTimeFormatter $knp = null, // @phpstan-ignore-line
+        ?DateTimeFormatter $dateTimeFormatter = null,
     ): Response {
         if (!$storage) {
             throw new \LogicException('Storage must be configured to use the dashboard.');
@@ -42,7 +42,8 @@ abstract class MonitorDashboardController extends AbstractController
             'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
             'messages' => Specification::new()->without('schedule')->snapshot($storage)->messages(),
             'schedules' => $schedules,
-            'knp' => $knp,
+            'time_formatter' => $dateTimeFormatter,
+            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
         ]);
     }
 }

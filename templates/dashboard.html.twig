@@ -284,7 +284,11 @@
                                             <span class="badge align-text-top text-bg-secondary">{{ message.transport }}</span>
                                         </td>
                                         <td class="text-center">
-                                            {{ message.timeToHandle }}s
+                                            {% if duration_format %}
+                                                <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
+                                            {% else %}
+                                                {{ message.timeToHandle }}s
+                                            {% endif %}
                                         </td>
                                         <td class="text-center">
                                             {{ message.memoryUsage }}
@@ -295,8 +299,8 @@
                                             {% endfor %}
                                         </td>
                                         <td>
-                                            {% if knp %}
-                                                <abbr title="{{ message.handledAt|date() }}">{{ knp.formatDiff(message.handledAt) }}</abbr>
+                                            {% if time_formatter %}
+                                                <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
                                             {% else %}
                                                 {{ message.handledAt|date() }}
                                             {% endif %}
@@ -388,8 +392,8 @@
                                                             {% endif %}
 
                                                             {% if message %}
-                                                                {% if knp %}
-                                                                    <abbr title="{{ message.handledAt|date() }}">{{ knp.formatDiff(message.handledAt) }}</abbr>
+                                                                {% if time_formatter %}
+                                                                    <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
                                                                 {% else %}
                                                                     {{ message.handledAt|date() }}
                                                                 {% endif %}
@@ -398,7 +402,9 @@
                                                             {% endif %}
                                                         </td>
                                                         <td class="text-center">
-                                                            {% if message %}
+                                                            {% if message and duration_format %}
+                                                                <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
+                                                            {% elseif message %}
                                                                 {{ message.timeToHandle }}s
                                                             {% else %}
                                                                 <em class="text-secondary">-</em>
