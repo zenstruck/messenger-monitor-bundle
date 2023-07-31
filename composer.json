@@ -22,6 +22,7 @@
         "doctrine/doctrine-bundle": "^2.10",
         "doctrine/orm": "^2.15",
         "knplabs/knp-time-bundle": "^1.20|^2.0",
+        "lorisleiva/cron-translator": "^0.4.3",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3",
         "phpstan/phpstan": "^1.4",
         "phpunit/phpunit": "^9.6.0",
@@ -34,7 +35,8 @@
         "zenstruck/console-test": "^1.4"
     },
     "suggest": {
-        "knplabs/knp-time-bundle": "For human readable timestamps and durations on your dashboard."
+        "knplabs/knp-time-bundle": "For human readable timestamps and durations on your dashboard.",
+        "lorisleiva/cron-translator": "For human readable cron expressions on your dashboard."
     },
     "config": {
         "preferred-install": "dist",

@@ -381,7 +381,11 @@
                                                             {% set trigger = task.trigger %}
 
                                                             <abbr title="{{ trigger.type }}">{{ trigger.type.shortName }}</abbr>:
-                                                            {{ trigger.type.objectString }}
+                                                            {% if trigger.cron %}
+                                                                {{ cron_humanizer.humanize(trigger.get, trigger.inner, app.locale)|raw }}
+                                                            {% else %}
+                                                                {{ trigger.type.objectString }}
+                                                            {% endif %}
                                                         </td>
 
                                                         {% set message = task.history.messages.first %}
