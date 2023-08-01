@@ -14,6 +14,7 @@ namespace Zenstruck\Messenger\Monitor\Controller;
 use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Lorisleiva\CronTranslator\CronTranslator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
@@ -29,6 +30,23 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
  */
 abstract class MessengerMonitorController extends AbstractController
 {
+    protected const LAST_HOUR = 'last-hour';
+    protected const LAST_24_HOURS = 'last-24-hours';
+    protected const LAST_7_DAYS = 'last-7-days';
+    protected const LAST_30_DAYS = 'last-30-days';
+    protected const PERIODS = [
+        self::LAST_HOUR,
+        self::LAST_24_HOURS,
+        self::LAST_7_DAYS,
+        self::LAST_30_DAYS,
+    ];
+    protected const PERIOD_MAP = [
+        self::LAST_HOUR => Specification::ONE_HOUR_AGO,
+        self::LAST_24_HOURS => Specification::ONE_DAY_AGO,
+        self::LAST_7_DAYS => Specification::ONE_WEEK_AGO,
+        self::LAST_30_DAYS => Specification::ONE_MONTH_AGO,
+    ];
+
     #[Route(name: 'zenstruck_messenger_monitor_dashboard')]
     public function dashboard(
         WorkerMonitor $workers,
@@ -54,10 +72,32 @@ abstract class MessengerMonitorController extends AbstractController
 
     #[Route('/history', name: 'zenstruck_messenger_monitor_history')]
     public function history(
+        Request $request,
+        TransportMonitor $transports,
+        ?Storage $storage = null,
         ?ScheduleMonitor $schedules = null,
         ?DateTimeFormatter $dateTimeFormatter = null,
     ): Response {
+        if (!$storage) {
+            throw new \LogicException('Storage must be configured to use the dashboard.');
+        }
+
+        $period = $request->query->get('period', self::LAST_24_HOURS);
+
+        if (!\in_array($period, self::PERIODS, true)) {
+            $period = self::LAST_24_HOURS;
+        }
+
+        $specification = Specification::create([
+            'from' => self::PERIOD_MAP[$period],
+            'transport' => $request->query->getString('transport') ?: null,
+        ]);
+
         return $this->render('@ZenstruckMessengerMonitor/history.html.twig', [
+            'periods' => self::PERIODS,
+            'period' => $period,
+            'transports' => $transports,
+            'snapshot' => $specification->snapshot($storage),
             'schedules' => $schedules,
             'time_formatter' => $dateTimeFormatter,
             'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),

@@ -6,3 +6,65 @@
     {{ parent() }}
     <li class="breadcrumb-item active" aria-current="page">History</li>
 {% endblock %}
+
+{% block content %}
+    <div class="btn-toolbar mb-3 d-flex justify-content-between">
+        <div class="d-flex align-items-center">
+            <strong class="me-3">Filters:</strong>
+            <div class="btn-group me-2" role="group">
+                <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <small class="text-secondary">Period:</small> {{ period|replace({'-': ' '})|title }}
+                </button>
+                <ul class="dropdown-menu">
+                    {% for p in periods %}
+                        {% if p != period %}
+                            <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({period: p})) }}">{{ p|replace({'-': ' '})|title }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="btn-group me-2" role="group">
+                {% set current_transport = app.request.query.get('transport', 'All') %}
+                <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <small class="text-secondary">Transport:</small> {{ current_transport }}
+                </button>
+                <ul class="dropdown-menu">
+                    {% if 'All' != current_transport %}
+                        <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({transport: null})) }}">All</a></li>
+                    {% endif %}
+                    {% for t in transports.names %}
+                        {% if t != current_transport %}
+                            <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({transport: t})) }}">{{ t }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="btn-group me-2" role="group">
+                <a href="{{ path('zenstruck_messenger_monitor_history') }}" class="btn btn-light">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-1 align-text-bottom" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                    Reset
+                </a>
+            </div>
+        </div>
+        <div class="btn-group me-2" role="group">
+            <a href="#" onclick="window.location.reload();" class="btn btn-light">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-1 align-text-bottom" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                </svg>
+                Refresh
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 col-lg-3">
+            {{ include('@ZenstruckMessengerMonitor/components/_snapshot.html.twig') }}
+        </div>
+        <div class="col-md-8 col-lg-9">
+            {{ include('@ZenstruckMessengerMonitor/components/_messages.html.twig', {messages: snapshot.messages}) }}
+        </div>
+    </div>
+{% endblock %}

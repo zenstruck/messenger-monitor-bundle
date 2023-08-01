@@ -1,0 +1,74 @@
+<div class="card position-relative mb-3">
+    <div class="card-header">
+        {{ title|default('Messages') }}
+        {% if subtitle is defined %}
+            <em class="text-secondary">{{ subtitle }}</em>
+        {% endif %}
+    </div>
+
+    {% set messages = messages.take(limit|default(20)) %}
+
+    {% if not messages|length %}
+        <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
+            <div>
+                No messages.
+            </div>
+        </div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table card-table table-striped align-text-top text-nowrap">
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Transport</th>
+                    <th class="text-center">Duration</th>
+                    <th class="text-center">Memory</th>
+                    <th>Tags</th>
+                    <th>Handled At</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for message in messages %}
+                    <tr>
+                        <td class="{{ message.isFailure ? 'text-danger' : 'text-success'}}">
+                            {% if message.isFailure %}
+                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                            {% else %}
+                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                            {% endif %}
+
+                            <abbr title="{{ message.type }}">{{ message.type.shortName }}</abbr>
+                        </td>
+                        <td>
+                            <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
+                        </td>
+                        <td class="text-center">
+                            {% if duration_format %}
+                                <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
+                            {% else %}
+                                {{ message.timeToHandle }}s
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {{ message.memoryUsage }}
+                        </td>
+                        <td>
+                            {% for tag in message.tags %}
+                                <span class="badge align-text-top text-bg-secondary">{{ tag }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if time_formatter %}
+                                <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
+                            {% else %}
+                                {{ message.handledAt|date() }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>

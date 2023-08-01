@@ -1,0 +1,66 @@
+<div class="card position-relative mb-3">
+    <div class="card-header text-center">
+        Snapshot
+        {% if subtitle is defined %}
+            <em class="text-secondary">{{ subtitle }}</em>
+        {% endif %}
+    </div>
+    <div class="table-responsive">
+        <table class="table card-table table-striped align-text-top text-nowrap">
+            <tbody>
+            <tr>
+                <th class="text-end w-50">Messages Processed</th>
+                <td>
+                    {{ snapshot.totalCount }}
+                    {% if snapshot.failureCount %}
+                        <em>(<strong class="text-danger">{{ snapshot.failureCount }}</strong> failures)</em>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th class="text-end">Fail Rate</th>
+                <td>
+                    {% set failRate = (snapshot.failRate * 100)|round %}
+                    {% if failRate < 5 %}
+                        <span class="text-success">{{ failRate }}%</span>
+                    {% elseif failRate < 10 %}
+                        <span class="text-warning">{{ failRate }}%</span>
+                    {% else %}
+                        <strong class="text-danger">{{ failRate }}%</strong>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th class="text-end">Average Wait Time</th>
+                <td>
+                    {{ snapshot.averageWaitTime|round }}s
+                </td>
+            </tr>
+            <tr>
+                <th class="text-end">Average Handling Time</th>
+                <td>
+                    {{ snapshot.averageHandlingTime|round }}s
+                </td>
+            </tr>
+            <tr>
+                <th class="text-end">Handled Per Minute</th>
+                <td>
+                    {{ snapshot.handledPerMinute|round(2) }}
+                </td>
+            </tr>
+            <tr>
+                <th class="text-end">Handled Per Hour</th>
+                <td>
+                    {{ snapshot.handledPerHour|round(2) }}
+                </td>
+            </tr>
+            <tr>
+                <th class="text-end">Handled Per Day</th>
+                <td>
+                    {{ snapshot.handledPerDay|round(2) }}
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
