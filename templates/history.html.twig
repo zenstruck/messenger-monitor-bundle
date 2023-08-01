@@ -40,7 +40,42 @@
                 </ul>
             </div>
             <div class="btn-group me-2" role="group">
-                <a href="{{ path('zenstruck_messenger_monitor_history') }}" class="btn btn-light">
+                {% set current_status = app.request.query.get('status', 'All') %}
+                <button type="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <small class="text-secondary">Status:</small> {{ current_status|title }}
+                </button>
+                <ul class="dropdown-menu">
+                    {% for status in ['All', 'Success', 'Failed'] %}
+                        {% if status != current_status %}
+                            <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({status: status|lower})) }}">{{ status }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% if app.request.query.get('type') %}
+                <div class="btn-group me-2" role="group">
+                    <a title="{{ app.request.query.get('type') }}" href="{{ path(app.current_route, app.request.query.all|merge({type: null})) }}" class="btn btn-light">
+                        <small class="text-secondary">Message Type:</small>
+                        <span class="me-2">{{ app.request.query.get('type')|split('\\')|last }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="align-text-bottom" viewBox="0 0 16 16">
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </a>
+                </div>
+            {% endif %}
+            {% if app.request.query.get('tag') %}
+                <div class="btn-group me-2" role="group">
+                    <a href="{{ path(app.current_route, app.request.query.all|merge({tag: null})) }}" class="btn btn-light">
+                        <small class="text-secondary">Tag:</small>
+                        <span class="me-2">{{ app.request.query.get('tag') }}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="align-text-bottom" viewBox="0 0 16 16">
+                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </a>
+                </div>
+            {% endif %}
+            <div class="btn-group me-2" role="group">
+                <a href="{{ path(app.current_route) }}" class="btn btn-light">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-1 align-text-bottom" viewBox="0 0 16 16">
                         <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
                     </svg>

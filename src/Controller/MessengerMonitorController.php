@@ -88,9 +88,12 @@ abstract class MessengerMonitorController extends AbstractController
             $period = self::LAST_24_HOURS;
         }
 
-        $specification = Specification::create([
+        $specification = Specification::create([ // @phpstan-ignore-line
             'from' => self::PERIOD_MAP[$period],
-            'transport' => $request->query->getString('transport') ?: null,
+            'transport' => $request->query->get('transport'),
+            'status' => $request->query->get('status'),
+            'tag' => $request->query->get('tag'),
+            'message_type' => $request->query->get('type'),
         ]);
 
         return $this->render('@ZenstruckMessengerMonitor/history.html.twig', [

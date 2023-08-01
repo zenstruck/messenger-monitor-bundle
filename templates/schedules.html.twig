@@ -49,6 +49,7 @@
                         <th>Last Run</th>
                         <th class="text-center">Last Duration</th>
                         <th class="text-center">Last Memory</th>
+                        <th>&nbsp;</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -118,6 +119,14 @@
                                     {{ message.memoryUsage }}
                                 {% else %}
                                     <em class="text-secondary">-</em>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if message %}
+                                    <a href="{{ path('zenstruck_messenger_monitor_history', {tag: ['schedule', schedule.name, task.id]|join(':')}) }}" class="btn btn-sm btn-secondary d-inline-flex align-items-center">
+                                        <svg fill="currentcolor" height="1em" width="1em" class="me-2"><use xlink:href="#history-icon"/></svg>
+                                        History
+                                    </a>
                                 {% endif %}
                             </td>
                         </tr>

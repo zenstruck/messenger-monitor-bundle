@@ -38,7 +38,7 @@
                                 <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
                             {% endif %}
 
-                            <abbr title="{{ message.type }}">{{ message.type.shortName }}</abbr>
+                            <a class="text-body" href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({type: message.type})) }}" title="{{ message.type }}">{{ message.type.shortName }}</a>
                         </td>
                         <td>
                             <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
@@ -54,8 +54,10 @@
                             {{ message.memoryUsage }}
                         </td>
                         <td>
-                            {% for tag in message.tags %}
-                                <span class="badge align-text-top text-bg-secondary">{{ tag }}</span>
+                            {% for tag in message.tags.expand %}
+                                <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({tag: tag})) }}" class="badge align-text-top text-bg-secondary">{{ tag }}</a>
+                            {% else %}
+                                <span class="text-secondary">-</span>
                             {% endfor %}
                         </td>
                         <td>
