@@ -380,7 +380,7 @@
                                                         <td>
                                                             {% set trigger = task.trigger %}
 
-                                                            <abbr title="{{ trigger.type }}">{{ trigger.type.shortName }}</abbr>:
+                                                            <abbr title="{{ trigger.innerType }}">{{ trigger.innerType.shortName }}</abbr>:
                                                             {% if trigger.cron %}
                                                                 {{ cron_humanizer.humanize(trigger.get, trigger.inner, app.locale)|raw }}
                                                             {% else %}

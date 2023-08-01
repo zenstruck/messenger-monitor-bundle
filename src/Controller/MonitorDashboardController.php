@@ -56,7 +56,7 @@ abstract class MonitorDashboardController extends AbstractController
                         $title = CronTranslator::translate((string) $cron, $locale ?? 'en');
                     }
 
-                    return \sprintf('<abbr title="%s">%s</abbr>', $title, $trigger);
+                    return \str_replace((string) $cron, \sprintf('<abbr title="%s">%s</abbr>', $title, $cron), (string) $trigger);
                 }
             },
         ]);
