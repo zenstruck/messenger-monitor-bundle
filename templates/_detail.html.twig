@@ -4,129 +4,124 @@
     </h1>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
-<div>
-    <div class="table-responsive">
-        <table class="table table-striped mb-0 align-middle">
-            <tbody>
-            <tr>
-                <th class="text-end w-25">Message Type</th>
-                <td>
-                    <abbr title="{{ message.type }}">{{ message.type.shortName }}</abbr>
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Status</th>
-                <td class="{{ message.isFailure ? 'text-danger' : 'text-success'}}">
-                    {% if message.isFailure %}
-                        <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                        <strong><abbr title="{{ message.failure.class }}">{{ message.failure.type.shortName }}</abbr></strong>:<br>
-                        {{ message.failure.message }}
-                    {% else %}
-                        <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
-                        Success
-                    {% endif %}
-                </td>
-            </tr>
-            </tr>
-            <tr>
-                <th class="text-end">Transport</th>
-                <td>
-                    <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Attempt</th>
-                <td>
-                    {{ message.attempt }}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Tags</th>
-                <td>
-                    {% for tag in message.tags.expand %}
-                        <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({tag: tag})) }}" class="badge align-text-top text-bg-secondary">{{ tag }}</a>
-                    {% else %}
-                        <span class="text-secondary">-</span>
-                    {% endfor %}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Time in Queue</th>
-                <td>
-                    {% if duration_format %}
-                        <abbr title="{{ message.timeInQueue }}s">{{ time_formatter.formatDuration(message.timeInQueue) }}</abbr>
-                    {% else %}
-                        {{ message.timeInQueue }}s
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Time to Handle</th>
-                <td>
-                    {% if duration_format %}
-                        <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
-                    {% else %}
-                        {{ message.timeToHandle }}s
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Dispatched At</th>
-                <td>
-                    {% if time_formatter %}
-                        <abbr title="{{ message.dispatchedAt|date('c') }}">{{ time_formatter.formatDiff(message.dispatchedAt) }}</abbr>
-                    {% else %}
-                        {{ message.dispatchedAt|date('c') }}
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Received At</th>
-                <td>
-                    {% if time_formatter %}
-                        <abbr title="{{ message.receivedAt|date('c') }}">{{ time_formatter.formatDiff(message.receivedAt) }}</abbr>
-                    {% else %}
-                        {{ message.receivedAt|date('c') }}
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Finished Handling At</th>
-                <td>
-                    {% if time_formatter %}
-                        <abbr title="{{ message.handledAt|date('c') }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
-                    {% else %}
-                        {{ message.handledAt|date('c') }}
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Memory Usage</th>
-                <td>
-                    {{ message.memoryUsage }}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Result</th>
-                <td>
-                    {% if message.result|length %}
-                        <table class="table table-borderless table-sm mb-0">
-                            <tbody>
-                                {% for key,value in message.result %}
-                                    <tr>
-                                        <th class="text-end">{{ key }}</th>
-                                        <td>{{ value }}</td>
-                                    </tr>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">Details</div>
+                <div class="table-responsive">
+                    <table class="table card-table table-striped mb-0 align-middle">
+                        <tbody>
+                        <tr>
+                            <th class="text-end w-50">Message Type</th>
+                            <td>
+                                <abbr title="{{ message.type }}">{{ message.type.shortName }}</abbr>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Status</th>
+                            <td class="{{ message.isFailure ? 'text-danger' : 'text-success'}}">
+                                {% if message.isFailure %}
+                                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                                    <strong><abbr title="{{ message.failure.class }}">{{ message.failure.type.shortName }}</abbr></strong>:<br>
+                                    {{ message.failure.message }}
+                                {% else %}
+                                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                                    Success
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Transport</th>
+                            <td>
+                                <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Attempt</th>
+                            <td>
+                                {{ message.attempt }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Tags</th>
+                            <td>
+                                {% for tag in message.tags.expand %}
+                                    <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({tag: tag})) }}" class="badge align-text-top text-bg-secondary">{{ tag }}</a>
+                                {% else %}
+                                    <span class="text-secondary">-</span>
                                 {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <span class="text-secondary">-</span>
-                    {% endif %}
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Time in Queue</th>
+                            <td>
+                                {% if duration_format %}
+                                    <abbr title="{{ message.timeInQueue }}s">{{ time_formatter.formatDuration(message.timeInQueue) }}</abbr>
+                                {% else %}
+                                    {{ message.timeInQueue }}s
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Time to Handle</th>
+                            <td>
+                                {% if duration_format %}
+                                    <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
+                                {% else %}
+                                    {{ message.timeToHandle }}s
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Dispatched At</th>
+                            <td>
+                                {% if time_formatter %}
+                                    <abbr title="{{ message.dispatchedAt|date('c') }}">{{ time_formatter.formatDiff(message.dispatchedAt) }}</abbr>
+                                {% else %}
+                                    {{ message.dispatchedAt|date('c') }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Received At</th>
+                            <td>
+                                {% if time_formatter %}
+                                    <abbr title="{{ message.receivedAt|date('c') }}">{{ time_formatter.formatDiff(message.receivedAt) }}</abbr>
+                                {% else %}
+                                    {{ message.receivedAt|date('c') }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Finished Handling At</th>
+                            <td>
+                                {% if time_formatter %}
+                                    <abbr title="{{ message.handledAt|date('c') }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
+                                {% else %}
+                                    {{ message.handledAt|date('c') }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Memory Usage</th>
+                            <td>
+                                {{ message.memoryUsage }}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">Result</div>
+                <div class="card-body">
+                    <pre class="mb-0"><code>{{ message.result|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</code></pre>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <div class="modal-footer">
