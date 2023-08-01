@@ -45,20 +45,57 @@ abstract class MessengerMonitorController extends AbstractController
             'workers' => $workers,
             'transports' => $transports,
             'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
-            'messages' => Specification::new()->without('schedule')->snapshot($storage)->messages(),
+            'messages' => Specification::new()->snapshot($storage)->messages(),
             'schedules' => $schedules,
+            'time_formatter' => $dateTimeFormatter,
+            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
+        ]);
+    }
+
+    #[Route('/history', name: 'zenstruck_messenger_monitor_history')]
+    public function history(
+        ?ScheduleMonitor $schedules = null,
+        ?DateTimeFormatter $dateTimeFormatter = null,
+    ): Response {
+        return $this->render('@ZenstruckMessengerMonitor/history.html.twig', [
+            'schedules' => $schedules,
+            'time_formatter' => $dateTimeFormatter,
+            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
+        ]);
+    }
+
+    #[Route('/schedules/{name}', name: 'zenstruck_messenger_monitor_schedules', defaults: ['name' => null])]
+    public function schedules(
+        ?ScheduleMonitor $schedules = null,
+        ?DateTimeFormatter $dateTimeFormatter = null,
+
+        ?string $name = null,
+    ): Response {
+        if (!$schedules) {
+            throw new \LogicException('Scheduler must be configured to use the dashboard.');
+        }
+
+        if (!\count($schedules)) {
+            throw new \LogicException('No schedules configured.');
+        }
+
+        return $this->render('@ZenstruckMessengerMonitor/schedules.html.twig', [
+            'schedules' => $schedules,
+            'schedule' => $schedules->get($name),
             'time_formatter' => $dateTimeFormatter,
             'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
             'cron_humanizer' => new class() {
                 public function humanize(TriggerInterface $trigger, CronExpressionTrigger $cron, ?string $locale): string
                 {
                     $title = 'Activate humanized version with composer require lorisleiva/cron-translator';
+                    $body = (string) $cron;
 
                     if (\class_exists(CronTranslator::class)) {
-                        $title = CronTranslator::translate((string) $cron, $locale ?? 'en');
+                        $title = $body;
+                        $body = CronTranslator::translate((string) $cron, $locale ?? 'en');
                     }
 
-                    return \str_replace((string) $cron, \sprintf('<abbr title="%s">%s</abbr>', $title, $cron), (string) $trigger);
+                    return \str_replace((string) $cron, \sprintf('<abbr title="%s">%s</abbr>', $title, $body), (string) $trigger);
                 }
             },
         ]);

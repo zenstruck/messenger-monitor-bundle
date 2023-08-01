@@ -1,370 +1,253 @@
 {% extends '@ZenstruckMessengerMonitor/layout.html.twig' %}
 
-{% block body %}
-    <div class="container-fluid mt-3">
-        <div class="row">
-            <div class="col-md-4 col-lg-3">
-                <div class="card position-relative mb-3">
-                    {% if workers.running %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                            {{ workers.count }} <span class="visually-hidden">workers running</span>
-                        </span>
-                    {% else %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            0 <span class="visually-hidden">workers running</span>
-                        </span>
-                    {% endif %}
+{% block title %}Dashboard{% endblock %}
 
-                    <div class="card-header text-center">
-                        Worker Status
-                    </div>
+{% block breadcrumbs %}{% endblock %}
 
-                    {% if workers.running %}
-                        <div class="table-responsive">
-                            <table class="table card-table table-striped align-text-top text-nowrap">
-                                <thead>
-                                <tr>
-                                    <th>&nbsp;</th>
-                                    <th class="text-center">Status</th>
-                                    <th>Transports</th>
-                                    <th class="text-center"># Handled</th>
-                                    <th class="text-center">Memory</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for worker in workers %}
-                                    <tr>
-                                        <td>{{ loop.index }}</td>
-                                        <td class="text-center">
-                                            <span class="badge align-text-top text-bg-{{ worker.isIdle ? 'success' : 'primary' }}">
-                                                {{ worker.status }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% for transport in worker.transports %}
-                                                <span class="badge align-text-top text-bg-secondary">{{ transport }}</span>
-                                            {% endfor %}
-                                        </td>
-                                        <td class="text-center">
-                                            {{ worker.messagesHandled }}
-                                        </td>
-                                        <td class="text-center">
-                                            {{ worker.memoryUsage }}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
-                            <svg fill="currentcolor" height="1em" width="1em" class="me-2 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                            <div>
-                                There are no workers running.
-                            </div>
-                        </div>
-                    {% endif %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-4 col-lg-3">
+            <div class="card position-relative mb-3">
+                {% if workers.running %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                        {{ workers.count }} <span class="visually-hidden">workers running</span>
+                    </span>
+                {% else %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        0 <span class="visually-hidden">workers running</span>
+                    </span>
+                {% endif %}
+
+                <div class="card-header text-center">
+                    Worker Status
                 </div>
-                <div class="card position-relative mb-3">
-                    <div class="card-header text-center">
-                        Transports
-                    </div>
 
-                    {% if not transports|length %}
-                        <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
-                            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                            <div>
-                                There are transports configured.
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="table-responsive">
-                            <table class="table card-table table-striped align-text-top text-nowrap">
-                                <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th class="text-center">Queued Messages</th>
-                                    <th class="text-center">Workers</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for transport in transports %}
-                                    <tr>
-                                        <td>
-                                            <span class="badge align-text-top text-bg-secondary">{{ transport.name }}</span>
-                                        </td>
-                                        <td class="text-center">
-                                            {% if transport.countable %}
-                                                {{ transport.count }}
-                                            {% else %}
-                                                <em class="text-secondary">n/a</em>
-                                            {% endif %}
-                                        </td>
-                                        <td class="text-center">
-                                            <strong class="{{ transport.workers|length > 0 ? 'text-success' : 'text-danger' }}">
-                                                {{ transport.workers|length }}
-                                            </strong>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="card position-relative mb-3">
-                    <div class="card-header text-center">
-                        Snapshot <em class="text-secondary">(Last 24 Hours)</em>
-                    </div>
+                {% if workers.running %}
                     <div class="table-responsive">
                         <table class="table card-table table-striped align-text-top text-nowrap">
+                            <thead>
+                            <tr>
+                                <th>&nbsp;</th>
+                                <th class="text-center">Status</th>
+                                <th>Transports</th>
+                                <th class="text-center"># Handled</th>
+                                <th class="text-center">Memory</th>
+                            </tr>
+                            </thead>
                             <tbody>
-                            <tr>
-                                <th class="text-end w-50">Messages Processed</th>
-                                <td>
-                                    {{ snapshot.totalCount }}
-                                    {% if snapshot.failureCount %}
-                                        <em>(<strong class="text-danger">{{ snapshot.failureCount }}</strong> failures)</em>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="text-end">Fail Rate</th>
-                                <td>
-                                    {% set failRate = (snapshot.failRate * 100)|round %}
-                                    {% if failRate < 5 %}
-                                        <span class="text-success">{{ failRate }}%</span>
-                                    {% elseif failRate < 10 %}
-                                        <span class="text-warning">{{ failRate }}%</span>
-                                    {% else %}
-                                        <strong class="text-danger">{{ failRate }}%</strong>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="text-end">Average Wait Time</th>
-                                <td>
-                                    {{ snapshot.averageWaitTime|round }}s
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="text-end">Average Handling Time</th>
-                                <td>
-                                    {{ snapshot.averageHandlingTime|round }}s
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="text-end">Handled Per Minute</th>
-                                <td>
-                                    {{ snapshot.handledPerMinute|round(2) }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="text-end">Handled Per Hour</th>
-                                <td>
-                                    {{ snapshot.handledPerHour|round(2) }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th class="text-end">Handled Per Day</th>
-                                <td>
-                                    {{ snapshot.handledPerDay|round(2) }}
-                                </td>
-                            </tr>
+                            {% for worker in workers %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td class="text-center">
+                                        <span class="badge align-text-top text-bg-{{ worker.isIdle ? 'success' : 'primary' }}">
+                                            {{ worker.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% for transport in worker.transports %}
+                                            <span class="badge align-text-top text-bg-secondary">{{ transport }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td class="text-center">
+                                        {{ worker.messagesHandled }}
+                                    </td>
+                                    <td class="text-center">
+                                        {{ worker.memoryUsage }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                {% else %}
+                    <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
+                        <svg fill="currentcolor" height="1em" width="1em" class="me-2 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                        <div>
+                            There are no workers running.
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card position-relative mb-3">
+                <div class="card-header text-center">
+                    Transports
+                </div>
+
+                {% if not transports|length %}
+                    <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
+                        <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                        <div>
+                            There are transports configured.
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table card-table table-striped align-text-top text-nowrap">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th class="text-center">Queued Messages</th>
+                                <th class="text-center">Workers</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for transport in transports %}
+                                <tr>
+                                    <td>
+                                        <span class="badge align-text-top text-bg-secondary">{{ transport.name }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if transport.countable %}
+                                            {{ transport.count }}
+                                        {% else %}
+                                            <em class="text-secondary">n/a</em>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <strong class="{{ transport.workers|length > 0 ? 'text-success' : 'text-danger' }}">
+                                            {{ transport.workers|length }}
+                                        </strong>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card position-relative mb-3">
+                <div class="card-header text-center">
+                    Snapshot <em class="text-secondary">(Last 24 Hours)</em>
+                </div>
+                <div class="table-responsive">
+                    <table class="table card-table table-striped align-text-top text-nowrap">
+                        <tbody>
+                        <tr>
+                            <th class="text-end w-50">Messages Processed</th>
+                            <td>
+                                {{ snapshot.totalCount }}
+                                {% if snapshot.failureCount %}
+                                    <em>(<strong class="text-danger">{{ snapshot.failureCount }}</strong> failures)</em>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Fail Rate</th>
+                            <td>
+                                {% set failRate = (snapshot.failRate * 100)|round %}
+                                {% if failRate < 5 %}
+                                    <span class="text-success">{{ failRate }}%</span>
+                                {% elseif failRate < 10 %}
+                                    <span class="text-warning">{{ failRate }}%</span>
+                                {% else %}
+                                    <strong class="text-danger">{{ failRate }}%</strong>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Average Wait Time</th>
+                            <td>
+                                {{ snapshot.averageWaitTime|round }}s
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Average Handling Time</th>
+                            <td>
+                                {{ snapshot.averageHandlingTime|round }}s
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Handled Per Minute</th>
+                            <td>
+                                {{ snapshot.handledPerMinute|round(2) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Handled Per Hour</th>
+                            <td>
+                                {{ snapshot.handledPerHour|round(2) }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="text-end">Handled Per Day</th>
+                            <td>
+                                {{ snapshot.handledPerDay|round(2) }}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="col-md-8 col-lg-9">
-                <div class="card position-relative mb-3">
-                    <div class="card-header">
-                        Recently Processed Messages <em class="text-secondary">(Last 5)</em>
-                    </div>
-
-                    {% set messages = messages.take(5) %}
-
-                    {% if not messages|length %}
-                        <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
-                            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
-                            <div>
-                                No messages.
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="table-responsive">
-                            <table class="table card-table table-striped align-text-top text-nowrap">
-                                <thead>
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Transport</th>
-                                    <th class="text-center">Duration</th>
-                                    <th class="text-center">Memory</th>
-                                    <th>Tags</th>
-                                    <th>Handled At</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for message in messages %}
-                                    <tr>
-                                        <td class="{{ message.isFailure ? 'text-danger' : 'text-success'}}">
-                                            {% if message.isFailure %}
-                                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                                            {% else %}
-                                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
-                                            {% endif %}
-
-                                            <abbr title="{{ message.type }}">{{ message.type.shortName }}</abbr>
-                                        </td>
-                                        <td>
-                                            <span class="badge align-text-top text-bg-secondary">{{ message.transport }}</span>
-                                        </td>
-                                        <td class="text-center">
-                                            {% if duration_format %}
-                                                <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
-                                            {% else %}
-                                                {{ message.timeToHandle }}s
-                                            {% endif %}
-                                        </td>
-                                        <td class="text-center">
-                                            {{ message.memoryUsage }}
-                                        </td>
-                                        <td>
-                                            {% for tag in message.tags %}
-                                                <span class="badge align-text-top text-bg-secondary">{{ tag }}</span>
-                                            {% endfor %}
-                                        </td>
-                                        <td>
-                                            {% if time_formatter %}
-                                                <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
-                                            {% else %}
-                                                {{ message.handledAt|date() }}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% endif %}
+        </div>
+        <div class="col-md-8 col-lg-9">
+            <div class="card position-relative mb-3">
+                <div class="card-header">
+                    Recently Processed Messages <em class="text-secondary">(Last 20)</em>
                 </div>
 
-                {% if schedules %}
-                    <div class="card position-relative mb-3">
-                        {% if not schedules|length %}
-                            <div class="card-header">
-                                Schedules
-                            </div>
-                            <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
-                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
-                                <div>
-                                    No schedules configured.
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="card-header">
-                                <ul class="nav nav-tabs card-header-tabs">
-                                    {% for schedule in schedules %}
-                                        <li class="nav-item position-relative mx-2" role="presentation">
-                                            {% if schedule.running %}
-                                                <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                                                    {{ schedule.workers|length }} <span class="visually-hidden">workers running this schedule</span>
-                                                </span>
-                                            {% else %}
-                                                <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                                    0 <span class="visually-hidden">workers running this schedule</span>
-                                                </span>
-                                            {% endif %}
+                {% set messages = messages.take(20) %}
 
-                                            <button class="nav-link{{ loop.first ? ' active' }}" id="schedule-{{ schedule.name }}-tab" data-bs-toggle="tab" data-bs-target="#schedule-{{ schedule.name }}-tab-pane" type="button" role="tab" aria-controls="schedule-{{ schedule.name }}-tab-pane" aria-selected="{{ loop.first ? 'true' : 'false' }}">
-                                                {{ schedule.name|humanize }} Schedule
-                                            </button>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            <div class="tab-content">
-                                {% for schedule in schedules %}
-                                    <div class="tab-pane fade{{ loop.first ? ' show active' }}" id="schedule-{{ schedule.name }}-tab-pane" role="tabpanel" aria-labelledby="schedule-{{ schedule.name }}-tab" tabindex="0">
-                                        <div class="table-responsive">
-                                            <table class="table card-table table-striped text-nowrap align-middle">
-                                                <thead>
-                                                <tr>
-                                                    <th>ID</th>
-                                                    <th>Message</th>
-                                                    <th>Trigger</th>
-                                                    <th>Last Run</th>
-                                                    <th class="text-center">Last Duration</th>
-                                                    <th class="text-center">Last Memory</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {% for task in schedule %}
-                                                    <tr>
-                                                        <td>{{ task.id }}</td>
-                                                        <td>
-                                                            {% set type = task.messageType %}
-                                                            {% set str = type.objectString %}
+                {% if not messages|length %}
+                    <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+                        <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
+                        <div>
+                            No messages.
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table card-table table-striped align-text-top text-nowrap">
+                            <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Transport</th>
+                                <th class="text-center">Duration</th>
+                                <th class="text-center">Memory</th>
+                                <th>Tags</th>
+                                <th>Handled At</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for message in messages %}
+                                <tr>
+                                    <td class="{{ message.isFailure ? 'text-danger' : 'text-success'}}">
+                                        {% if message.isFailure %}
+                                            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                                        {% else %}
+                                            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                                        {% endif %}
 
-                                                            <abbr title="{{ type }}">{{ type.shortName }}</abbr>
-                                                            {% if str %}
-                                                                <br><small class="text-secondary">{{ str }}</small>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td>
-                                                            {% set trigger = task.trigger %}
-
-                                                            <abbr title="{{ trigger.innerType }}">{{ trigger.innerType.shortName }}</abbr>:
-                                                            {% if trigger.cron %}
-                                                                {{ cron_humanizer.humanize(trigger.get, trigger.inner, app.locale)|raw }}
-                                                            {% else %}
-                                                                {{ trigger.type.objectString }}
-                                                            {% endif %}
-                                                        </td>
-
-                                                        {% set message = task.history.messages.first %}
-                                                        <td{% if message %} class="{{ message.isFailure ? 'text-danger' : 'text-success'}}"{% endif %}>
-                                                            {% if message and message.isFailure %}
-                                                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                                                            {% elseif message %}
-                                                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
-                                                            {% endif %}
-
-                                                            {% if message %}
-                                                                {% if time_formatter %}
-                                                                    <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
-                                                                {% else %}
-                                                                    {{ message.handledAt|date() }}
-                                                                {% endif %}
-                                                            {% else %}
-                                                                <em class="text-secondary">Never</em>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td class="text-center">
-                                                            {% if message and duration_format %}
-                                                                <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
-                                                            {% elseif message %}
-                                                                {{ message.timeToHandle }}s
-                                                            {% else %}
-                                                                <em class="text-secondary">-</em>
-                                                            {% endif %}
-                                                        </td>
-                                                        <td class="text-center">
-                                                            {% if message %}
-                                                                {{ message.memoryUsage }}
-                                                            {% else %}
-                                                                <em class="text-secondary">-</em>
-                                                            {% endif %}
-                                                        </td>
-                                                    </tr>
-                                                {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                                        <abbr title="{{ message.type }}">{{ message.type.shortName }}</abbr>
+                                    </td>
+                                    <td>
+                                        <span class="badge align-text-top text-bg-secondary">{{ message.transport }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if duration_format %}
+                                            <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
+                                        {% else %}
+                                            {{ message.timeToHandle }}s
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {{ message.memoryUsage }}
+                                    </td>
+                                    <td>
+                                        {% for tag in message.tags %}
+                                            <span class="badge align-text-top text-bg-secondary">{{ tag }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if time_formatter %}
+                                            <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
+                                        {% else %}
+                                            {{ message.handledAt|date() }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 {% endif %}
             </div>

@@ -1,0 +1,130 @@
+{% extends '@ZenstruckMessengerMonitor/layout.html.twig' %}
+
+{% block title %}Schedules{% endblock %}
+
+{% block breadcrumb_items %}
+    {{ parent() }}
+    <li class="breadcrumb-item active" aria-current="page">Schedules</li>
+{% endblock %}
+
+{% block content %}
+    <div class="card position-relative mb-3">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                {% for item in schedules %}
+                    <li class="nav-item position-relative mx-2" role="presentation">
+                        {% if item.running %}
+                            <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                                {{ item.workers|length }} <span class="visually-hidden">workers running this schedule</span>
+                            </span>
+                        {% else %}
+                            <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                0 <span class="visually-hidden">workers running this schedule</span>
+                            </span>
+                        {% endif %}
+
+                        <a href="{{ path('zenstruck_messenger_monitor_schedules', {name: item.name}) }}" class="nav-link{{ item.name == schedule.name ? ' active' }}">
+                            {{ item.name|humanize }} Schedule
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="tab-content">
+            {% if not schedule.running %}
+                <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
+                    <svg fill="currentcolor" height="1em" width="1em" class="me-2 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                    <div>
+                        There are no workers running this schedule.
+                    </div>
+                </div>
+            {% endif %}
+            <div class="table-responsive">
+                <table class="table card-table table-striped text-nowrap align-middle">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Message</th>
+                        <th colspan="2" class="text-center">Trigger</th>
+                        <th>Last Run</th>
+                        <th class="text-center">Last Duration</th>
+                        <th class="text-center">Last Memory</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for task in schedule %}
+                        <tr>
+                            <td>{{ task.id }}</td>
+                            <td>
+                                {% set type = task.messageType %}
+                                {% set str = type.objectString %}
+
+                                <abbr title="{{ type }}">{{ type.shortName }}</abbr>
+                                {% if str %}
+                                    <br><small class="text-secondary">{{ str }}</small>
+                                {% endif %}
+                            </td>
+                            {% set trigger = task.trigger %}
+                            <td>
+                                <abbr title="{{ trigger.innerType }}">{{ trigger.innerType.shortName }}</abbr>
+                                {% if trigger.decoratorTypes|length %}
+                                    <br>
+                                    <small class="text-secondary">
+                                        Decorators:
+                                        {% for decorator in trigger.decoratorTypes %}
+                                            <abbr title="{{ decorator }}">{{ decorator.shortName }}</abbr>
+                                            {% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if trigger.cron %}
+                                    {{ cron_humanizer.humanize(trigger.get, trigger.inner, app.locale)|raw }}
+                                {% else %}
+                                    {{ trigger.type.objectString|capitalize }}
+                                {% endif %}
+                            </td>
+
+                            {% set message = task.history.messages.first %}
+                            <td{% if message %} class="{{ message.isFailure ? 'text-danger' : 'text-success'}}"{% endif %}>
+                                {% if message and message.isFailure %}
+                                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                                {% elseif message %}
+                                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                                {% endif %}
+
+                                {% if message %}
+                                    {% if time_formatter %}
+                                        <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
+                                    {% else %}
+                                        {{ message.handledAt|date() }}
+                                    {% endif %}
+                                {% else %}
+                                    <em class="text-secondary">Never</em>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if message and duration_format %}
+                                    <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
+                                {% elseif message %}
+                                    {{ message.timeToHandle }}s
+                                {% else %}
+                                    <em class="text-secondary">-</em>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                {% if message %}
+                                    {{ message.memoryUsage }}
+                                {% else %}
+                                    <em class="text-secondary">-</em>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
