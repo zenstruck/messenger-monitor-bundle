@@ -15,6 +15,7 @@ use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Lorisleiva\CronTranslator\CronTranslator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\Specification;
@@ -26,9 +27,10 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-abstract class MonitorDashboardController extends AbstractController
+abstract class MessengerMonitorController extends AbstractController
 {
-    public function __invoke(
+    #[Route(name: 'zenstruck_messenger_monitor_dashboard')]
+    public function dashboard(
         WorkerMonitor $workers,
         TransportMonitor $transports,
         ?Storage $storage = null,
