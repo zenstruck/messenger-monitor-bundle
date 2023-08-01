@@ -107,6 +107,27 @@ abstract class MessengerMonitorController extends AbstractController
         ]);
     }
 
+    #[Route('/history/{id}', name: 'zenstruck_messenger_monitor_detail')]
+    public function detail(
+        string $id,
+        ?Storage $storage = null,
+        ?DateTimeFormatter $dateTimeFormatter = null,
+    ): Response {
+        if (!$storage) {
+            throw new \LogicException('Storage must be configured to use the dashboard.');
+        }
+
+        if (!$message = $storage->find($id)) {
+            throw $this->createNotFoundException('Message not found.');
+        }
+
+        return $this->render('@ZenstruckMessengerMonitor/_detail.html.twig', [
+            'message' => $message,
+            'time_formatter' => $dateTimeFormatter,
+            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
+        ]);
+    }
+
     #[Route('/schedules/{name}', name: 'zenstruck_messenger_monitor_schedules', defaults: ['name' => null])]
     public function schedules(
         ?ScheduleMonitor $schedules = null,

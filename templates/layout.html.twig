@@ -39,6 +39,27 @@
     {% block javascripts %}
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js" integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa" crossorigin="anonymous"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.message-details').forEach(element => {
+                    element.addEventListener('click', (event) => {
+                        event.preventDefault();
+
+                        fetch(element.getAttribute('href'))
+                            .then(response => response.text())
+                            .then(html => {
+                                const modal = new bootstrap.Modal(document.getElementById('message-details-modal'));
+                                const modalContent = modal._element.querySelector('.modal-content');
+
+                                modalContent.innerHTML = html;
+                                modal.show();
+                            })
+                            .catch(error => console.error('Error:', error));
+                    });
+                });
+            });
+        </script>
     {% endblock %}
 </head>
 <body>
@@ -127,7 +148,17 @@
             <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
             <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
         </symbol>
+        <symbol id="search-icon" viewBox="0 0 16 16">
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+        </symbol>
     </svg>
+{% endblock %}
+{% block message_details_modal %}
+    <div class="modal fade" id="message-details-modal" tabindex="-1" aria-labelledby="message-details-modal-label" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content"></div>
+        </div>
+    </div>
 {% endblock %}
 </body>
 </html>

@@ -11,6 +11,8 @@
 
 namespace Zenstruck\Messenger\Monitor\History\Model;
 
+use Zenstruck\Messenger\Monitor\Message\Type;
+
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
@@ -38,6 +40,14 @@ final class Failure implements \Stringable
     public function __toString(): string
     {
         return \sprintf('%s: %s', $this->class, $this->message);
+    }
+
+    /**
+     * @return Type<\Throwable>
+     */
+    public function type(): Type
+    {
+        return new Type($this->class);
     }
 
     /**

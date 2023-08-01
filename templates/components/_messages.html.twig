@@ -26,6 +26,7 @@
                     <th class="text-center">Memory</th>
                     <th>Tags</th>
                     <th>Handled At</th>
+                    <td>&nbsp;</td>
                 </tr>
                 </thead>
                 <tbody>
@@ -62,10 +63,16 @@
                         </td>
                         <td>
                             {% if time_formatter %}
-                                <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
+                                <abbr title="{{ message.handledAt|date('c') }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
                             {% else %}
-                                {{ message.handledAt|date() }}
+                                {{ message.handledAt|date('c') }}
                             {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ path('zenstruck_messenger_monitor_detail', {id: message.id}) }}" class="btn btn-sm btn-secondary d-inline-flex align-items-center message-details">
+                                <svg fill="currentcolor" height="1em" width="1em" class="me-2"><use xlink:href="#search-icon"/></svg>
+                                Details...
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}

@@ -46,6 +46,7 @@
                         <th>ID</th>
                         <th>Message</th>
                         <th colspan="2" class="text-center">Trigger</th>
+                        <th class="text-center"><abbr title="Number of runs stored in history">Runs</abbr></th>
                         <th>Last Run</th>
                         <th class="text-center">Last Duration</th>
                         <th class="text-center">Last Memory</th>
@@ -87,7 +88,18 @@
                                 {% endif %}
                             </td>
 
-                            {% set message = task.history.messages.first %}
+                            {% set history = task.history %}
+
+                            <td class="text-center">
+                                {{ history.totalCount }}
+
+                                {% if history.failureCount %}
+                                    <em>(<strong class="text-danger">{{ history.failureCount }}</strong> failures)</em>
+                                {% endif %}
+                            </td>
+
+                            {% set message = history.messages.first %}
+
                             <td{% if message %} class="{{ message.isFailure ? 'text-danger' : 'text-success'}}"{% endif %}>
                                 {% if message and message.isFailure %}
                                     <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
@@ -97,9 +109,9 @@
 
                                 {% if message %}
                                     {% if time_formatter %}
-                                        <abbr title="{{ message.handledAt|date() }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
+                                        <abbr title="{{ message.handledAt|date('c') }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
                                     {% else %}
-                                        {{ message.handledAt|date() }}
+                                        {{ message.handledAt|date('c') }}
                                     {% endif %}
                                 {% else %}
                                     <em class="text-secondary">Never</em>

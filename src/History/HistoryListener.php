@@ -65,9 +65,7 @@ final class HistoryListener
 
     public function handleSuccess(WorkerMessageHandledEvent $event): void
     {
-        $envelope = $event->getEnvelope();
-
-        if (!$stamp = $envelope->last(MonitorStamp::class)) {
+        if (!$stamp = $event->getEnvelope()->last(MonitorStamp::class)) {
             return;
         }
 
@@ -75,18 +73,16 @@ final class HistoryListener
             return;
         }
 
-        if ($stamp = $envelope->last(HandledStamp::class)) {
+        if ($stamp = $event->getEnvelope()->last(HandledStamp::class)) {
             $event->addStamps(new ResultStamp($this->normalizer->normalize($stamp->getResult())));
         }
 
-        $this->storage->save($envelope);
+        $this->storage->save($event->getEnvelope());
     }
 
     public function handleFailure(WorkerMessageFailedEvent $event): void
     {
-        $envelope = $event->getEnvelope();
-
-        if (!$stamp = $envelope->last(MonitorStamp::class)) {
+        if (!$stamp = $event->getEnvelope()->last(MonitorStamp::class)) {
             return;
         }
 
@@ -96,7 +92,7 @@ final class HistoryListener
 
         $event->addStamps(new ResultStamp($this->normalizer->normalizeException($event->getThrowable())));
 
-        $this->storage->save($envelope, $event->getThrowable());
+        $this->storage->save($event->getEnvelope(), $event->getThrowable());
     }
 
     private function isMonitoringDisabled(Envelope $envelope): bool
