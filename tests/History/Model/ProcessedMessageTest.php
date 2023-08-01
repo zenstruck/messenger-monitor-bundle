@@ -44,7 +44,12 @@ final class ProcessedMessageTest extends TestCase
 
         Clock::get()->sleep(2);
 
-        $message = new class($envelope) extends ProcessedMessage {};
+        $message = new class($envelope) extends ProcessedMessage {
+            public function id(): string|int|null
+            {
+                return null;
+            }
+        };
 
         $this->assertSame($stamp->runId(), $message->runId());
         $this->assertSame(1, $message->attempt());
@@ -77,7 +82,12 @@ final class ProcessedMessageTest extends TestCase
             new Tag('qux'),
         ]);
 
-        $message = new class($envelope, new \RuntimeException('fail')) extends ProcessedMessage {};
+        $message = new class($envelope, new \RuntimeException('fail')) extends ProcessedMessage {
+            public function id(): string|int|null
+            {
+                return null;
+            }
+        };
 
         $this->assertSame(3, $message->attempt());
         $this->assertSame(['foo', 'bar', 'baz', 'qux'], $message->tags()->all());
@@ -93,6 +103,11 @@ final class ProcessedMessageTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        new class(new Envelope(new \stdClass())) extends ProcessedMessage {};
+        new class(new Envelope(new \stdClass())) extends ProcessedMessage {
+            public function id(): string|int|null
+            {
+                return null;
+            }
+        };
     }
 }

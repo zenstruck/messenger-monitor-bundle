@@ -23,7 +23,7 @@ use function Symfony\Component\Clock\now;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-class ProcessedMessage
+abstract class ProcessedMessage
 {
     private int $runId;
     private int $attempt = 1;
@@ -68,6 +68,8 @@ class ProcessedMessage
             $this->failure = new Failure($exception);
         }
     }
+
+    abstract public function id(): string|int|null;
 
     final public function runId(): int
     {
