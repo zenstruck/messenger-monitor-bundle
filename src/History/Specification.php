@@ -24,12 +24,16 @@ namespace Zenstruck\Messenger\Monitor\History;
  *     transport?: ?string,
  *     tags?: string[]|string|null,
  *     not_tags?: string[]|string|null,
+ *     sort?: self::ASC|self::DESC,
  * }
  */
 final class Specification
 {
     public const SUCCESS = 'success';
     public const FAILED = 'failed';
+
+    public const ASC = 'asc';
+    public const DESC = 'desc';
 
     public const ONE_HOUR_AGO = '1-hour-ago';
     public const ONE_DAY_AGO = '24-hours-ago';
@@ -55,6 +59,9 @@ final class Specification
     private ?\DateTimeImmutable $to = null;
     private ?string $messageType = null;
     private ?string $transport = null;
+
+    /** @var self::ASC|self::DESC */
+    private string $sort = self::DESC;
 
     /** @var string[] */
     private array $tags = [];
@@ -89,6 +96,10 @@ final class Specification
             self::SUCCESS => self::SUCCESS,
             self::FAILED => self::FAILED,
             default => null,
+        };
+        $specification->sort = match ($values['sort'] ?? null) {
+            self::ASC => self::ASC,
+            default => self::DESC,
         };
 
         if (isset($values['tags'])) {
@@ -166,6 +177,22 @@ final class Specification
         return $clone;
     }
 
+    public function sortAscending(): self
+    {
+        $clone = clone $this;
+        $clone->sort = self::ASC;
+
+        return $clone;
+    }
+
+    public function sortDescending(): self
+    {
+        $clone = clone $this;
+        $clone->sort = self::DESC;
+
+        return $clone;
+    }
+
     /**
      * @return array{
      *     from: ?\DateTimeImmutable,
@@ -175,6 +202,7 @@ final class Specification
      *     transport: ?string,
      *     tags: string[],
      *     not_tags: string[],
+     *     sort: self::ASC|self::DESC,
      * }
      */
     public function toArray(): array
@@ -187,6 +215,7 @@ final class Specification
             'transport' => $this->transport,
             'tags' => $this->tags,
             'not_tags' => $this->notTags,
+            'sort' => $this->sort,
         ];
     }
 

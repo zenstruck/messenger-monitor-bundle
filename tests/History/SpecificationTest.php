@@ -23,27 +23,6 @@ final class SpecificationTest extends TestCase
     /**
      * @test
      */
-    public function create_empty(): void
-    {
-        $spec = Specification::new();
-
-        $this->assertSame(
-            [
-                'from' => null,
-                'to' => null,
-                'status' => null,
-                'message_type' => null,
-                'transport' => null,
-                'tags' => [],
-                'not_tags' => [],
-            ],
-            $spec->toArray(),
-        );
-    }
-
-    /**
-     * @test
-     */
     public function create(): void
     {
         $spec = Specification::create([]);
@@ -57,9 +36,11 @@ final class SpecificationTest extends TestCase
                 'transport' => null,
                 'tags' => [],
                 'not_tags' => [],
+                'sort' => 'desc',
             ],
             $spec->toArray(),
         );
+        $this->assertSame($spec->toArray(), Specification::new()->toArray());
 
         $spec = Specification::create([
             'from' => '2023-01-01',
@@ -69,6 +50,7 @@ final class SpecificationTest extends TestCase
             'transport' => 'bar',
             'tags' => 'baz',
             'not_tags' => 'qux',
+            'sort' => 'asc',
         ]);
 
         $this->assertEquals(
@@ -80,6 +62,7 @@ final class SpecificationTest extends TestCase
                 'transport' => 'bar',
                 'tags' => ['baz'],
                 'not_tags' => ['qux'],
+                'sort' => 'asc',
             ],
             $spec->toArray(),
         );
@@ -110,5 +93,7 @@ final class SpecificationTest extends TestCase
         $this->assertNotSame($spec, $spec->without());
         $this->assertNotSame($spec, $spec->successes());
         $this->assertNotSame($spec, $spec->failures());
+        $this->assertNotSame($spec, $spec->sortDescending());
+        $this->assertNotSame($spec, $spec->sortDescending());
     }
 }
