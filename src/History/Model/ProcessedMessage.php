@@ -32,7 +32,7 @@ abstract class ProcessedMessage
     private string $type;
     private \DateTimeImmutable $dispatchedAt;
     private \DateTimeImmutable $receivedAt;
-    private \DateTimeImmutable $handledAt;
+    private \DateTimeImmutable $finishedAt;
     private int $memoryUsage;
     private string $transport;
 
@@ -51,7 +51,7 @@ abstract class ProcessedMessage
         $this->type = $envelope->getMessage()::class;
         $this->dispatchedAt = $monitorStamp->dispatchedAt();
         $this->receivedAt = $monitorStamp->receivedAt();
-        $this->handledAt = now();
+        $this->finishedAt = now();
         $this->memoryUsage = \memory_get_usage(true);
         $this->transport = $monitorStamp->transport();
         $this->tags = (new Tags($envelope))->all();
@@ -99,9 +99,9 @@ abstract class ProcessedMessage
         return $this->receivedAt;
     }
 
-    final public function handledAt(): \DateTimeImmutable
+    final public function finishedAt(): \DateTimeImmutable
     {
-        return $this->handledAt;
+        return $this->finishedAt;
     }
 
     final public function transport(): string
@@ -139,12 +139,12 @@ abstract class ProcessedMessage
 
     final public function timeToHandle(): int
     {
-        return \max(0, $this->handledAt->getTimestamp() - $this->receivedAt->getTimestamp());
+        return \max(0, $this->finishedAt->getTimestamp() - $this->receivedAt->getTimestamp());
     }
 
     final public function timeToProcess(): int
     {
-        return \max(0, $this->handledAt->getTimestamp() - $this->dispatchedAt->getTimestamp());
+        return \max(0, $this->finishedAt->getTimestamp() - $this->dispatchedAt->getTimestamp());
     }
 
     final public function memoryUsage(): Bytes

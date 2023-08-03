@@ -104,14 +104,14 @@ final class SnapshotCommand extends Command
         ;
 
         foreach ($snapshot->messages()->take(10) as $message) {
-            $handledAt = $message->handledAt()->format('Y-m-d H:i:s');
+            $finishedAt = $message->finishedAt()->format('Y-m-d H:i:s');
 
             $listing->addRow([
                 $message->type()->shortName(),
                 $message->transport(),
                 Helper::formatTime($message->timeInQueue()),
                 Helper::formatTime($message->timeToHandle()),
-                $message->isFailure() ? \sprintf('<error>[!] %s</error>', $handledAt) : \sprintf('<info>%s</info>', $handledAt),
+                $message->isFailure() ? \sprintf('<error>[!] %s</error>', $finishedAt) : \sprintf('<info>%s</info>', $finishedAt),
                 $message->tags()->implode() ?? '(none)',
             ]);
         }

@@ -56,7 +56,7 @@ final class ProcessedMessageTest extends TestCase
         $this->assertSame(\stdClass::class, (string) $message->type());
         $this->assertSame($start, $message->dispatchedAt()->getTimestamp());
         $this->assertSame($start + 1, $message->receivedAt()->getTimestamp());
-        $this->assertSame($start + 3, $message->handledAt()->getTimestamp());
+        $this->assertSame($start + 3, $message->finishedAt()->getTimestamp());
         $this->assertSame([], $message->tags()->all());
         $this->assertSame([], $message->result());
         $this->assertSame('foo', $message->transport());

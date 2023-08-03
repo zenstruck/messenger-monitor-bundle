@@ -109,9 +109,9 @@
 
                                 {% if message %}
                                     {% if time_formatter %}
-                                        <abbr title="{{ message.handledAt|date('c') }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
+                                        <abbr title="{{ message.finishedAt|date('c') }}">{{ time_formatter.formatDiff(message.finishedAt) }}</abbr>
                                     {% else %}
-                                        {{ message.handledAt|date('c') }}
+                                        {{ message.finishedAt|date('c') }}
                                     {% endif %}
                                 {% else %}
                                     <em class="text-secondary">Never</em>

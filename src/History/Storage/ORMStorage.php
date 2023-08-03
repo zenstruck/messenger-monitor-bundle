@@ -89,7 +89,7 @@ final class ORMStorage implements Storage
     public function averageHandlingTime(Specification $specification): ?float
     {
         return $this->queryBuilderFor($specification)
-            ->select('AVG(m.handledAt - m.receivedAt)')
+            ->select('AVG(m.finishedAt - m.receivedAt)')
             ->getQuery()
             ->getSingleScalarResult()
         ;
@@ -98,7 +98,7 @@ final class ORMStorage implements Storage
     public function count(Specification $specification): int
     {
         return $this->queryBuilderFor($specification)
-            ->select('COUNT(m.handledAt)')
+            ->select('COUNT(m.finishedAt)')
             ->getQuery()
             ->getSingleScalarResult()
         ;
@@ -134,11 +134,11 @@ final class ORMStorage implements Storage
         $qb = $this->repository()->createQueryBuilder('m');
 
         if ($from) {
-            $qb->andWhere('m.handledAt >= :from')->setParameter('from', $from);
+            $qb->andWhere('m.finishedAt >= :from')->setParameter('from', $from);
         }
 
         if ($to) {
-            $qb->andWhere('m.handledAt <= :to')->setParameter('to', $to);
+            $qb->andWhere('m.finishedAt <= :to')->setParameter('to', $to);
         }
 
         if ($messageType) {
@@ -164,7 +164,7 @@ final class ORMStorage implements Storage
         }
 
         if ($order) {
-            $qb->orderBy('m.handledAt', 'DESC');
+            $qb->orderBy('m.finishedAt', 'DESC');
         }
 
         return $qb;

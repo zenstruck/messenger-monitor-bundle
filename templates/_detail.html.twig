@@ -97,9 +97,9 @@
                             <th class="text-end">Finished Handling At</th>
                             <td>
                                 {% if time_formatter %}
-                                    <abbr title="{{ message.handledAt|date('c') }}">{{ time_formatter.formatDiff(message.handledAt) }}</abbr>
+                                    <abbr title="{{ message.finishedAt|date('c') }}">{{ time_formatter.formatDiff(message.finishedAt) }}</abbr>
                                 {% else %}
-                                    {{ message.handledAt|date('c') }}
+                                    {{ message.finishedAt|date('c') }}
                                 {% endif %}
                             </td>
                         </tr>
