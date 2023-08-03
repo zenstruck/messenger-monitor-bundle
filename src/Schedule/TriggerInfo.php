@@ -14,7 +14,7 @@ namespace Zenstruck\Messenger\Monitor\Schedule;
 use Symfony\Component\Scheduler\Trigger\AbstractDecoratedTrigger;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
-use Zenstruck\Messenger\Monitor\Message\Type;
+use Zenstruck\Messenger\Monitor\Type;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>

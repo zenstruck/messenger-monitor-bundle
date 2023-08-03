@@ -13,7 +13,7 @@ namespace Zenstruck\Messenger\Monitor\Schedule;
 
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
-use Zenstruck\Messenger\Monitor\Message\Type;
+use Zenstruck\Messenger\Monitor\Type;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -47,7 +47,7 @@ final class MessageInfo
     }
 
     /**
-     * @return Type<object>
+     * @return \Zenstruck\Messenger\Monitor\Type<object>
      */
     public function type(): Type
     {

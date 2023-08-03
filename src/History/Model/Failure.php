@@ -11,7 +11,7 @@
 
 namespace Zenstruck\Messenger\Monitor\History\Model;
 
-use Zenstruck\Messenger\Monitor\Message\Type;
+use Zenstruck\Messenger\Monitor\Type;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -43,7 +43,7 @@ final class Failure implements \Stringable
     }
 
     /**
-     * @return Type<\Throwable>
+     * @return \Zenstruck\Messenger\Monitor\Type<\Throwable>
      */
     public function type(): Type
     {

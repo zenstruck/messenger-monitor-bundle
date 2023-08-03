@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Zenstruck\Messenger\Monitor\Message;
+namespace Zenstruck\Messenger\Monitor;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>

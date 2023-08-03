@@ -15,7 +15,7 @@ use Symfony\Component\Scheduler\RecurringMessage;
 use Zenstruck\Messenger\Monitor\History\Snapshot;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
-use Zenstruck\Messenger\Monitor\Message\Type;
+use Zenstruck\Messenger\Monitor\Type;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>

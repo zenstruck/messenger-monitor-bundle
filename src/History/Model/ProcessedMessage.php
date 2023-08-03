@@ -16,7 +16,7 @@ use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Bytes;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
-use Zenstruck\Messenger\Monitor\Message\Type;
+use Zenstruck\Messenger\Monitor\Type;
 
 use function Symfony\Component\Clock\now;
 
@@ -82,7 +82,7 @@ abstract class ProcessedMessage
     }
 
     /**
-     * @return Type<object>
+     * @return \Zenstruck\Messenger\Monitor\Type<object>
      */
     final public function type(): Type
     {
