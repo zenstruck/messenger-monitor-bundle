@@ -97,7 +97,7 @@ abstract class MessengerMonitorController extends AbstractController
             'from' => self::PERIOD_MAP[$period],
             'transport' => $request->query->get('transport'),
             'status' => $request->query->get('status'),
-            'tag' => $request->query->get('tag'),
+            'tags' => $request->query->get('tag'),
             'message_type' => $request->query->get('type'),
         ]);
 

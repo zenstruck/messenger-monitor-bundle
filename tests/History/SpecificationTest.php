@@ -34,8 +34,8 @@ final class SpecificationTest extends TestCase
                 'status' => null,
                 'message_type' => null,
                 'transport' => null,
-                'tag' => null,
-                'not_tag' => null,
+                'tags' => [],
+                'not_tags' => [],
             ],
             $spec->toArray(),
         );
@@ -55,8 +55,8 @@ final class SpecificationTest extends TestCase
                 'status' => null,
                 'message_type' => null,
                 'transport' => null,
-                'tag' => null,
-                'not_tag' => null,
+                'tags' => [],
+                'not_tags' => [],
             ],
             $spec->toArray(),
         );
@@ -67,8 +67,8 @@ final class SpecificationTest extends TestCase
             'status' => Specification::SUCCESS,
             'message_type' => 'foo',
             'transport' => 'bar',
-            'tag' => 'baz',
-            'not_tag' => 'qux',
+            'tags' => 'baz',
+            'not_tags' => 'qux',
         ]);
 
         $this->assertEquals(
@@ -78,8 +78,8 @@ final class SpecificationTest extends TestCase
                 'status' => Specification::SUCCESS,
                 'message_type' => 'foo',
                 'transport' => 'bar',
-                'tag' => 'baz',
-                'not_tag' => 'qux',
+                'tags' => ['baz'],
+                'not_tags' => ['qux'],
             ],
             $spec->toArray(),
         );
@@ -106,7 +106,8 @@ final class SpecificationTest extends TestCase
         $this->assertNotSame($spec, $spec->to(null));
         $this->assertNotSame($spec, $spec->on(null));
         $this->assertNotSame($spec, $spec->for(null));
-        $this->assertNotSame($spec, $spec->with(null));
+        $this->assertNotSame($spec, $spec->with());
+        $this->assertNotSame($spec, $spec->without());
         $this->assertNotSame($spec, $spec->successes());
         $this->assertNotSame($spec, $spec->failures());
     }

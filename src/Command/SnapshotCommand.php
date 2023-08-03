@@ -41,7 +41,8 @@ final class SnapshotCommand extends Command
             ->addOption('status', null, InputOption::VALUE_REQUIRED, 'Status, "failed" or "success"', null, [Specification::SUCCESS, Specification::FAILED])
             ->addOption('type', null, InputOption::VALUE_REQUIRED, 'Message type')
             ->addOption('transport', null, InputOption::VALUE_REQUIRED, 'Transport', null, fn() => $this->transports->names())
-            ->addOption('tag', null, InputOption::VALUE_REQUIRED, 'Tag')
+            ->addOption('tag', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Tag(s)')
+            ->addOption('not-tag', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, '"Not" Tag(s)')
         ;
     }
 
@@ -54,7 +55,8 @@ final class SnapshotCommand extends Command
             'status' => $input->getOption('status'),
             'message_type' => $input->getOption('type'),
             'transport' => $input->getOption('transport'),
-            'tag' => $input->getOption('tag'),
+            'tags' => $input->getOption('tag'),
+            'not_tags' => $input->getOption('not-tag'),
         ]);
         $snapshot = $specification->snapshot($this->storage);
         $waitTime = $snapshot->averageWaitTime();

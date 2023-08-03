@@ -22,8 +22,8 @@ namespace Zenstruck\Messenger\Monitor\History;
  *     status?: self::SUCCESS|self::FAILED|null,
  *     message_type?: ?string,
  *     transport?: ?string,
- *     tag?: ?string,
- *     not_tag?: ?string,
+ *     tags?: string[]|string|null,
+ *     not_tags?: string[]|string|null,
  * }
  */
 final class Specification
@@ -55,8 +55,12 @@ final class Specification
     private ?\DateTimeImmutable $to = null;
     private ?string $messageType = null;
     private ?string $transport = null;
-    private ?string $tag = null;
-    private ?string $notTag = null;
+
+    /** @var string[] */
+    private array $tags = [];
+
+    /** @var string[] */
+    private array $notTags = [];
 
     public static function new(): self
     {
@@ -81,13 +85,19 @@ final class Specification
         $specification->to = self::parseDate($values['to'] ?? null);
         $specification->messageType = $values['message_type'] ?? null;
         $specification->transport = $values['transport'] ?? null;
-        $specification->tag = $values['tag'] ?? null;
-        $specification->notTag = $values['not_tag'] ?? null;
         $specification->status = match ($values['status'] ?? null) {
             self::SUCCESS => self::SUCCESS,
             self::FAILED => self::FAILED,
             default => null,
         };
+
+        if (isset($values['tags'])) {
+            $specification->tags = (array) $values['tags'];
+        }
+
+        if (isset($values['not_tags'])) {
+            $specification->notTags = (array) $values['not_tags'];
+        }
 
         return $specification;
     }
@@ -124,18 +134,18 @@ final class Specification
         return $clone;
     }
 
-    public function with(?string $tag): self
+    public function with(string ...$tags): self
     {
         $clone = clone $this;
-        $clone->tag = $tag;
+        $clone->tags = $tags;
 
         return $clone;
     }
 
-    public function without(?string $tag): self
+    public function without(string ...$tags): self
     {
         $clone = clone $this;
-        $clone->notTag = $tag;
+        $clone->notTags = $tags;
 
         return $clone;
     }
@@ -163,8 +173,8 @@ final class Specification
      *     status: self::SUCCESS|self::FAILED|null,
      *     message_type: ?string,
      *     transport: ?string,
-     *     tag: ?string,
-     *     not_tag: ?string,
+     *     tags: string[],
+     *     not_tags: string[],
      * }
      */
     public function toArray(): array
@@ -175,8 +185,8 @@ final class Specification
             'status' => $this->status,
             'message_type' => $this->messageType,
             'transport' => $this->transport,
-            'tag' => $this->tag,
-            'not_tag' => $this->notTag,
+            'tags' => $this->tags,
+            'not_tags' => $this->notTags,
         ];
     }
 
