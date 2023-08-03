@@ -17,6 +17,7 @@ namespace Zenstruck\Messenger\Monitor\History;
  * @immutable
  *
  * @phpstan-type Input = array{
+ *     period?: Period|string,
  *     from?: \DateTimeImmutable|string|null,
  *     to?: \DateTimeImmutable|string|null,
  *     status?: self::SUCCESS|self::FAILED|null,
@@ -34,24 +35,6 @@ final class Specification
 
     public const ASC = 'asc';
     public const DESC = 'desc';
-
-    public const ONE_HOUR_AGO = '1-hour-ago';
-    public const ONE_DAY_AGO = '24-hours-ago';
-    public const ONE_WEEK_AGO = '7-days-ago';
-    public const ONE_MONTH_AGO = '30-days-ago';
-    public const DATE_PRESETS = [
-        self::ONE_HOUR_AGO,
-        self::ONE_DAY_AGO,
-        self::ONE_WEEK_AGO,
-        self::ONE_MONTH_AGO,
-    ];
-
-    private const DATE_PRESET_MAP = [
-        self::ONE_HOUR_AGO => '-1 hour',
-        self::ONE_DAY_AGO => '-1 day',
-        self::ONE_WEEK_AGO => '-1 week',
-        self::ONE_MONTH_AGO => '-30 days',
-    ];
 
     /** @var self::SUCCESS|self::FAILED|null */
     private ?string $status = null;
@@ -75,12 +58,16 @@ final class Specification
     }
 
     /**
-     * @param Input|self|null $values
+     * @param Input|self|string|Period|null $values
      */
-    public static function create(self|array|null $values): self
+    public static function create(self|array|string|Period|null $values): self
     {
         if ($values instanceof self) {
             return $values;
+        }
+
+        if ($values instanceof Period || \is_string($values)) {
+            $values = ['period' => Period::parseOrFail($values)];
         }
 
         if (!\is_array($values)) {
@@ -88,6 +75,11 @@ final class Specification
         }
 
         $specification = new self();
+
+        if (isset($values['period'])) {
+            [$values['from'], $values['to']] = Period::parse($values['period'])->timestamps();
+        }
+
         $specification->from = self::parseDate($values['from'] ?? null);
         $specification->to = self::parseDate($values['to'] ?? null);
         $specification->messageType = $values['message_type'] ?? null;
@@ -230,6 +222,6 @@ final class Specification
             return $value;
         }
 
-        return new \DateTimeImmutable(self::DATE_PRESET_MAP[$value] ?? $value);
+        return new \DateTimeImmutable($value);
     }
 }

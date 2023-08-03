@@ -12,6 +12,8 @@
 namespace Zenstruck\Messenger\Monitor\Tests\History;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Clock\Test\ClockSensitiveTrait;
+use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 
@@ -20,6 +22,8 @@ use Zenstruck\Messenger\Monitor\History\Storage;
  */
 final class SpecificationTest extends TestCase
 {
+    use ClockSensitiveTrait;
+
     /**
      * @test
      */
@@ -66,6 +70,27 @@ final class SpecificationTest extends TestCase
             ],
             $spec->toArray(),
         );
+    }
+
+    /**
+     * @test
+     */
+    public function create_from_period(): void
+    {
+        $spec = Specification::create(['period' => Period::IN_LAST_HOUR]);
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $spec->toArray()['from']);
+        $this->assertNull($spec->toArray()['to']);
+
+        $spec = Specification::create(['period' => 'in-last-hour']);
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $spec->toArray()['from']);
+        $this->assertNull($spec->toArray()['to']);
+
+        $spec = Specification::create(['period' => Period::YESTERDAY]);
+
+        $this->assertInstanceOf(\DateTimeImmutable::class, $spec->toArray()['from']);
+        $this->assertInstanceOf(\DateTimeImmutable::class, $spec->toArray()['to']);
     }
 
     /**

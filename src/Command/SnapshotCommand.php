@@ -18,6 +18,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
@@ -36,8 +37,7 @@ final class SnapshotCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('from', null, InputOption::VALUE_REQUIRED, 'From date', Specification::ONE_DAY_AGO, Specification::DATE_PRESETS)
-            ->addOption('to', null, InputOption::VALUE_REQUIRED, 'To date', 'now')
+            ->addOption('period', null, InputOption::VALUE_REQUIRED, 'From date', Period::IN_LAST_DAY->value, [...Period::inLastValues(), ...Period::absoluteValues()])
             ->addOption('status', null, InputOption::VALUE_REQUIRED, 'Status, "failed" or "success"', null, [Specification::SUCCESS, Specification::FAILED])
             ->addOption('type', null, InputOption::VALUE_REQUIRED, 'Message type')
             ->addOption('transport', null, InputOption::VALUE_REQUIRED, 'Transport', null, fn() => $this->transports->names())
@@ -49,9 +49,9 @@ final class SnapshotCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $period = Period::parseOrFail($input->getOption('period'));
         $specification = Specification::create([
-            'from' => $input->getOption('from'),
-            'to' => $input->getOption('to'),
+            'period' => $period,
             'status' => $input->getOption('status'),
             'message_type' => $input->getOption('type'),
             'transport' => $input->getOption('transport'),
@@ -68,6 +68,7 @@ final class SnapshotCommand extends Command
             $total .= \sprintf(' (<error>%s</error> failed)', $fails);
         }
 
+        $io->newLine();
         $io->createTable()
             ->setHorizontal()
             ->setHeaderTitle('Historical Snapshot')
@@ -82,7 +83,7 @@ final class SnapshotCommand extends Command
                 'Handled Per Day',
             ])
             ->addRow([
-                \sprintf('<comment>%s</comment> to <comment>%s</comment>', $input->getOption('from'), $input->getOption('to')),
+                $period->humanize(),
                 $total,
                 match (true) {
                     $failRate < 5 => \sprintf('<info>%s%%</info>', $failRate),
@@ -119,6 +120,7 @@ final class SnapshotCommand extends Command
         }
 
         $listing->render();
+        $io->newLine();
 
         return self::SUCCESS;
     }

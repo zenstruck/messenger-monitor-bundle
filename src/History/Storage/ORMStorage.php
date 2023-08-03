@@ -53,7 +53,7 @@ final class ORMStorage implements Storage
 
     public function purge(Specification $specification): int
     {
-        return $this->queryBuilderFor($specification)->delete()->getQuery()->execute();
+        return $this->queryBuilderFor($specification, order: false)->delete()->getQuery()->execute();
     }
 
     public function save(Envelope $envelope, ?\Throwable $exception = null): void
@@ -127,7 +127,7 @@ final class ORMStorage implements Storage
         return $this->repository = $repository;
     }
 
-    private function queryBuilderFor(Specification $specification, bool $order = false): QueryBuilder
+    private function queryBuilderFor(Specification $specification, bool $order = true): QueryBuilder
     {
         [$from, $to, $status, $messageType, $transport, $tags, $notTags, $sort] = \array_values($specification->toArray());
 
@@ -163,7 +163,9 @@ final class ORMStorage implements Storage
             $qb->andWhere('m.tags NOT LIKE :not_tag'.$i)->setParameter('not_tag'.$i, '%'.$notTag.'%');
         }
 
-        $qb->orderBy('m.finishedAt', \mb_strtoupper($sort));
+        if ($order) {
+            $qb->orderBy('m.finishedAt', \mb_strtoupper($sort));
+        }
 
         return $qb;
     }

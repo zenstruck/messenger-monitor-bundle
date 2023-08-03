@@ -21,6 +21,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
@@ -34,12 +35,6 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
 #[AsCommand('messenger:monitor', 'Display a status overview of your workers and transports')]
 final class MonitorCommand extends Command
 {
-    private const SNAPSHOTS = [
-        'last-hour' => [Specification::ONE_HOUR_AGO, 'Last Hour'],
-        'last-day' => [Specification::ONE_DAY_AGO, 'Last Day'],
-        'last-week' => [Specification::ONE_WEEK_AGO, 'Last Week'],
-    ];
-
     public function __construct(
         private WorkerMonitor $workers,
         private TransportMonitor $transports,
@@ -55,7 +50,7 @@ final class MonitorCommand extends Command
         }
 
         $this
-            ->addOption('snapshot', 's', InputOption::VALUE_REQUIRED, 'Historical snapshot', 'last-day', \array_keys(self::SNAPSHOTS))
+            ->addOption('period', null, InputOption::VALUE_REQUIRED, 'From date', Period::IN_LAST_DAY->value, [...Period::inLastValues(), ...Period::absoluteValues()])
         ;
     }
 
@@ -96,8 +91,8 @@ final class MonitorCommand extends Command
 
     private function renderSnapshot(SymfonyStyle $io, InputInterface $input): void
     {
-        [$from, $title] = self::SNAPSHOTS[$input->getOption('snapshot')] ?? self::SNAPSHOTS['last-day'];
-        $snapshot = Specification::new()->from($from)->snapshot($this->storage); // @phpstan-ignore-line
+        $period = Period::parseOrFail($input->getOption('period'));
+        $snapshot = Specification::create($period)->snapshot($this->storage); // @phpstan-ignore-line
         $waitTime = $snapshot->averageWaitTime();
         $handlingTime = $snapshot->averageHandlingTime();
         $failRate = \round($snapshot->failRate() * 100);
@@ -121,7 +116,7 @@ final class MonitorCommand extends Command
                 'Handled Per Day',
             ])
             ->addRow([
-                $title,
+                $period->humanize(),
                 $total,
                 match (true) {
                     $failRate < 5 => \sprintf('<info>%s%%</info>', $failRate),

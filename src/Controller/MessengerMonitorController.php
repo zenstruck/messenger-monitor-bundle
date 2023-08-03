@@ -23,6 +23,7 @@ use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
+use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\ScheduleMonitor;
@@ -35,23 +36,6 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
  */
 abstract class MessengerMonitorController extends AbstractController
 {
-    protected const LAST_HOUR = 'last-hour';
-    protected const LAST_24_HOURS = 'last-24-hours';
-    protected const LAST_7_DAYS = 'last-7-days';
-    protected const LAST_30_DAYS = 'last-30-days';
-    protected const PERIODS = [
-        self::LAST_HOUR,
-        self::LAST_24_HOURS,
-        self::LAST_7_DAYS,
-        self::LAST_30_DAYS,
-    ];
-    protected const PERIOD_MAP = [
-        self::LAST_HOUR => Specification::ONE_HOUR_AGO,
-        self::LAST_24_HOURS => Specification::ONE_DAY_AGO,
-        self::LAST_7_DAYS => Specification::ONE_WEEK_AGO,
-        self::LAST_30_DAYS => Specification::ONE_MONTH_AGO,
-    ];
-
     #[Route(name: 'zenstruck_messenger_monitor_dashboard')]
     public function dashboard(
         WorkerMonitor $workers,
@@ -67,7 +51,7 @@ abstract class MessengerMonitorController extends AbstractController
         return $this->render('@ZenstruckMessengerMonitor/dashboard.html.twig', [
             'workers' => $workers,
             'transports' => $transports->excludeSync(),
-            'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
+            'snapshot' => Specification::create(Period::IN_LAST_DAY)->snapshot($storage),
             'messages' => Specification::new()->snapshot($storage)->messages(),
             'schedules' => $schedules,
             'time_formatter' => $dateTimeFormatter,
@@ -87,14 +71,10 @@ abstract class MessengerMonitorController extends AbstractController
             throw new \LogicException('Storage must be configured to use the dashboard.');
         }
 
-        $period = $request->query->get('period', self::LAST_24_HOURS);
-
-        if (!\in_array($period, self::PERIODS, true)) {
-            $period = self::LAST_24_HOURS;
-        }
+        $period = Period::parse($request->query->getString('period'));
 
         $specification = Specification::create([ // @phpstan-ignore-line
-            'from' => self::PERIOD_MAP[$period],
+            'period' => $period,
             'transport' => $request->query->get('transport'),
             'status' => $request->query->get('status'),
             'tags' => $request->query->get('tag'),
@@ -102,7 +82,7 @@ abstract class MessengerMonitorController extends AbstractController
         ]);
 
         return $this->render('@ZenstruckMessengerMonitor/history.html.twig', [
-            'periods' => self::PERIODS,
+            'periods' => [...Period::inLastCases(), ...Period::absoluteCases()],
             'period' => $period,
             'transports' => $transports->excludeSync(),
             'snapshot' => $specification->snapshot($storage),

@@ -17,6 +17,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
@@ -35,7 +36,7 @@ final class PurgeCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('older-than', null, InputOption::VALUE_REQUIRED, 'Older than', Specification::ONE_MONTH_AGO, Specification::DATE_PRESETS)
+            ->addOption('older-than', null, InputOption::VALUE_REQUIRED, 'Older than', Period::OLDER_THAN_1_MONTH->value, Period::olderThanValues())
             ->addOption('status', null, InputOption::VALUE_REQUIRED, 'Status, "failed" or "success"', null, [Specification::SUCCESS, Specification::FAILED])
             ->addOption('type', null, InputOption::VALUE_REQUIRED, 'Message type')
             ->addOption('transport', null, InputOption::VALUE_REQUIRED, 'Transport', null, fn() => $this->transports->names())
@@ -49,13 +50,14 @@ final class PurgeCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $notTags = $input->getOption('not-tag');
+        $period = Period::parseOrFail($input->getOption('older-than'));
 
         if ($input->getOption('exclude-schedules')) {
             $notTags[] = 'schedule';
         }
 
         $specification = Specification::create([
-            'to' => $input->getOption('older-than'),
+            'period' => $period,
             'status' => $input->getOption('status'),
             'message_type' => $input->getOption('type'),
             'transport' => $input->getOption('transport'),
@@ -63,7 +65,7 @@ final class PurgeCommand extends Command
             'not_tags' => $notTags,
         ]);
 
-        $io->comment(\sprintf('Purging processed messages older than <info>%s</info>', $input->getOption('older-than')));
+        $io->comment(\sprintf('Purging processed messages <info>%s</info>', $period->humanize()));
 
         $result = $this->storage->purge($specification);
 
