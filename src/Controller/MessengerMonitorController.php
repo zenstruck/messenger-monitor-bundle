@@ -185,7 +185,8 @@ abstract class MessengerMonitorController extends AbstractController
             throw new HttpException(419, 'Invalid CSRF token.');
         }
 
-        $message = $schedules->get($name)->task($id)->get()->getMessage();
+        $task = $schedules->get($name)->task($id);
+        $message = $task->get()->getMessage();
 
         if ($message instanceof RedispatchMessage) {
             $message = $message->envelope;
@@ -193,7 +194,7 @@ abstract class MessengerMonitorController extends AbstractController
 
         $bus->dispatch($message, [
             new Tag('manual'),
-            new Tag(\sprintf('schedule:%s:%s', $name, $id)),
+            Tag::forSchedule($task),
             new TransportNamesStamp($transport),
         ]);
 

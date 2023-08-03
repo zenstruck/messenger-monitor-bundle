@@ -12,6 +12,8 @@
 namespace Zenstruck\Messenger\Monitor\Stamp;
 
 use Symfony\Component\Messenger\Stamp\StampInterface;
+use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
+use Zenstruck\Messenger\Monitor\Schedule\TaskInfo;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -25,5 +27,14 @@ final class Tag implements StampInterface
     public function __construct(string ...$tags)
     {
         $this->values = $tags;
+    }
+
+    public static function forSchedule(ScheduledStamp|TaskInfo $value): self
+    {
+        if ($value instanceof ScheduledStamp) {
+            return new self(\sprintf('schedule:%s:%s', $value->messageContext->name, $value->messageContext->id));
+        }
+
+        return new self(\sprintf('schedule:%s:%s', $value->schedule()->name(), $value->id()));
     }
 }

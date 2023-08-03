@@ -53,9 +53,7 @@ final class HistoryListener
             // scheduler transport doesn't trigger SendMessageToTransportsEvent
             $stamp = new MonitorStamp($scheduledStamp->messageContext->triggeredAt);
 
-            $event->addStamps(new Tag(
-                \sprintf('schedule:%s:%s', $scheduledStamp->messageContext->name, $scheduledStamp->messageContext->id)
-            ));
+            $event->addStamps(Tag::forSchedule($scheduledStamp));
         }
 
         if ($stamp instanceof MonitorStamp) {
