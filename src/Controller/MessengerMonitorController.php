@@ -61,7 +61,7 @@ abstract class MessengerMonitorController extends AbstractController
 
         return $this->render('@ZenstruckMessengerMonitor/dashboard.html.twig', [
             'workers' => $workers,
-            'transports' => $transports,
+            'transports' => $transports->excludeSync(),
             'snapshot' => Specification::new()->from(Specification::ONE_DAY_AGO)->snapshot($storage),
             'messages' => Specification::new()->snapshot($storage)->messages(),
             'schedules' => $schedules,
@@ -99,7 +99,7 @@ abstract class MessengerMonitorController extends AbstractController
         return $this->render('@ZenstruckMessengerMonitor/history.html.twig', [
             'periods' => self::PERIODS,
             'period' => $period,
-            'transports' => $transports,
+            'transports' => $transports->excludeSync(),
             'snapshot' => $specification->snapshot($storage),
             'schedules' => $schedules,
             'time_formatter' => $dateTimeFormatter,

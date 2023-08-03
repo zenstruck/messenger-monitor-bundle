@@ -12,13 +12,18 @@
 namespace Zenstruck\Messenger\Monitor;
 
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Transport\Receiver\ListableReceiverInterface;
+use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
 use Symfony\Component\Messenger\Transport\Sync\SyncTransport;
 use Symfony\Component\Messenger\Transport\TransportInterface;
+use Symfony\Component\Scheduler\Messenger\SchedulerTransport;
 use Symfony\Contracts\Service\ServiceProviderInterface;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @immutable
  *
  * @implements \IteratorAggregate<string,TransportInfo<Envelope>>
  */
@@ -26,6 +31,9 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
 {
     /** @var string[] */
     private array $names;
+
+    /** @var (callable(TransportInterface):bool)[] */
+    private array $filters = [];
 
     /**
      * @internal
@@ -55,20 +63,24 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
         return \iterator_to_array($this);
     }
 
-    /**
-     * @return array<string,TransportInfo<Envelope>>
-     */
-    public function countable(): array
+    public function countable(): self
     {
-        return \array_filter($this->all(), static fn(TransportInfo $status) => $status->isCountable());
+        return $this->filter(fn(TransportInterface $transport) => $transport instanceof MessageCountAwareInterface);
     }
 
-    /**
-     * @return array<string,TransportInfo<Envelope>>
-     */
-    public function listable(): array
+    public function listable(): self
     {
-        return \array_filter($this->all(), static fn(TransportInfo $status) => $status->isListable());
+        return $this->filter(fn(TransportInterface $transport) => $transport instanceof ListableReceiverInterface);
+    }
+
+    public function excludeSync(): self
+    {
+        return $this->filter(fn(TransportInterface $transport) => !$transport instanceof SyncTransport);
+    }
+
+    public function excludeSchedules(): self
+    {
+        return $this->filter(fn(TransportInterface $transport) => !$transport instanceof SchedulerTransport);
     }
 
     /**
@@ -78,7 +90,17 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     {
         return $this->names ??= \array_filter(
             \array_keys($this->transports->getProvidedServices()),
-            fn(string $name) => !$this->transports->get($name) instanceof SyncTransport,
+            function(string $name) {
+                $transport = $this->transports->get($name);
+
+                foreach ($this->filters as $filter) {
+                    if (!$filter($transport)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         );
     }
 
@@ -92,5 +114,18 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     public function count(): int
     {
         return \count($this->names());
+    }
+
+    /**
+     * @param callable(TransportInterface):bool $filter
+     */
+    private function filter(callable $filter): self
+    {
+        $clone = clone $this;
+        $clone->filters[] = $filter;
+
+        unset($clone->names);
+
+        return $clone;
     }
 }
