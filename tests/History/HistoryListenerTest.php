@@ -105,7 +105,7 @@ final class HistoryListenerTest extends TestCase
         $this->assertTrue($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
         $this->assertSame('foo', $event->getEnvelope()->last(MonitorStamp::class)->transport());
         $this->assertCount(1, $event->getEnvelope()->all(Tag::class));
-        $this->assertSame(['schedule:default:id'], $event->getEnvelope()->last(Tag::class)->values);
+        $this->assertSame('schedule:default:id', $event->getEnvelope()->last(Tag::class)->value);
     }
 
     /**

@@ -18,15 +18,12 @@ use Zenstruck\Messenger\Monitor\Schedule\TaskInfo;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-#[\Attribute(\Attribute::TARGET_CLASS)]
+#[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
 final class Tag implements StampInterface
 {
-    /** @var string[] */
-    public readonly array $values;
-
-    public function __construct(string ...$tags)
-    {
-        $this->values = $tags;
+    public function __construct(
+        public readonly string $value,
+    ) {
     }
 
     public static function forSchedule(ScheduledStamp|TaskInfo $value): self

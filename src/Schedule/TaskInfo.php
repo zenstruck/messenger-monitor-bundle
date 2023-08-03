@@ -66,7 +66,7 @@ final class TaskInfo
     public function history(Specification|array|null $specification = null): Snapshot
     {
         return Specification::create($specification)
-            ->with(Tag::forSchedule($this)->values[0])
+            ->with(Tag::forSchedule($this)->value)
             ->snapshot($this->storage ?? throw new \LogicException('No history storage configured.'))
         ;
     }

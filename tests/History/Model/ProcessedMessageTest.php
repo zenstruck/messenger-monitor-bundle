@@ -77,8 +77,10 @@ final class ProcessedMessageTest extends TestCase
             (new MonitorStamp())->markReceived('foo'),
             new RedeliveryStamp(2),
             new ResultStamp(['foo' => 'bar']),
-            new Tag('foo', 'bar'),
-            new Tag('bar', 'baz'),
+            new Tag('foo'),
+            new Tag('bar'),
+            new Tag('bar'),
+            new Tag('baz'),
             new Tag('qux'),
         ]);
 

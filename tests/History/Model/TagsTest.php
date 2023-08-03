@@ -80,8 +80,10 @@ final class TagsTest extends TestCase
     public function create_from_envelope(): void
     {
         $envelope = new Envelope(new TestMessage(), [
-            new Tag('foo', 'bar'),
-            new Tag('bar', 'baz'),
+            new Tag('foo'),
+            new Tag('bar'),
+            new Tag('bar'),
+            new Tag('baz'),
             new Tag('qux'),
         ]);
 
@@ -102,7 +104,9 @@ final class TagsTest extends TestCase
     }
 }
 
-#[Tag('from', 'attribute', 'bar')]
+#[Tag('from')]
+#[Tag('attribute')]
+#[Tag('bar')]
 class TestMessage
 {
 }

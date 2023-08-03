@@ -25,6 +25,8 @@ final class Tags implements \IteratorAggregate, \Countable, \Stringable
     private array $value;
 
     /**
+     * @internal
+     *
      * @param string[]|string|Envelope|null $tags
      */
     public function __construct(array|string|Envelope|null $tags = [])
@@ -99,11 +101,11 @@ final class Tags implements \IteratorAggregate, \Countable, \Stringable
     private static function parseFrom(Envelope $envelope): \Traversable
     {
         foreach ((new \ReflectionClass($envelope->getMessage()))->getAttributes(Tag::class) as $attribute) {
-            yield from $attribute->newInstance()->values;
+            yield $attribute->newInstance()->value;
         }
 
         foreach ($envelope->all(Tag::class) as $tag) {
-            yield from $tag->values; // @phpstan-ignore-line
+            yield $tag->value; // @phpstan-ignore-line
         }
     }
 }
