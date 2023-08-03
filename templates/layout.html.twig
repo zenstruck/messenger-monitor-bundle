@@ -65,7 +65,7 @@
 </head>
 <body>
 {% block navbar %}
-    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <nav class="navbar sticky-top navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
             <a href="{{ path('zenstruck_messenger_monitor_dashboard') }}" class="navbar-brand">
                 {{ include('@ZenstruckMessengerMonitor/icon.svg.twig', {size: 24, class: 'd-inline-block align-text-top'}) }}

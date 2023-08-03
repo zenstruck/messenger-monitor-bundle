@@ -99,7 +99,20 @@
             {{ include('@ZenstruckMessengerMonitor/components/_snapshot.html.twig') }}
         </div>
         <div class="col-md-8 col-lg-9">
-            {{ include('@ZenstruckMessengerMonitor/components/_messages.html.twig', {messages: snapshot.messages}) }}
+            {% set paginator = snapshot.messages.paginate(app.request.query.getInt('page', 1), 10) %}
+            {{ include('@ZenstruckMessengerMonitor/components/_messages.html.twig', {messages: paginator, subtitle: 'Page '~paginator.currentPage~' of '~paginator.pageCount}) }}
+            {% if paginator.haveToPaginate %}
+                <nav aria-label="Message Pagination" class="d-flex justify-content-center">
+                    <ul class="pagination">
+                        <li class="page-item{{ 1 == paginator.currentPage ? ' disabled' }}">
+                            <a href="{{ path(app.current_route, app.request.query.all|merge({page: paginator.previousPage|default(1)})) }}" class="page-link">Previous</a>
+                        </li>
+                        <li class="page-item{{ paginator.lastPage == paginator.currentPage ? ' disabled' }}">
+                            <a class="page-link" href="{{ path(app.current_route, app.request.query.all|merge({page: paginator.nextPage|default(paginator.lastPage)})) }}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

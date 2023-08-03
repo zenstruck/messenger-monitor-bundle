@@ -6,8 +6,6 @@
         {% endif %}
     </div>
 
-    {% set messages = messages.take(limit|default(20)) %}
-
     {% if not messages|length %}
         <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
             <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
