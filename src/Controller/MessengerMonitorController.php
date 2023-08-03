@@ -16,12 +16,17 @@ use Lorisleiva\CronTranslator\CronTranslator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Messenger\Message\RedispatchMessage;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\ScheduleMonitor;
+use Zenstruck\Messenger\Monitor\Stamp\Tag;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\WorkerMonitor;
 
@@ -130,6 +135,7 @@ abstract class MessengerMonitorController extends AbstractController
 
     #[Route('/schedules/{name}', name: 'zenstruck_messenger_monitor_schedules', defaults: ['name' => null])]
     public function schedules(
+        TransportMonitor $transports,
         ?ScheduleMonitor $schedules = null,
         ?DateTimeFormatter $dateTimeFormatter = null,
 
@@ -146,6 +152,7 @@ abstract class MessengerMonitorController extends AbstractController
         return $this->render('@ZenstruckMessengerMonitor/schedules.html.twig', [
             'schedules' => $schedules,
             'schedule' => $schedules->get($name),
+            'transports' => $transports->excludeSync()->excludeSchedules(),
             'time_formatter' => $dateTimeFormatter,
             'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
             'cron_humanizer' => new class() {
@@ -163,5 +170,33 @@ abstract class MessengerMonitorController extends AbstractController
                 }
             },
         ]);
+    }
+
+    #[Route('/schedules/{name}/trigger/{id}/{transport}', methods: 'POST', name: 'zenstruck_messenger_monitor_schedule_trigger')]
+    public function triggerTask(
+        string $name,
+        string $id,
+        string $transport,
+        Request $request,
+        ScheduleMonitor $schedules,
+        MessageBusInterface $bus,
+    ): Response {
+        if (!$this->isCsrfTokenValid(\sprintf('trigger-%s-%s', $id, $transport), $request->headers->get('X-CSRF-Token'))) {
+            throw new HttpException(419, 'Invalid CSRF token.');
+        }
+
+        $message = $schedules->get($name)->task($id)->get()->getMessage();
+
+        if ($message instanceof RedispatchMessage) {
+            $message = $message->envelope;
+        }
+
+        $bus->dispatch($message, [
+            new Tag('manual'),
+            new Tag(\sprintf('schedule:%s:%s', $name, $id)),
+            new TransportNamesStamp($transport),
+        ]);
+
+        return new Response(null, 204);
     }
 }

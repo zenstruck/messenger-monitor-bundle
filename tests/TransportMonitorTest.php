@@ -49,7 +49,7 @@ final class TransportMonitorTest extends TestCase
         $info = $this->create()->get('second');
 
         $this->assertSame('second', $info->name());
-        $this->assertInstanceOf(CountableTransport::class, $info->transport());
+        $this->assertInstanceOf(CountableTransport::class, $info->get());
     }
 
     /**
@@ -72,10 +72,10 @@ final class TransportMonitorTest extends TestCase
         $infos = \iterator_to_array($this->create());
 
         $this->assertCount(5, $infos);
-        $this->assertInstanceOf(TransportInterface::class, $infos['first']->transport());
-        $this->assertSame(CountableTransport::class, $infos['second']->transport()::class);
-        $this->assertSame(ListableTransport::class, $infos['third']->transport()::class);
-        $this->assertSame(CountableListableTransport::class, $infos['fourth']->transport()::class);
+        $this->assertInstanceOf(TransportInterface::class, $infos['first']->get());
+        $this->assertSame(CountableTransport::class, $infos['second']->get()::class);
+        $this->assertSame(ListableTransport::class, $infos['third']->get()::class);
+        $this->assertSame(CountableListableTransport::class, $infos['fourth']->get()::class);
     }
 
     private function create(): TransportMonitor

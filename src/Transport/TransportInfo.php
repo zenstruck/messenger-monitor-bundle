@@ -40,7 +40,7 @@ final class TransportInfo implements \IteratorAggregate, \Countable
         return $this->name;
     }
 
-    public function transport(): TransportInterface
+    public function get(): TransportInterface
     {
         return $this->transport;
     }

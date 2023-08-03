@@ -11,8 +11,6 @@
 
 namespace Zenstruck\Messenger\Monitor\Schedule;
 
-use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Zenstruck\Messenger\Monitor\History\Snapshot;
 use Zenstruck\Messenger\Monitor\History\Specification;
@@ -36,7 +34,7 @@ final class TaskInfo
     ) {
     }
 
-    public function task(): RecurringMessage
+    public function get(): RecurringMessage
     {
         return $this->task;
     }
@@ -46,12 +44,9 @@ final class TaskInfo
         return $this->task->getId();
     }
 
-    /**
-     * @return Type<object>
-     */
-    public function messageType(): Type
+    public function message(): MessageInfo
     {
-        return new Type(self::unwrap($this->task->getMessage()));
+        return new MessageInfo($this->task->getMessage());
     }
 
     public function trigger(): TriggerInfo
@@ -68,18 +63,5 @@ final class TaskInfo
             ->with(\sprintf('schedule:%s:%s', $this->schedule->name(), $this->id()))
             ->snapshot($this->storage ?? throw new \LogicException('No history storage configured.'))
         ;
-    }
-
-    private static function unwrap(object $message): object
-    {
-        if ($message instanceof Envelope) {
-            $message = $message->getMessage();
-        }
-
-        if ($message instanceof RedispatchMessage) {
-            return self::unwrap($message->envelope);
-        }
-
-        return $message;
     }
 }

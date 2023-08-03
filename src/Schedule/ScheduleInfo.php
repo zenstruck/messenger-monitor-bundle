@@ -45,9 +45,20 @@ final class ScheduleInfo implements \IteratorAggregate, \Countable
         return $this->name;
     }
 
-    public function schedule(): Schedule
+    public function get(): Schedule
     {
         return $this->provider->getSchedule();
+    }
+
+    public function task(string $id): TaskInfo
+    {
+        foreach ($this as $task) {
+            if ($task->id() === $id) {
+                return $task;
+            }
+        }
+
+        throw new \InvalidArgumentException(\sprintf('Task "%s" not found.', $id));
     }
 
     /**
@@ -81,13 +92,13 @@ final class ScheduleInfo implements \IteratorAggregate, \Countable
 
     public function getIterator(): \Traversable
     {
-        foreach ($this->schedule()->getRecurringMessages() as $task) {
+        foreach ($this->get()->getRecurringMessages() as $task) {
             yield new TaskInfo($this, $task, $this->storage);
         }
     }
 
     public function count(): int
     {
-        return \count($this->schedule()->getRecurringMessages());
+        return \count($this->get()->getRecurringMessages());
     }
 }

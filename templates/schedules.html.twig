@@ -2,6 +2,49 @@
 
 {% block title %}Schedules{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.schedule-task-trigger').forEach(element => {
+                element.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    fetch(element.getAttribute('href'), {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-Token': element.dataset.token,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        const el = document.getElementById('trigger-toast').cloneNode(true);
+
+                        el.classList.remove('d-none');
+                        el.classList.add('toast');
+
+                        if (response.ok) {
+                            el.classList.add('text-bg-success');
+                            el.querySelector('.toast-body').innerHTML = 'Successfully triggered task.';
+                        } else {
+                            el.classList.add('text-bg-danger');
+                            el.querySelector('.toast-body').innerHTML = 'Failed to trigger task.';
+                        }
+
+                        document.getElementById('toast-container').appendChild(el);
+
+                        const toast = new bootstrap.Toast(el);
+
+                        toast.show();
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
 {% block breadcrumb_items %}
     {{ parent() }}
     <li class="breadcrumb-item active" aria-current="page">Schedules</li>
@@ -58,12 +101,24 @@
                         <tr>
                             <td>{{ task.id }}</td>
                             <td>
-                                {% set type = task.messageType %}
+                                {% set message = task.message %}
+                                {% set type = message.type %}
                                 {% set str = type.objectString %}
 
                                 <abbr title="{{ type }}">{{ type.shortName }}</abbr>
+
                                 {% if str %}
                                     <br><small class="text-secondary">{{ str }}</small>
+                                {% endif %}
+
+                                {% if message.redispatch %}
+                                    <br>
+                                    <small>
+                                        Dispatched on:
+                                        {% for t in message.redispatchTransports %}
+                                            <span class="badge text-bg-secondary">{{ t }}</span>
+                                        {% endfor %}
+                                    </small>
                                 {% endif %}
                             </td>
                             {% set trigger = task.trigger %}
@@ -135,10 +190,27 @@
                             </td>
                             <td>
                                 {% if message %}
+                                    <a href="{{ path('zenstruck_messenger_monitor_detail', {id: message.id}) }}" class="btn btn-sm btn-secondary d-inline-flex align-items-center message-details">
+                                        <svg fill="currentcolor" height="1em" width="1em" class="me-2"><use xlink:href="#search-icon"/></svg>
+                                        Details...
+                                    </a>
                                     <a href="{{ path('zenstruck_messenger_monitor_history', {tag: ['schedule', schedule.name, task.id]|join(':')}) }}" class="btn btn-sm btn-secondary d-inline-flex align-items-center">
-                                        <svg fill="currentcolor" height="1em" width="1em" class="me-2"><use xlink:href="#history-icon"/></svg>
+                                        <svg fill="currentcolor" height="1em" width="1em" class="me-1"><use xlink:href="#history-icon"/></svg>
                                         History
                                     </a>
+                                {% endif %}
+                                {% if transports|length %}
+                                    <div class="dropdown d-inline-block position-static">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle d-inline-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <svg fill="currentcolor" height="1em" width="1em" class="me-1"><use xlink:href="#play-icon"/></svg>
+                                            <span class="me-1">Trigger</span>
+                                        </button>
+                                        <ul class="dropdown-menu" data-boundary="viewport">
+                                            {% for t in transports.names %}
+                                                <li><a class="dropdown-item schedule-task-trigger" data-token="{{ csrf_token(['trigger', task.id, t]|join('-')) }}" href="{{ path('zenstruck_messenger_monitor_schedule_trigger', {name: schedule.name, id: task.id, transport: t}) }}">{{ t }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
                                 {% endif %}
                             </td>
                         </tr>
@@ -146,6 +218,14 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3 mt-5"></div>
+    <div id="trigger-toast" class="d-none" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 {% endblock %}
