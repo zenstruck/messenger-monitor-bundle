@@ -60,7 +60,7 @@ final class PeriodTest extends TestCase
             Period::IN_LAST_WEEK->timestamps()
         );
         $this->assertEquals(
-            [$now->modify('-30 days'), null],
+            [$now->modify('-1 month'), null],
             Period::IN_LAST_MONTH->timestamps()
         );
     }

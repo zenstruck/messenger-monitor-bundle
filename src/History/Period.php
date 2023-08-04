@@ -158,7 +158,7 @@ enum Period: string
             self::IN_LAST_HOUR => [$now->modify('-1 hour'), null],
             self::IN_LAST_DAY => [$now->modify('-24 hours'), null],
             self::IN_LAST_WEEK => [$now->modify('-7 days'), null],
-            self::IN_LAST_MONTH => [$now->modify('-31 days'), null],
+            self::IN_LAST_MONTH => [$now->modify('-1 month'), null],
             self::TODAY => [new \DateTimeImmutable('today'), new \DateTimeImmutable('tomorrow')],
             self::YESTERDAY => [new \DateTimeImmutable('yesterday'), new \DateTimeImmutable('today')],
             self::LAST_WEEK => [
@@ -173,7 +173,7 @@ enum Period: string
             self::OLDER_THAN_1_HOUR => [null, $now->modify('-1 hour')],
             self::OLDER_THAN_1_DAY => [null, $now->modify('-24 hours')],
             self::OLDER_THAN_1_WEEK => [null, $now->modify('-7 days')],
-            self::OLDER_THAN_1_MONTH => [null, $now->modify('-31 days')],
+            self::OLDER_THAN_1_MONTH => [null, $now->modify('-1 month')],
         };
     }
 }
