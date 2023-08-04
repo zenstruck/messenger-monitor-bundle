@@ -13,6 +13,7 @@ namespace Zenstruck\Messenger\Monitor\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Zenstruck\Messenger\Monitor\History\Storage;
+use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\StringableObject;
 use Zenstruck\Messenger\Monitor\Type;
 
 /**
@@ -51,14 +52,11 @@ final class TypeTest extends TestCase
      */
     public function description(): void
     {
-        $type = new Type(new class() {
-            public function __toString(): string
-            {
-                return 'foo';
-            }
-        });
-
-        $this->assertSame('foo', $type->description());
+        $this->assertSame('string value', (new Type(new StringableObject()))->description());
+        $this->assertSame('override', (new Type(new StringableObject(), 'override'))->description());
+        $this->assertNull((new Type(new \stdClass()))->description());
+        $this->assertNull((new Type(StringableObject::class))->description());
+        $this->assertSame('message', (new Type(new \Exception('message')))->description());
     }
 
     /**

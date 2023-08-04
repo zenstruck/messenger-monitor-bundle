@@ -40,7 +40,10 @@ abstract class ProcessedMessage
 
     /** @var string[] */
     private array $tags;
-    private ?string $failure = null;
+
+    /** @var class-string<\Throwable> */
+    private ?string $failureType = null;
+    private ?string $failureMessage = null;
 
     /** @var array<string,mixed> */
     private array $result = [];
@@ -69,7 +72,8 @@ abstract class ProcessedMessage
         }
 
         if ($exception) {
-            $this->failure = new Failure($exception);
+            $this->failureType = $exception::class;
+            $this->failureMessage = $exception->getMessage();
         }
     }
 
@@ -131,14 +135,17 @@ abstract class ProcessedMessage
         return $this->result;
     }
 
-    final public function failure(): ?Failure
+    /**
+     * @return Type<\Throwable>|null
+     */
+    final public function failure(): ?Type
     {
-        return $this->failure ? new Failure($this->failure) : null;
+        return $this->failureType ? new Type($this->failureType, $this->failureMessage) : null;
     }
 
     final public function isFailure(): bool
     {
-        return null !== $this->failure;
+        return null !== $this->failureType;
     }
 
     final public function timeInQueue(): int

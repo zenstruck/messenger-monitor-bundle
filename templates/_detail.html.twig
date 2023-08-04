@@ -23,8 +23,8 @@
                             <td class="{{ message.isFailure ? 'text-danger' : 'text-success'}}">
                                 {% if message.isFailure %}
                                     <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                                    <strong><abbr title="{{ message.failure.class }}">{{ message.failure.type.shortName }}</abbr></strong>:<br>
-                                    {{ message.failure.message }}
+                                    <strong><abbr title="{{ message.failure.class }}">{{ message.failure.shortName }}</abbr></strong>:<br>
+                                    {{ message.failure.description }}
                                 {% else %}
                                     <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
                                     Success

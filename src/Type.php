@@ -29,8 +29,12 @@ final class Type implements \Stringable
      *
      * @param class-string<T>|T $value
      */
-    public function __construct(string|object $value)
+    public function __construct(string|object $value, private ?string $description = null)
     {
+        if ($value instanceof \Throwable && !$this->description) {
+            $this->description = $value->getMessage();
+        }
+
         if (\is_object($value)) {
             $this->object = $value;
             $value = $value::class;
@@ -67,10 +71,14 @@ final class Type implements \Stringable
 
     public function description(): ?string
     {
+        if ($this->description) {
+            return $this->description;
+        }
+
         if (!isset($this->object)) {
             return null;
         }
 
-        return $this->object instanceof \Stringable ? (string) $this->object : null;
+        return $this->description = $this->object instanceof \Stringable ? (string) $this->object : null;
     }
 }

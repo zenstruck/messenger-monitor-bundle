@@ -100,7 +100,8 @@ final class ProcessedMessageTest extends TestCase
         $this->assertSame(['foo', 'bar', 'baz', 'qux'], $message->tags()->all());
         $this->assertSame(['foo' => 'bar'], $message->result());
         $this->assertTrue($message->isFailure());
-        $this->assertSame('RuntimeException: fail', (string) $message->failure());
+        $this->assertSame('RuntimeException', (string) $message->failure());
+        $this->assertSame('fail', $message->failure()->description());
     }
 
     /**

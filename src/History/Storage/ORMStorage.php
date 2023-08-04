@@ -147,8 +147,8 @@ final class ORMStorage implements Storage
         }
 
         match ($status) {
-            Specification::SUCCESS => $qb->andWhere('m.failure IS NULL'),
-            Specification::FAILED => $qb->andWhere('m.failure IS NOT NULL'),
+            Specification::SUCCESS => $qb->andWhere('m.failureType IS NULL'),
+            Specification::FAILED => $qb->andWhere('m.failureType IS NOT NULL'),
             null => null,
         };
 

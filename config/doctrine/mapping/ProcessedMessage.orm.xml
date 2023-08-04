@@ -14,7 +14,8 @@
         <field name="memoryUsage" column="memory_usage" type="integer" />
         <field name="transport" column="transport" />
         <field name="tags" column="tags" type="json" />
-        <field name="failure" column="failure" type="text" nullable="true" />
+        <field name="failureType" column="failure_type" nullable="true" />
+        <field name="failureMessage" column="failure_message" type="text" nullable="true" />
         <field name="result" column="result" type="json" />
     </mapped-superclass>
 </doctrine-mapping>
