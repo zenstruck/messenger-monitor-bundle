@@ -79,28 +79,25 @@ final class ORMStorage implements Storage
 
     public function averageWaitTime(Specification $specification): ?float
     {
-        return $this->queryBuilderFor($specification)
-            ->select('AVG(m.receivedAt - m.dispatchedAt)')
-            ->getQuery()
-            ->getSingleScalarResult()
+        return (new EntityResult($this->queryBuilderFor($specification)->select('AVG(m.receivedAt - m.dispatchedAt)')))
+            ->asFloat()
+            ->first()
         ;
     }
 
     public function averageHandlingTime(Specification $specification): ?float
     {
-        return $this->queryBuilderFor($specification)
-            ->select('AVG(m.finishedAt - m.receivedAt)')
-            ->getQuery()
-            ->getSingleScalarResult()
+        return (new EntityResult($this->queryBuilderFor($specification)->select('AVG(m.finishedAt - m.receivedAt)')))
+            ->asFloat()
+            ->first()
         ;
     }
 
     public function count(Specification $specification): int
     {
-        return $this->queryBuilderFor($specification)
-            ->select('COUNT(m.finishedAt)')
-            ->getQuery()
-            ->getSingleScalarResult()
+        return (new EntityResult($this->queryBuilderFor($specification)->select('COUNT(m.finishedAt)')))
+            ->asInt()
+            ->first(0)
         ;
     }
 

@@ -16,7 +16,7 @@
         "symfony/framework-bundle": "^6.3",
         "symfony/messenger": "^6.3",
         "zenstruck/bytes": "^0.2.0",
-        "zenstruck/collection": "^0.2.1"
+        "zenstruck/collection": "^0.2.2"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^2.10",
