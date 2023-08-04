@@ -70,19 +70,27 @@ final class ResultNormalizer
      */
     public function normalizeException(\Throwable $exception): array
     {
+        $result = ['stack_trace' => $exception->getTraceAsString()];
+
+        if ($previous = $exception->getPrevious()) {
+            $result['previous_exception'] = $previous::class;
+            $result['previous_message'] = $previous->getMessage();
+            $result['previous_stack_trace'] = $previous->getTraceAsString();
+        }
+
         if ($exception instanceof RunProcessFailedException) { // @phpstan-ignore-line
-            return $this->normalize($exception->context); // @phpstan-ignore-line
+            return [...$result, ...$this->normalize($exception->context)]; // @phpstan-ignore-line
         }
 
         if ($exception instanceof RunCommandFailedException) { // @phpstan-ignore-line
-            return $this->normalize($exception->context); // @phpstan-ignore-line
+            return [...$result, ...$this->normalize($exception->context)]; // @phpstan-ignore-line
         }
 
         if ($exception instanceof HttpExceptionInterface) {
-            return $this->normalize($exception->getResponse());
+            return [...$result, ...$this->normalize($exception->getResponse())];
         }
 
-        return [];
+        return $result;
     }
 
     /**

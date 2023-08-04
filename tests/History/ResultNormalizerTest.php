@@ -49,9 +49,9 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize_exception(): void
     {
-        $normalizer = new ResultNormalizer();
+        $result = (new ResultNormalizer())->normalizeException(new \RuntimeException('foo'));
 
-        $this->assertSame([], $normalizer->normalizeException(new \RuntimeException('foo')));
+        $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
     }
 
     /**
@@ -100,14 +100,12 @@ final class ResultNormalizerTest extends TestCase
         $exception = $this->createMock(HttpExceptionInterface::class);
         $exception->expects($this->once())->method('getResponse')->willReturn($response);
 
-        $this->assertSame(
-            [
-                'status_code' => 200,
-                'headers' => ['header' => 'value'],
-                'info' => ['info' => 'value'],
-            ],
-            $normalizer->normalizeException($exception),
-        );
+        $result = $normalizer->normalizeException($exception);
+
+        $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
+        $this->assertSame(200, $result['status_code']);
+        $this->assertSame(['header' => 'value'], $result['headers']);
+        $this->assertSame(['info' => 'value'], $result['info']);
     }
 
     /**
@@ -125,8 +123,8 @@ final class ResultNormalizerTest extends TestCase
         $this->assertSame(
             [
                 'exit_code' => $context->exitCode,
-                'output' => $context->output,
-                'error_output' => $context->errorOutput,
+                'output' => \trim($context->output),
+                'error_output' => \trim($context->errorOutput),
             ],
             $normalizer->normalize($context),
         );
@@ -146,14 +144,12 @@ final class ResultNormalizerTest extends TestCase
         try {
             (new RunProcessMessageHandler())(new RunProcessMessage(['invalid']));
         } catch (RunProcessFailedException $e) {
-            $this->assertSame(
-                [
-                    'exit_code' => 127,
-                    'output' => '',
-                    'error_output' => "sh: 1: exec: invalid: not found\n",
-                ],
-                $normalizer->normalizeException($e)
-            );
+            $result = $normalizer->normalizeException($e);
+
+            $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
+            $this->assertSame(127, $result['exit_code']);
+            $this->assertSame('', $result['output']);
+            $this->assertSame('sh: 1: exec: invalid: not found', $result['error_output']);
 
             return;
         }
@@ -187,7 +183,10 @@ final class ResultNormalizerTest extends TestCase
 
         $normalizer = new ResultNormalizer();
         $context = new RunCommandFailedException('fail', new RunCommandContext(new RunCommandMessage('command'), 1, 'output'));
+        $result = $normalizer->normalizeException($context);
 
-        $this->assertSame(['exit_code' => 1, 'output' => 'output'], $normalizer->normalizeException($context));
+        $this->assertSame(1, $result['exit_code']);
+        $this->assertSame('output', $result['output']);
+        $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
     }
 }
