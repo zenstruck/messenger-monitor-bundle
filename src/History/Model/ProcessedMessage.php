@@ -16,6 +16,7 @@ use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Bytes;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
+use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
 use function Symfony\Component\Clock\now;
@@ -30,6 +31,7 @@ abstract class ProcessedMessage
 
     /** @var class-string */
     private string $type;
+    private ?string $description;
     private \DateTimeImmutable $dispatchedAt;
     private \DateTimeImmutable $receivedAt;
     private \DateTimeImmutable $finishedAt;
@@ -46,9 +48,11 @@ abstract class ProcessedMessage
     final public function __construct(Envelope $envelope, ?\Throwable $exception = null)
     {
         $monitorStamp = $envelope->last(MonitorStamp::class) ?? throw new \LogicException('Required stamp not available');
+        $type = new Type($envelope->getMessage());
 
         $this->runId = $monitorStamp->runId();
-        $this->type = $envelope->getMessage()::class;
+        $this->type = $type->class();
+        $this->description = $envelope->last(DescriptionStamp::class)?->value ?? $type->objectString();
         $this->dispatchedAt = $monitorStamp->dispatchedAt();
         $this->receivedAt = $monitorStamp->receivedAt();
         $this->finishedAt = now();
@@ -87,6 +91,11 @@ abstract class ProcessedMessage
     final public function type(): Type
     {
         return new Type($this->type);
+    }
+
+    final public function description(): ?string
+    {
+        return $this->description;
     }
 
     final public function dispatchedAt(): \DateTimeImmutable

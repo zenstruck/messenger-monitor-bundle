@@ -19,7 +19,9 @@ use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
+use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\StringableObject;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -54,6 +56,7 @@ final class ProcessedMessageTest extends TestCase
         $this->assertSame($stamp->runId(), $message->runId());
         $this->assertSame(1, $message->attempt());
         $this->assertSame(\stdClass::class, (string) $message->type());
+        $this->assertNull($message->description());
         $this->assertSame($start, $message->dispatchedAt()->getTimestamp());
         $this->assertSame($start + 1, $message->receivedAt()->getTimestamp());
         $this->assertSame($start + 3, $message->finishedAt()->getTimestamp());
@@ -73,7 +76,7 @@ final class ProcessedMessageTest extends TestCase
      */
     public function full_constructor(): void
     {
-        $envelope = new Envelope(new \stdClass(), [
+        $envelope = new Envelope(new StringableObject(), [
             (new MonitorStamp())->markReceived('foo'),
             new RedeliveryStamp(2),
             new ResultStamp(['foo' => 'bar']),
@@ -91,6 +94,8 @@ final class ProcessedMessageTest extends TestCase
             }
         };
 
+        $this->assertSame(StringableObject::class, $message->type()->class());
+        $this->assertSame('string value', $message->description());
         $this->assertSame(3, $message->attempt());
         $this->assertSame(['foo', 'bar', 'baz', 'qux'], $message->tags()->all());
         $this->assertSame(['foo' => 'bar'], $message->result());
@@ -111,5 +116,26 @@ final class ProcessedMessageTest extends TestCase
                 return null;
             }
         };
+    }
+
+    /**
+     * @test
+     */
+    public function can_add_description_with_stamp(): void
+    {
+        $envelope = new Envelope(new StringableObject(), [
+            (new MonitorStamp())->markReceived('foo'),
+            new DescriptionStamp('description value'),
+        ]);
+
+        $message = new class($envelope) extends ProcessedMessage {
+            public function id(): string|int|null
+            {
+                return null;
+            }
+        };
+
+        $this->assertSame(StringableObject::class, $message->type()->class());
+        $this->assertSame('description value', $message->description());
     }
 }

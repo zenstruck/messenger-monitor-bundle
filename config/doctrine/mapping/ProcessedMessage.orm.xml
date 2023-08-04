@@ -6,14 +6,15 @@
     <mapped-superclass name="Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage">
         <field name="runId" column="run_id" type="integer" />
         <field name="attempt" column="attempt" type="smallint" />
-        <field name="type" column="type" />
+        <field name="type" column="message_type" />
+        <field name="description" column="description" nullable="true" />
         <field name="dispatchedAt" column="dispatched_at" type="datetime_immutable" />
         <field name="receivedAt" column="received_at" type="datetime_immutable" />
         <field name="finishedAt" column="finished_at" type="datetime_immutable" />
         <field name="memoryUsage" column="memory_usage" type="integer" />
         <field name="transport" column="transport" />
         <field name="tags" column="tags" type="json" />
-        <field name="failure" column="failure" nullable="true" />
+        <field name="failure" column="failure" type="text" nullable="true" />
         <field name="result" column="result" type="json" />
     </mapped-superclass>
 </doctrine-mapping>
