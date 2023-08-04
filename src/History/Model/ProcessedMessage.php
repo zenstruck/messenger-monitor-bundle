@@ -82,7 +82,7 @@ abstract class ProcessedMessage
     }
 
     /**
-     * @return \Zenstruck\Messenger\Monitor\Type<object>
+     * @return Type<object>
      */
     final public function type(): Type
     {

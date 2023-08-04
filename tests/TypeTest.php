@@ -38,7 +38,7 @@ final class TypeTest extends TestCase
      */
     public function create_from_object(): void
     {
-        $type = new \Zenstruck\Messenger\Monitor\Type($obj = new \stdClass());
+        $type = new Type($obj = new \stdClass());
 
         $this->assertSame(\stdClass::class, $type->class());
         $this->assertSame(\stdClass::class, (string) $type);
@@ -51,7 +51,7 @@ final class TypeTest extends TestCase
      */
     public function object_string(): void
     {
-        $type = new \Zenstruck\Messenger\Monitor\Type(new class() {
+        $type = new Type(new class() {
             public function __toString(): string
             {
                 return 'foo';
@@ -68,8 +68,8 @@ final class TypeTest extends TestCase
     {
         $this->assertSame('Storage', (new Type(Storage::class))->shortName());
         $this->assertSame('stdClass', (new Type(\stdClass::class))->shortName());
-        $this->assertSame('stdClass', (new \Zenstruck\Messenger\Monitor\Type(new \stdClass()))->shortName());
+        $this->assertSame('stdClass', (new Type(new \stdClass()))->shortName());
         $this->assertSame('foo', (new Type('foo'))->shortName());
-        $this->assertSame('foo', (new \Zenstruck\Messenger\Monitor\Type('\\foo'))->shortName());
+        $this->assertSame('foo', (new Type('\\foo'))->shortName());
     }
 }

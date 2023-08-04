@@ -43,7 +43,7 @@ final class Failure implements \Stringable
     }
 
     /**
-     * @return \Zenstruck\Messenger\Monitor\Type<\Throwable>
+     * @return Type<\Throwable>
      */
     public function type(): Type
     {

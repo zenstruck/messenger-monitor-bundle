@@ -47,7 +47,7 @@ final class MessageInfo
     }
 
     /**
-     * @return \Zenstruck\Messenger\Monitor\Type<object>
+     * @return Type<object>
      */
     public function type(): Type
     {
