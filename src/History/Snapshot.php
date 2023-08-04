@@ -117,6 +117,10 @@ final class Snapshot
         [$from, $to] = \array_values($this->specification->toArray());
 
         if (!$from) {
+            $from = $this->storage->filter(Specification::new()->sortAscending())->first()?->finishedAt();
+        }
+
+        if (!$from) {
             throw new \InvalidArgumentException('Specification filter must have a "from" date to use calculate "handled-per-x".');
         }
 

@@ -26,6 +26,7 @@ enum Period: string
     case YESTERDAY = 'yesterday';
     case LAST_WEEK = 'last-week';
     case LAST_MONTH = 'last-month';
+    case ALL = 'all';
     case OLDER_THAN_1_HOUR = '1-hour';
     case OLDER_THAN_1_DAY = '1-day';
     case OLDER_THAN_1_WEEK = '1-week';
@@ -92,6 +93,7 @@ enum Period: string
             self::YESTERDAY,
             self::LAST_WEEK,
             self::LAST_MONTH,
+            self::ALL,
         ];
     }
 
@@ -135,6 +137,7 @@ enum Period: string
             self::YESTERDAY => 'Yesterday',
             self::LAST_WEEK => 'Last Week',
             self::LAST_MONTH => 'Last Month',
+            self::ALL => 'All Time',
             self::OLDER_THAN_1_HOUR => 'Older Than 1 Hour',
             self::OLDER_THAN_1_DAY => 'Older Than 1 Day',
             self::OLDER_THAN_1_WEEK => 'Older Than 1 Week',
@@ -166,6 +169,7 @@ enum Period: string
                 new \DateTimeImmutable(\date('Y-m-d', \strtotime('first day of last month'))),
                 new \DateTimeImmutable(\date('Y-m-d', \strtotime('first day of this month'))),
             ],
+            self::ALL => [null, null],
             self::OLDER_THAN_1_HOUR => [null, $now->modify('-1 hour')],
             self::OLDER_THAN_1_DAY => [null, $now->modify('-24 hours')],
             self::OLDER_THAN_1_WEEK => [null, $now->modify('-7 days')],

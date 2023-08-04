@@ -58,7 +58,7 @@
                     {% set current_schedule = app.request.query.get('schedule', '_include') %}
                     {% set schedule_options = ['_include', '_exclude']|merge(schedules.names) %}
                     <button type="button" class="btn {{ current_schedule != '_include' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <small class="text-body-secondary">Schedule:</small> {{ current_schedule|replace({'_include': '<em>include</em>', '_exclude': '<em>exclude</em>'})|raw }}
+                        <small class="text-body-secondary">Schedule:</small> {{ current_schedule|replace({'_include': '(include)', '_exclude': '(exclude)'}) }}
                     </button>
                     <ul class="dropdown-menu">
 
@@ -66,7 +66,7 @@
                             {% if s != current_schedule %}
                                 <li>
                                     <a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({schedule: s})) }}">
-                                        {{ s|replace({'_include': '<em>include</em>', '_exclude': '<em>exclude</em>'})|raw }}
+                                        {{ s|replace({'_include': '(include)', '_exclude': '(exclude)'}) }}
                                     </a>
                                 </li>
                             {% endif %}
