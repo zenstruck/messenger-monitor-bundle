@@ -18,6 +18,7 @@ use Symfony\Component\Process\Messenger\RunProcessContext;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientException;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
+use Zenstruck\Collection\ArrayCollection;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -38,15 +39,15 @@ final class ResultNormalizer
         if ($result instanceof RunProcessContext) { // @phpstan-ignore-line
             return [
                 'exit_code' => $result->exitCode, // @phpstan-ignore-line
-                'output' => $result->output, // @phpstan-ignore-line
-                'error_output' => $result->errorOutput, // @phpstan-ignore-line
+                'output' => self::trim($result->output), // @phpstan-ignore-line
+                'error_output' => self::trim($result->errorOutput), // @phpstan-ignore-line
             ];
         }
 
         if ($result instanceof RunCommandContext) { // @phpstan-ignore-line
             return [
                 'exit_code' => $result->exitCode, // @phpstan-ignore-line
-                'output' => $result->output, // @phpstan-ignore-line
+                'output' => self::trim($result->output), // @phpstan-ignore-line
             ];
         }
 
@@ -98,5 +99,18 @@ final class ResultNormalizer
         } catch (HttpClientException) {
             return [];
         }
+    }
+
+    private static function trim(?string $output): ?string
+    {
+        if (null === $output) {
+            return null;
+        }
+
+        return \trim(
+            ArrayCollection::explode("\n", $output)
+                ->map(fn(string $line) => \rtrim($line, ' '))
+                ->implode("\n")
+        );
     }
 }
