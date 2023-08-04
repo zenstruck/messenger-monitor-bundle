@@ -30,7 +30,7 @@ final class TypeTest extends TestCase
         $this->assertSame(Storage::class, $type->class());
         $this->assertSame(Storage::class, (string) $type);
         $this->assertNull($type->object());
-        $this->assertNull($type->objectString());
+        $this->assertNull($type->description());
     }
 
     /**
@@ -43,13 +43,13 @@ final class TypeTest extends TestCase
         $this->assertSame(\stdClass::class, $type->class());
         $this->assertSame(\stdClass::class, (string) $type);
         $this->assertSame($obj, $type->object());
-        $this->assertNull($type->objectString());
+        $this->assertNull($type->description());
     }
 
     /**
      * @test
      */
-    public function object_string(): void
+    public function description(): void
     {
         $type = new Type(new class() {
             public function __toString(): string
@@ -58,7 +58,7 @@ final class TypeTest extends TestCase
             }
         });
 
-        $this->assertSame('foo', $type->objectString());
+        $this->assertSame('foo', $type->description());
     }
 
     /**

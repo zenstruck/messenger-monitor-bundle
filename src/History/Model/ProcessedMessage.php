@@ -52,7 +52,7 @@ abstract class ProcessedMessage
 
         $this->runId = $monitorStamp->runId();
         $this->type = $type->class();
-        $this->description = $envelope->last(DescriptionStamp::class)?->value ?? $type->objectString();
+        $this->description = $envelope->last(DescriptionStamp::class)?->value ?? $type->description();
         $this->dispatchedAt = $monitorStamp->dispatchedAt();
         $this->receivedAt = $monitorStamp->receivedAt();
         $this->finishedAt = now();

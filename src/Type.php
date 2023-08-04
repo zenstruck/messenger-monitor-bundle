@@ -65,7 +65,7 @@ final class Type implements \Stringable
         return \str_contains($this->class, '\\') ? \mb_substr($this->class, \mb_strrpos($this->class, '\\') + 1) : $this->class;
     }
 
-    public function objectString(): ?string
+    public function description(): ?string
     {
         if (!isset($this->object)) {
             return null;

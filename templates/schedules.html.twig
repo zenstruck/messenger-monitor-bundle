@@ -103,12 +103,11 @@
                             <td>
                                 {% set message = task.message %}
                                 {% set type = message.type %}
-                                {% set str = type.objectString %}
 
                                 <abbr title="{{ type }}">{{ type.shortName }}</abbr>
 
-                                {% if str %}
-                                    <br><small class="text-secondary">{{ str }}</small>
+                                {% if type.description %}
+                                    <br><small class="text-secondary">{{ type.description }}</small>
                                 {% endif %}
 
                                 {% if message.redispatch %}
@@ -139,7 +138,7 @@
                                 {% if trigger.cron %}
                                     {{ cron_humanizer.humanize(trigger.get, trigger.inner, app.locale)|raw }}
                                 {% else %}
-                                    {{ trigger.type.objectString|capitalize }}
+                                    {{ trigger.type.description|capitalize }}
                                 {% endif %}
                             </td>
 
