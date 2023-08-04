@@ -53,6 +53,28 @@
                 </ul>
             </div>
 
+            {% if schedules %}
+                <div class="btn-group me-2" role="group">
+                    {% set current_schedule = app.request.query.get('schedule', '_include') %}
+                    {% set schedule_options = ['_include', '_exclude']|merge(schedules.names) %}
+                    <button type="button" class="btn {{ current_schedule != '_include' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <small class="text-body-secondary">Schedule:</small> {{ current_schedule|replace({'_include': '<em>include</em>', '_exclude': '<em>exclude</em>'})|raw }}
+                    </button>
+                    <ul class="dropdown-menu">
+
+                        {% for s in schedule_options %}
+                            {% if s != current_schedule %}
+                                <li>
+                                    <a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({schedule: s})) }}">
+                                        {{ s|replace({'_include': '<em>include</em>', '_exclude': '<em>exclude</em>'})|raw }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
             {% if app.request.query.get('type') %}
                 <div class="btn-group me-2" role="group">
                     <a title="{{ app.request.query.get('type') }}" href="{{ path(app.current_route, app.request.query.all|merge({type: null})) }}" class="btn btn-outline-primary">

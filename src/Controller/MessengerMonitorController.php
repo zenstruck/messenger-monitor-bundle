@@ -71,13 +71,22 @@ abstract class MessengerMonitorController extends AbstractController
             throw new \LogicException('Storage must be configured to use the dashboard.');
         }
 
+        $tags = [$request->query->get('tag')];
+        $notTags = [];
         $period = Period::parse($request->query->getString('period'));
+
+        match ($schedule = $request->query->get('schedule')) {
+            '_exclude' => $notTags[] = 'schedule',
+            '_include' => null,
+            default => $tags[] = $schedule,
+        };
 
         $specification = Specification::create([ // @phpstan-ignore-line
             'period' => $period,
             'transport' => $request->query->get('transport'),
             'status' => $request->query->get('status'),
-            'tags' => $request->query->get('tag'),
+            'tags' => \array_filter($tags),
+            'not_tags' => $notTags,
             'message_type' => $request->query->get('type'),
         ]);
 

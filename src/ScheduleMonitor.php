@@ -53,6 +53,14 @@ final class ScheduleMonitor implements \IteratorAggregate, \Countable
     }
 
     /**
+     * @return string[]
+     */
+    public function names(): array
+    {
+        return \array_keys($this->schedules->getProvidedServices());
+    }
+
+    /**
      * @param Specification|Input|null $specification
      */
     public function history(Specification|array|null $specification = null): Snapshot
