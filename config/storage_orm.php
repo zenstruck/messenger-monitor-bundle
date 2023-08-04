@@ -7,6 +7,7 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Zenstruck\Messenger\Monitor\Command\PurgeCommand;
+use Zenstruck\Messenger\Monitor\Command\SchedulePurgeCommand;
 use Zenstruck\Messenger\Monitor\Command\SnapshotCommand;
 use Zenstruck\Messenger\Monitor\History\HistoryListener;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
@@ -49,6 +50,13 @@ return static function (ContainerConfigurator $container): void {
             ->args([
                 service('zenstruck_messenger_monitor.history.storage'),
                 service('zenstruck_messenger_monitor.transport_monitor'),
+            ])
+            ->tag('console.command')
+
+        ->set('.zenstruck_messenger_monitor.command.schedule_purge', SchedulePurgeCommand::class)
+            ->args([
+                service('zenstruck_messenger_monitor.schedule_monitor'),
+                service('zenstruck_messenger_monitor.history.storage'),
             ])
             ->tag('console.command')
     ;

@@ -69,6 +69,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
         if ($entity = $mergedConfig['storage']['orm']['entity_class'] ?? null) {
             $loader->load('storage_orm.php');
             $container->getDefinition('zenstruck_messenger_monitor.history.storage')->setArgument(1, $entity);
+
+            if (!\class_exists(Schedule::class)) {
+                $container->removeDefinition('zenstruck_messenger_monitor.command.schedule_purge');
+            }
         }
     }
 }
