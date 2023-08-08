@@ -142,7 +142,7 @@ abstract class MessengerMonitorController extends AbstractController
         return $this->render('@ZenstruckMessengerMonitor/schedules.html.twig', [
             'schedules' => $schedules,
             'schedule' => $schedules->get($name),
-            'transports' => $transports->excludeSync()->excludeSchedules(),
+            'transports' => $transports->excludeSync()->excludeSchedules()->excludeFailed(),
             'time_formatter' => $dateTimeFormatter,
             'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
             'cron_humanizer' => new class() {

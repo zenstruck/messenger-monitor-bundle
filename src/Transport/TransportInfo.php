@@ -45,6 +45,11 @@ final class TransportInfo implements \IteratorAggregate, \Countable
         return $this->transport;
     }
 
+    public function isFailure(): bool
+    {
+        return \str_contains($this->name, 'fail');
+    }
+
     public function isCountable(): bool
     {
         return $this->transport instanceof MessageCountAwareInterface;

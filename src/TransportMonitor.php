@@ -32,7 +32,7 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     /** @var string[] */
     private array $names;
 
-    /** @var (callable(TransportInterface):bool)[] */
+    /** @var (callable(TransportInterface,string):bool)[] */
     private array $filters = [];
 
     /**
@@ -83,6 +83,11 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
         return $this->filter(fn(TransportInterface $transport) => !$transport instanceof SchedulerTransport);
     }
 
+    public function excludeFailed(): self
+    {
+        return $this->filter(fn(TransportInterface $transport, string $name) => !\str_contains($name, 'fail'));
+    }
+
     /**
      * @return string[]
      */
@@ -94,7 +99,7 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
                 $transport = $this->transports->get($name);
 
                 foreach ($this->filters as $filter) {
-                    if (!$filter($transport)) {
+                    if (!$filter($transport, $name)) {
                         return false;
                     }
                 }
@@ -117,7 +122,7 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @param callable(TransportInterface):bool $filter
+     * @param callable(TransportInterface,string):bool $filter
      */
     private function filter(callable $filter): self
     {
