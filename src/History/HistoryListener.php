@@ -16,8 +16,10 @@ use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
+use Zenstruck\Messenger\Monitor\History\Model\Result;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoring;
@@ -27,6 +29,8 @@ use Zenstruck\Messenger\Monitor\Stamp\Tag;
  * @author Kevin Bond <kevinbond@gmail.com>
  *
  * @internal
+ *
+ * @phpstan-import-type Structure from Result
  */
 final class HistoryListener
 {
@@ -71,9 +75,7 @@ final class HistoryListener
             return;
         }
 
-        if ($stamp = $event->getEnvelope()->last(HandledStamp::class)) {
-            $event->addStamps(new ResultStamp($this->normalizer->normalize($stamp->getResult())));
-        }
+        $event->addStamps(new ResultStamp($this->createResults($event->getEnvelope())));
 
         $this->storage->save($event->getEnvelope());
     }
@@ -88,9 +90,13 @@ final class HistoryListener
             return;
         }
 
-        $event->addStamps(new ResultStamp($this->normalizer->normalizeException($event->getThrowable())));
+        $throwable = $event->getThrowable();
 
-        $this->storage->save($event->getEnvelope(), $event->getThrowable());
+        $event->addStamps(
+            new ResultStamp($this->createResults($event->getEnvelope(), $throwable instanceof HandlerFailedException ? $throwable : null))
+        );
+
+        $this->storage->save($event->getEnvelope(), $throwable);
     }
 
     private function isMonitoringDisabled(Envelope $envelope): bool
@@ -104,5 +110,35 @@ final class HistoryListener
         }
 
         return false;
+    }
+
+    /**
+     * @return Structure[]
+     */
+    private function createResults(Envelope $envelope, ?HandlerFailedException $exception = null): array
+    {
+        $results = [];
+
+        foreach ($envelope->all(HandledStamp::class) as $stamp) {
+            /** @var HandledStamp $stamp */
+            $results[] = [
+                'handler' => $stamp->getHandlerName(),
+                'data' => $this->normalizer->normalize($stamp->getResult()),
+            ];
+        }
+
+        if (!$exception) {
+            return $results;
+        }
+
+        foreach ($exception->getNestedExceptions() as $nested) {
+            $results[] = [
+                'exception' => $nested::class,
+                'message' => $nested->getMessage(),
+                'data' => $this->normalizer->normalizeException($nested),
+            ];
+        }
+
+        return $results;
     }
 }

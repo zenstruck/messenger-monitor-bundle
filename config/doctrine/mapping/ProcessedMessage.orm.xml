@@ -16,6 +16,6 @@
         <field name="tags" column="tags" type="json" />
         <field name="failureType" column="failure_type" nullable="true" />
         <field name="failureMessage" column="failure_message" type="text" nullable="true" />
-        <field name="result" column="result" type="json" />
+        <field name="results" column="results" type="json" />
     </mapped-superclass>
 </doctrine-mapping>

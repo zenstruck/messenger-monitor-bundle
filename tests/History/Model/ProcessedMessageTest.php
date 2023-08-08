@@ -61,7 +61,7 @@ final class ProcessedMessageTest extends TestCase
         $this->assertSame($start + 1, $message->receivedAt()->getTimestamp());
         $this->assertSame($start + 3, $message->finishedAt()->getTimestamp());
         $this->assertSame([], $message->tags()->all());
-        $this->assertSame([], $message->result());
+        $this->assertSame([], $message->results()->all());
         $this->assertSame('foo', $message->transport());
         $this->assertSame(1, $message->timeInQueue());
         $this->assertSame(2, $message->timeToHandle());
@@ -79,7 +79,7 @@ final class ProcessedMessageTest extends TestCase
         $envelope = new Envelope(new StringableObject(), [
             (new MonitorStamp())->markReceived('foo'),
             new RedeliveryStamp(2),
-            new ResultStamp(['foo' => 'bar']),
+            new ResultStamp([['exception' => \RuntimeException::class, 'message' => 'failure', 'data' => []]]),
             new Tag('foo'),
             new Tag('bar'),
             new Tag('bar'),
@@ -98,7 +98,7 @@ final class ProcessedMessageTest extends TestCase
         $this->assertSame('string value', $message->description());
         $this->assertSame(3, $message->attempt());
         $this->assertSame(['foo', 'bar', 'baz', 'qux'], $message->tags()->all());
-        $this->assertSame(['foo' => 'bar'], $message->result());
+        $this->assertSame([['exception' => \RuntimeException::class, 'message' => 'failure', 'data' => []]], $message->results()->jsonSerialize());
         $this->assertTrue($message->isFailure());
         $this->assertSame('RuntimeException', (string) $message->failure());
         $this->assertSame('fail', $message->failure()->description());

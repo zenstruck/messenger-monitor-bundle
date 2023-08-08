@@ -12,19 +12,23 @@
 namespace Zenstruck\Messenger\Monitor\History\Stamp;
 
 use Symfony\Component\Messenger\Stamp\NonSendableStampInterface;
+use Zenstruck\Messenger\Monitor\History\Model\Result;
+use Zenstruck\Messenger\Monitor\History\Model\Results;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
  * @internal
+ *
+ * @phpstan-import-type Structure from Result
  */
 final class ResultStamp implements NonSendableStampInterface
 {
-    /** @var array<string,mixed> */
-    public readonly array $value;
+    /** @var Structure[] */
+    private array $value;
 
     /**
-     * @param array<string,mixed> $result
+     * @param Structure[] $result
      */
     public function __construct(array $result)
     {
@@ -33,6 +37,11 @@ final class ResultStamp implements NonSendableStampInterface
         });
 
         $this->value = $result;
+    }
+
+    public function results(): Results
+    {
+        return new Results($this->value);
     }
 
     private static function normalize(mixed $value): int|float|string|bool|null

@@ -26,7 +26,7 @@ final class ResultStampTest extends TestCase
     {
         $stamp = new ResultStamp($this->rawValues());
 
-        $this->assertSame($this->normalizedValues(), $stamp->value);
+        $this->assertSame($this->normalizedValues(), $stamp->results()->jsonSerialize());
     }
 
     private function rawValues(): array

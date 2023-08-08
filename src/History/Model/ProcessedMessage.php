@@ -23,6 +23,8 @@ use function Symfony\Component\Clock\now;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @phpstan-import-type Structure from Result
  */
 abstract class ProcessedMessage
 {
@@ -45,8 +47,8 @@ abstract class ProcessedMessage
     private ?string $failureType = null;
     private ?string $failureMessage = null;
 
-    /** @var array<string,mixed> */
-    private array $result = [];
+    /** @var Structure[]|Results */
+    private array|Results $results = [];
 
     final public function __construct(Envelope $envelope, ?\Throwable $exception = null)
     {
@@ -68,7 +70,7 @@ abstract class ProcessedMessage
         }
 
         if ($resultStamp = $envelope->last(ResultStamp::class)) {
-            $this->result = $resultStamp->value;
+            $this->results = $resultStamp->results();
         }
 
         if ($exception) {
@@ -127,12 +129,13 @@ abstract class ProcessedMessage
         return new Tags($this->tags);
     }
 
-    /**
-     * @return array<string,mixed>
-     */
-    final public function result(): array
+    final public function results(): Results
     {
-        return $this->result;
+        if ($this->results instanceof Results) {
+            return $this->results;
+        }
+
+        return $this->results = new Results($this->results);
     }
 
     /**

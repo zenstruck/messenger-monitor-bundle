@@ -35,6 +35,18 @@
                                 <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
                             </td>
                         </tr>
+                        {% if message.results|length != 1 %}
+                            <tr>
+                                <th class="text-end">Handlers</th>
+                                <td>
+                                    {{ message.results|length }}
+
+                                    {% if message.results.failures|length %}
+                                        <em>(<strong class="text-danger">{{ message.results.failures|length }}</strong> failed)</em>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endif %}
                         <tr>
                             <th class="text-end text-nowrap">Attempt</th>
                             <td>
@@ -113,35 +125,53 @@
             </div>
         </div>
         <div class="col-md-7">
-            <div class="card mb-3">
-                <div class="card-header">Result</div>
-                <table class="table card-table table-striped align-middle" style="table-layout: fixed; width: 100%;">
-                    {% for key,value in message.result %}
-                        <tr>
-                            <th class="text-end w-25">{{ key }}</th>
-                            <td>
-                                {% if value is same as true %}
-                                    <code>true</code>
-                                {% elseif value is same as false %}
-                                    <code>false</code>
-                                {% elseif value is same as null %}
-                                    <code>null</code>
-                                {% elseif value is iterable %}
-                                    <pre style="white-space: pre; max-height: 340px; overflow: auto;">{{ value|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
-                                {% elseif value matches "\/\n/" %}
-                                    <pre style="white-space: pre; max-height: 340px; overflow: auto;">{{ value }}</pre>
-                                {% else %}
-                                    <code>{{ value }}</code>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td class="text-center text-secondary">No result data.</td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            </div>
+            {% for result in message.results %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        {% if result.isFailure %}
+                            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom text-danger" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                            <abbr title="{{ result.failure }}"><code>{{ result.failure.shortName }}</code></abbr>
+                        {% else %}
+                            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom text-success" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                            <code>
+                                <abbr title="{{ result.handler }}">{{ result.handler.shortName }}</abbr>{% if result.handler.description %}::{{ result.handler.description }}(){% endif %}
+                            </code>
+                            Results
+                        {% endif %}
+                    </div>
+                    {% if result.isFailure %}
+                        <div class="alert card-alert alert-danger mb-0">
+                            {{ result.failure.description }}
+                        </div>
+                    {% endif %}
+                    <table class="table card-table table-striped align-middle" style="table-layout: fixed; width: 100%;">
+                        {% for key,value in result.data %}
+                            <tr>
+                                <th class="text-end w-25">{{ key }}</th>
+                                <td>
+                                    {% if value is same as true %}
+                                        <code>true</code>
+                                    {% elseif value is same as false %}
+                                        <code>false</code>
+                                    {% elseif value is same as null %}
+                                        <code>null</code>
+                                    {% elseif value is iterable %}
+                                        <pre style="white-space: pre; max-height: 340px; overflow: auto;">{{ value|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                                    {% elseif value matches "\/\n/" %}
+                                        <pre style="white-space: pre; max-height: 340px; overflow: auto;">{{ value }}</pre>
+                                    {% else %}
+                                        <code>{{ value }}</code>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td class="text-center text-secondary">No result data.</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            {% endfor %}
         </div>
     </div>
 
