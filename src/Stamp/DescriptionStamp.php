@@ -16,10 +16,15 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class DescriptionStamp implements StampInterface
+final class DescriptionStamp implements StampInterface, \Stringable
 {
     public function __construct(
         public readonly string $value,
     ) {
+    }
+
+    public function __toString(): string
+    {
+        return $this->value;
     }
 }
