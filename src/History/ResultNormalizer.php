@@ -27,6 +27,10 @@ use Zenstruck\Collection\ArrayCollection;
  */
 final class ResultNormalizer
 {
+    public function __construct(private string $projectDir)
+    {
+    }
+
     /**
      * @return array<string,mixed>
      */
@@ -70,12 +74,12 @@ final class ResultNormalizer
      */
     public function normalizeException(\Throwable $exception): array
     {
-        $result = ['stack_trace' => $exception->getTraceAsString()];
+        $result = ['stack_trace' => $this->normalizeTrace($exception)];
 
         if ($previous = $exception->getPrevious()) {
             $result['previous_exception'] = $previous::class;
             $result['previous_message'] = $previous->getMessage();
-            $result['previous_stack_trace'] = $previous->getTraceAsString();
+            $result['previous_stack_trace'] = $this->normalizeTrace($previous);
         }
 
         if ($exception instanceof RunProcessFailedException) { // @phpstan-ignore-line
@@ -91,6 +95,11 @@ final class ResultNormalizer
         }
 
         return $result;
+    }
+
+    private function normalizeTrace(\Throwable $exception): string
+    {
+        return \str_replace($this->projectDir, '', $exception->getTraceAsString());
     }
 
     /**

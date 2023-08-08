@@ -28,6 +28,7 @@ return static function (ContainerConfigurator $container): void {
             ->alias(Storage::class, 'zenstruck_messenger_monitor.history.storage')
 
         ->set('.zenstruck_messenger_monitor.history.result_normalizer', ResultNormalizer::class)
+            ->args([param('kernel.project_dir')])
 
         ->set('.zenstruck_messenger_monitor.history.listener', HistoryListener::class)
             ->args([

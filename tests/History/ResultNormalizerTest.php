@@ -34,7 +34,7 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize(): void
     {
-        $normalizer = new ResultNormalizer();
+        $normalizer = new ResultNormalizer(__DIR__);
 
         $this->assertSame([], $normalizer->normalize(null));
         $this->assertSame(['data' => 'foo'], $normalizer->normalize('foo'));
@@ -49,7 +49,7 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize_exception(): void
     {
-        $result = (new ResultNormalizer())->normalizeException(new \RuntimeException('foo'));
+        $result = (new ResultNormalizer(__DIR__))->normalizeException(new \RuntimeException('foo'));
 
         $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
     }
@@ -59,7 +59,7 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize_http_response(): void
     {
-        $normalizer = new ResultNormalizer();
+        $normalizer = new ResultNormalizer(__DIR__);
         $response = $this->createMock(ResponseInterface::class);
         $response->expects($this->once())->method('getStatusCode')->willReturn(200);
         $response->expects($this->once())->method('getHeaders')->willReturn(['header' => 'value']);
@@ -80,7 +80,7 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize_http_response_fails(): void
     {
-        $normalizer = new ResultNormalizer();
+        $normalizer = new ResultNormalizer(__DIR__);
         $response = $this->createMock(ResponseInterface::class);
         $response->expects($this->once())->method('getStatusCode')->willThrowException($this->createMock(ExceptionInterface::class));
 
@@ -92,7 +92,7 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize_http_response_exception(): void
     {
-        $normalizer = new ResultNormalizer();
+        $normalizer = new ResultNormalizer(__DIR__);
         $response = $this->createMock(ResponseInterface::class);
         $response->expects($this->once())->method('getStatusCode')->willReturn(200);
         $response->expects($this->once())->method('getHeaders')->willReturn(['header' => 'value']);
@@ -117,7 +117,7 @@ final class ResultNormalizerTest extends TestCase
             $this->markTestSkipped('symfony/process 6.4+ required.');
         }
 
-        $normalizer = new ResultNormalizer();
+        $normalizer = new ResultNormalizer(__DIR__);
         $context = (new RunProcessMessageHandler())(new RunProcessMessage(['ls']));
 
         $this->assertSame(
@@ -139,7 +139,7 @@ final class ResultNormalizerTest extends TestCase
             $this->markTestSkipped('symfony/process 6.4+ required.');
         }
 
-        $normalizer = new ResultNormalizer();
+        $normalizer = new ResultNormalizer(__DIR__);
 
         try {
             (new RunProcessMessageHandler())(new RunProcessMessage(['invalid']));
@@ -166,7 +166,7 @@ final class ResultNormalizerTest extends TestCase
             $this->markTestSkipped('symfony/console 6.4+ required.');
         }
 
-        $normalizer = new ResultNormalizer();
+        $normalizer = new ResultNormalizer(__DIR__);
         $context = new RunCommandContext(new RunCommandMessage('command'), 0, 'output');
 
         $this->assertSame(['exit_code' => 0, 'output' => 'output'], $normalizer->normalize($context));
@@ -181,7 +181,7 @@ final class ResultNormalizerTest extends TestCase
             $this->markTestSkipped('symfony/console 6.4+ required.');
         }
 
-        $normalizer = new ResultNormalizer();
+        $normalizer = new ResultNormalizer(__DIR__);
         $context = new RunCommandFailedException('fail', new RunCommandContext(new RunCommandMessage('command'), 1, 'output'));
         $result = $normalizer->normalizeException($context);
 
