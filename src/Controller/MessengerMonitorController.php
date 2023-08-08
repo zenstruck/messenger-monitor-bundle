@@ -117,6 +117,7 @@ abstract class MessengerMonitorController extends AbstractController
 
         return $this->render('@ZenstruckMessengerMonitor/_detail.html.twig', [
             'message' => $message,
+            'other_attempts' => $storage->filter(Specification::create(['run_id' => $message->runId()])),
             'time_formatter' => $dateTimeFormatter,
             'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
         ]);

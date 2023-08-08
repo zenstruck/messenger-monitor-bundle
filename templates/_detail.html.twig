@@ -144,6 +144,48 @@
             </div>
         </div>
     </div>
+
+    {% if other_attempts|length > 1 %}
+        <div class="card mb-3">
+            <div class="card-header">Other Attempts</div>
+            <div class="table-responsive">
+                <table class="table card-table table-striped mb-0 align-middle">
+                    <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for other in other_attempts %}
+                        {% if other.id != message.id %}
+                            <tr>
+                                <td class="text-center">{{ other.attempt }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if other.isFailure %}
+                                            <svg fill="currentcolor" height="1em" width="1em" class="text-danger me-1 align-text-bottom text-danger" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                                        {% else %}
+                                            <svg fill="currentcolor" height="1em" width="1em" class="text-success me-1 align-text-bottom text-success" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                                        {% endif %}
+                                        <div class="ms-1">
+                                            {% if other.isFailure %}
+                                                <strong><abbr title="{{ other.failure.class }}">{{ other.failure.shortName }}</abbr></strong>:
+                                                {{ other.failure.description }}
+                                            {% else %}
+                                                Success
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

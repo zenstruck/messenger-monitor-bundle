@@ -26,6 +26,7 @@ namespace Zenstruck\Messenger\Monitor\History;
  *     tags?: string[]|string|null,
  *     not_tags?: string[]|string|null,
  *     sort?: self::ASC|self::DESC,
+ *     run_id?: int|null,
  * }
  */
 final class Specification
@@ -42,6 +43,7 @@ final class Specification
     private ?\DateTimeImmutable $to = null;
     private ?string $messageType = null;
     private ?string $transport = null;
+    private ?int $runId = null;
 
     /** @var self::ASC|self::DESC */
     private string $sort = self::DESC;
@@ -84,6 +86,7 @@ final class Specification
         $specification->to = self::parseDate($values['to'] ?? null);
         $specification->messageType = $values['message_type'] ?? null;
         $specification->transport = $values['transport'] ?? null;
+        $specification->runId = isset($values['run_id']) ? (int) $values['run_id'] : null;
         $specification->status = match ($values['status'] ?? null) {
             self::SUCCESS => self::SUCCESS,
             self::FAILED => self::FAILED,
@@ -195,6 +198,7 @@ final class Specification
      *     tags: string[],
      *     not_tags: string[],
      *     sort: self::ASC|self::DESC,
+     *     run_id: int|null,
      * }
      */
     public function toArray(): array
@@ -208,6 +212,7 @@ final class Specification
             'tags' => $this->tags,
             'not_tags' => $this->notTags,
             'sort' => $this->sort,
+            'run_id' => $this->runId,
         ];
     }
 

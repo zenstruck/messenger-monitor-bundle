@@ -126,7 +126,7 @@ final class ORMStorage implements Storage
 
     private function queryBuilderFor(Specification $specification, bool $order = true): QueryBuilder
     {
-        [$from, $to, $status, $messageType, $transport, $tags, $notTags, $sort] = \array_values($specification->toArray());
+        [$from, $to, $status, $messageType, $transport, $tags, $notTags, $sort, $runId] = \array_values($specification->toArray());
 
         $qb = $this->repository()->createQueryBuilder('m');
 
@@ -144,6 +144,10 @@ final class ORMStorage implements Storage
 
         if ($transport) {
             $qb->andWhere('m.transport = :transport')->setParameter('transport', $transport);
+        }
+
+        if ($runId) {
+            $qb->andWhere('m.runId = :run_id')->setParameter('run_id', $runId);
         }
 
         match ($status) {
