@@ -92,7 +92,9 @@ final class WorkerCache implements \IteratorAggregate
         foreach ($this->cache->getItems($keys) as $item) {
             [$metadata, $status, $id, $messagesHandled, $memoryUsage] = $item->get();
 
-            yield new WorkerInfo($metadata, $status, $ids[$id], $messagesHandled, $memoryUsage);
+            if ($id) {
+                yield new WorkerInfo($metadata, $status, $ids[$id], $messagesHandled, $memoryUsage);
+            }
         }
     }
 
