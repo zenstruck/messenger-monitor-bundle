@@ -123,7 +123,7 @@
         </div>
         <div class="col-md-8 col-lg-9">
             {% set paginator = snapshot.messages.paginate(app.request.query.getInt('page', 1), 10) %}
-            {{ include('@ZenstruckMessengerMonitor/components/_messages.html.twig', {messages: paginator, subtitle: 'Page '~paginator.currentPage~' of '~paginator.pageCount}) }}
+            {{ include('@ZenstruckMessengerMonitor/components/_messages.html.twig', {messages: paginator, subtitle: 'Page '~paginator.currentPage~' of '~paginator.pageCount~' ('~paginator.totalCount~' total)'}) }}
             {% if paginator.haveToPaginate %}
                 <nav aria-label="Message Pagination" class="d-flex justify-content-center">
                     <ul class="pagination">

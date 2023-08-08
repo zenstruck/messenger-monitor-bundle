@@ -31,13 +31,20 @@
                 {% for message in messages %}
                     <tr>
                         <td class="{{ message.isFailure ? 'text-danger' : 'text-success'}}">
-                            {% if message.isFailure %}
-                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                            {% else %}
-                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
-                            {% endif %}
+                            <div class="d-flex align-items-center">
+                                {% if message.isFailure %}
+                                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                                {% else %}
+                                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                                {% endif %}
 
-                            <a class="text-body" href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({type: message.type})) }}" title="{{ message.type }}">{{ message.type.shortName }}</a>
+                                <div class="ms-2">
+                                    <a class="text-body" href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({type: message.type})) }}" title="{{ message.type }}">{{ message.type.shortName }}</a>
+                                    {% if message.description %}
+                                        <br><small class="text-secondary">{{ message.description }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </td>
                         <td>
                             <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
@@ -53,7 +60,7 @@
                             {{ message.memoryUsage }}
                         </td>
                         <td>
-                            {% for tag in message.tags.expand %}
+                            {% for tag in message.tags %}
                                 <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({tag: tag})) }}" class="badge align-text-top text-bg-secondary">{{ tag }}</a>
                             {% else %}
                                 <span class="text-secondary">-</span>
