@@ -17,6 +17,7 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\ListableTransport;
+use Zenstruck\Messenger\Monitor\Transport\QueuedMessage;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\WorkerMonitor;
@@ -68,7 +69,7 @@ final class TransportInfoTest extends TestCase
     /**
      * @test
      */
-    public function can_list_envelopes(): void
+    public function can_list_queued_messages(): void
     {
         $transport = new TransportInfo('foo', new ListableTransport([
             new Envelope(new \stdClass()),
@@ -83,8 +84,8 @@ final class TransportInfoTest extends TestCase
 
         $this->assertCount(2, $envelopes);
 
-        $this->assertInstanceOf(Envelope::class, $envelopes[0]);
-        $this->assertInstanceOf(Envelope::class, $envelopes[1]);
+        $this->assertInstanceOf(QueuedMessage::class, $envelopes[0]);
+        $this->assertInstanceOf(QueuedMessage::class, $envelopes[1]);
     }
 
     /**

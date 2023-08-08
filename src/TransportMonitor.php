@@ -25,7 +25,7 @@ use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
  *
  * @immutable
  *
- * @implements \IteratorAggregate<string,TransportInfo<Envelope>>
+ * @implements \IteratorAggregate<string,TransportInfo>
  */
 final class TransportMonitor implements \IteratorAggregate, \Countable
 {
@@ -56,7 +56,7 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return array<string,TransportInfo<Envelope>>
+     * @return array<string,TransportInfo>
      */
     public function all(): array
     {

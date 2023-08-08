@@ -16,6 +16,7 @@ use Symfony\Component\Messenger\Transport\Receiver\ListableReceiverInterface;
 use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Zenstruck\Collection;
+use Zenstruck\Collection\FactoryCollection;
 use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
 use Zenstruck\Messenger\Monitor\WorkerMonitor;
 
@@ -24,7 +25,7 @@ use function Zenstruck\collect;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
- * @implements \IteratorAggregate<Envelope>
+ * @implements \IteratorAggregate<QueuedMessage>
  */
 final class TransportInfo implements \IteratorAggregate, \Countable
 {
@@ -61,7 +62,7 @@ final class TransportInfo implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return Collection<int,Envelope>
+     * @return Collection<int,QueuedMessage>
      */
     public function list(?int $limit = null): Collection
     {
@@ -69,7 +70,10 @@ final class TransportInfo implements \IteratorAggregate, \Countable
             throw new \LogicException(\sprintf('Transport "%s" does not implement "%s".', $this->name, ListableReceiverInterface::class));
         }
 
-        return collect($this->transport->all($limit));
+        return new FactoryCollection(
+            collect($this->transport->all($limit)),
+            fn(Envelope $envelope) => new QueuedMessage($envelope)
+        );
     }
 
     /**
