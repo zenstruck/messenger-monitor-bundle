@@ -11,6 +11,14 @@
             </div>
         </div>
     {% else %}
+        {% if transports.failure and transports.failure|length %}
+            <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
+                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+                <div>
+                    The <a class="text-danger-emphasis" href="{{ path('zenstruck_messenger_monitor_transport', {name: transports.failure.name}) }}">failure transport</a> has <strong>{{ transports.failure|length }}</strong> messages.
+                </div>
+            </div>
+        {% endif %}
         <div class="table-responsive">
             <table class="table card-table table-striped align-text-top text-nowrap">
                 <thead>
@@ -34,9 +42,13 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            <strong class="{{ transport.workers|length > 0 ? 'text-success' : 'text-danger' }}">
-                                {{ transport.workers|length }}
-                            </strong>
+                            {% if transport.isFailure %}
+                                <em class="text-secondary">n/a</em>
+                            {% else %}
+                                <strong class="{{ transport.workers|length > 0 ? 'text-success' : 'text-danger' }}">
+                                    {{ transport.workers|length }}
+                                </strong>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}

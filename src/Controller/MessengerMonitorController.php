@@ -102,7 +102,7 @@ abstract class MessengerMonitorController extends AbstractController
         ]);
     }
 
-    #[Route('/transports/{name}', name: 'zenstruck_messenger_monitor_transports', defaults: ['name' => null])]
+    #[Route('/transport/{name}', name: 'zenstruck_messenger_monitor_transport', defaults: ['name' => null])]
     public function transports(
         ViewHelper $helper,
 
@@ -118,14 +118,14 @@ abstract class MessengerMonitorController extends AbstractController
             $name = $transports->names()[0];
         }
 
-        return $this->render('@ZenstruckMessengerMonitor/transports.html.twig', [
+        return $this->render('@ZenstruckMessengerMonitor/transport.html.twig', [
             'helper' => $helper,
             'transports' => $transports,
             'transport' => $transports->get($name),
         ]);
     }
 
-    #[Route('/schedules/{name}', name: 'zenstruck_messenger_monitor_schedules', defaults: ['name' => null])]
+    #[Route('/schedule/{name}', name: 'zenstruck_messenger_monitor_schedule', defaults: ['name' => null])]
     public function schedules(
         ViewHelper $helper,
 
@@ -139,7 +139,7 @@ abstract class MessengerMonitorController extends AbstractController
             throw new \LogicException('No schedules configured.');
         }
 
-        return $this->render('@ZenstruckMessengerMonitor/schedules.html.twig', [
+        return $this->render('@ZenstruckMessengerMonitor/schedule.html.twig', [
             'helper' => $helper,
             'schedules' => $helper->schedules,
             'schedule' => $helper->schedules->get($name),

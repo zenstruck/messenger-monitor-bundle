@@ -34,6 +34,8 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     /** @var (callable(TransportInterface,string):bool)[] */
     private array $filters = [];
 
+    private TransportInfo $failure;
+
     /**
      * @internal
      *
@@ -85,6 +87,21 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
     public function excludeFailed(): self
     {
         return $this->filter(fn(TransportInterface $transport, string $name) => !\str_contains($name, 'fail'));
+    }
+
+    public function failure(): ?TransportInfo
+    {
+        if (isset($this->failure)) {
+            return $this->failure;
+        }
+
+        foreach (\array_keys($this->transports->getProvidedServices()) as $name) {
+            if (\str_contains($name, 'fail')) {
+                return $this->failure = $this->get($name);
+            }
+        }
+
+        return null;
     }
 
     /**

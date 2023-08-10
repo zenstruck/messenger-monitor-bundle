@@ -26,7 +26,7 @@
                             </span>
                         {% endif %}
 
-                        <a href="{{ path('zenstruck_messenger_monitor_transports', {name: item.name}) }}" class="nav-link{{ item.name == transport.name ? ' active' }}">
+                        <a href="{{ path('zenstruck_messenger_monitor_transport', {name: item.name}) }}" class="nav-link{{ item.name == transport.name ? ' active' }}">
                             {{ item.name }}
                         </a>
                     </li>

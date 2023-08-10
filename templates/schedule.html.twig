@@ -69,7 +69,7 @@
                             </span>
                         {% endif %}
 
-                        <a href="{{ path('zenstruck_messenger_monitor_schedules', {name: item.name}) }}" class="nav-link{{ item.name == schedule.name ? ' active' }}">
+                        <a href="{{ path('zenstruck_messenger_monitor_schedule', {name: item.name}) }}" class="nav-link{{ item.name == schedule.name ? ' active' }}">
                             {{ item.name|humanize }} Schedule
                         </a>
                     </li>
