@@ -20,6 +20,10 @@
                 border: 0;
                 border-radius: 0;
             }
+            .card .card-alert:last-child {
+                border-bottom-left-radius: var(--bs-card-border-radius);
+                border-bottom-right-radius: var(--bs-card-border-radius);
+            }
 
             .card-table {
                 margin-bottom: 0;
@@ -68,7 +72,7 @@
     <nav class="navbar sticky-top navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
             <a href="{{ path('zenstruck_messenger_monitor_dashboard') }}" class="navbar-brand">
-                {{ include('@ZenstruckMessengerMonitor/icon.svg.twig', {size: 24, class: 'd-inline-block align-text-top'}) }}
+                {{ include('@ZenstruckMessengerMonitor/icon.svg.twig', {size: 24, class: 'd-inline-block align-text-top '~(helper.workers.isRunning ? 'text-success' : 'text-danger')}) }}
                 Messenger Monitor
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">

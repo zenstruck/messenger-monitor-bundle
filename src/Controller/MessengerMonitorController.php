@@ -42,7 +42,7 @@ abstract class MessengerMonitorController extends AbstractController
 
         return $this->render('@ZenstruckMessengerMonitor/dashboard.html.twig', [
             'helper' => $helper,
-            'transports' => $helper->transports->excludeSync(),
+            'transports' => $helper->transports->excludeSync()->excludeFailed(),
             'snapshot' => Specification::create(Period::IN_LAST_DAY)->snapshot($helper->storage),
             'messages' => Specification::new()->snapshot($helper->storage)->messages(),
         ]);

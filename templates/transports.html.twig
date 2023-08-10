@@ -8,8 +8,11 @@
 {% endblock %}
 
 {% block content %}
-    <div class="card position-relative mb-3">
-        <div class="card-header">
+    <div class="card mb-3">
+        <div class="card-header position-relative">
+            {% embed '@ZenstruckMessengerMonitor/components/refresh_button.html.twig' %}
+                {% block class %}{{ parent() }} btn-outline-secondary position-absolute translate-middle end-0 top-50{% endblock %}
+            {% endembed %}
             <ul class="nav nav-tabs card-header-tabs">
                 {% for item in transports %}
                     <li class="nav-item position-relative mx-2" role="presentation">

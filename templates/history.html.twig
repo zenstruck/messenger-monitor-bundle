@@ -106,10 +106,12 @@
             </div>
         </div>
         <div class="btn-group me-2" role="group">
-            <a href="#" onclick="window.location.reload();" class="btn btn-light">
-                <svg width="16" height="16" fill="currentColor" class="me-1 align-text-bottom"><use xlink:href="#refresh-icon"/></svg>
-                Refresh
-            </a>
+            {% embed '@ZenstruckMessengerMonitor/components/refresh_button.html.twig' %}
+                {% block content %}
+                    {{ parent() }}
+                    <span class="ms-2">Refresh</span>
+                {% endblock %}
+            {% endembed %}
         </div>
     </div>
 
