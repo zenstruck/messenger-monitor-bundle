@@ -87,20 +87,20 @@
                                 History
                             </a>
                         </li>
-                        {% if schedules %}
+                        {% if schedules and schedules|length %}
+                            {% set isRunning = true %}
+                            {% for schedule in schedules %}
+                                {% if not schedule.isRunning %}
+                                    {% set isRunning = false %}
+                                {% endif %}
+                            {% endfor %}
+
                             <li class="nav-item">
                                 <a class="d-flex align-items-center nav-link{{ route == 'zenstruck_messenger_monitor_schedules' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_schedules' %} aria-current="page"{% endif %} href="{{ path('zenstruck_messenger_monitor_schedules') }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-2" viewBox="0 0 16 16">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-{{ isRunning ? 'success' : 'danger'}} me-2" viewBox="0 0 16 16">
                                         <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
                                     </svg>
-                                    <span class="me-1">Schedules</span>
-                                    {% set running = true %}
-                                    {% for schedule in schedules %}
-                                        {% if not schedule.isRunning %}
-                                            {% set running = false %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    <span class="badge rounded-pill text-bg-{{ running ? 'success' : 'danger' }}">{{ schedules|length }}</span>
+                                    Schedule{% if schedules|length > 1 %}s{% endif %}
                                 </a>
                             </li>
                         {% endif %}
