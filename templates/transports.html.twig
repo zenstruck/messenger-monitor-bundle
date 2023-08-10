@@ -66,8 +66,8 @@
                                     </td>
                                     <td>
                                         {% if queued.dispatchedAt %}
-                                            {% if time_formatter %}
-                                                <abbr title="{{ queued.dispatchedAt|date('c') }}">{{ time_formatter.formatDiff(queued.dispatchedAt) }}</abbr>
+                                            {% if helper.timeFormatter %}
+                                                <abbr title="{{ queued.dispatchedAt|date('c') }}">{{ helper.timeFormatter.formatDiff(queued.dispatchedAt) }}</abbr>
                                             {% else %}
                                                 {{ queued.dispatchedAt|date('c') }}
                                             {% endif %}

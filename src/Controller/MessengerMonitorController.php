@@ -11,7 +11,6 @@
 
 namespace Zenstruck\Messenger\Monitor\Controller;
 
-use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Lorisleiva\CronTranslator\CronTranslator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,11 +24,9 @@ use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
-use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\ScheduleMonitor;
 use Zenstruck\Messenger\Monitor\Stamp\Tag;
-use Zenstruck\Messenger\Monitor\TransportMonitor;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -37,37 +34,26 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
 abstract class MessengerMonitorController extends AbstractController
 {
     #[Route(name: 'zenstruck_messenger_monitor_dashboard')]
-    public function dashboard(
-        WorkerMonitor $workers,
-        TransportMonitor $transports,
-        ?Storage $storage = null,
-        ?ScheduleMonitor $schedules = null,
-        ?DateTimeFormatter $dateTimeFormatter = null,
-    ): Response {
-        if (!$storage) {
+    public function dashboard(ViewHelper $helper): Response
+    {
+        if (!$helper->storage) {
             throw new \LogicException('Storage must be configured to use the dashboard.');
         }
 
         return $this->render('@ZenstruckMessengerMonitor/dashboard.html.twig', [
-            'workers' => $workers,
-            'transports' => $transports->excludeSync(),
-            'snapshot' => Specification::create(Period::IN_LAST_DAY)->snapshot($storage),
-            'messages' => Specification::new()->snapshot($storage)->messages(),
-            'schedules' => $schedules,
-            'time_formatter' => $dateTimeFormatter,
-            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
+            'helper' => $helper,
+            'transports' => $helper->transports->excludeSync(),
+            'snapshot' => Specification::create(Period::IN_LAST_DAY)->snapshot($helper->storage),
+            'messages' => Specification::new()->snapshot($helper->storage)->messages(),
         ]);
     }
 
     #[Route('/history', name: 'zenstruck_messenger_monitor_history')]
     public function history(
         Request $request,
-        TransportMonitor $transports,
-        ?Storage $storage = null,
-        ?ScheduleMonitor $schedules = null,
-        ?DateTimeFormatter $dateTimeFormatter = null,
+        ViewHelper $helper,
     ): Response {
-        if (!$storage) {
+        if (!$helper->storage) {
             throw new \LogicException('Storage must be configured to use the dashboard.');
         }
 
@@ -91,47 +77,38 @@ abstract class MessengerMonitorController extends AbstractController
         ]);
 
         return $this->render('@ZenstruckMessengerMonitor/history.html.twig', [
+            'helper' => $helper,
             'periods' => [...Period::inLastCases(), ...Period::absoluteCases()],
             'period' => $period,
-            'transports' => $transports->excludeSync(),
-            'snapshot' => $specification->snapshot($storage),
-            'schedules' => $schedules,
-            'time_formatter' => $dateTimeFormatter,
-            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
+            'snapshot' => $specification->snapshot($helper->storage),
         ]);
     }
 
     #[Route('/history/{id}', name: 'zenstruck_messenger_monitor_detail')]
-    public function detail(
-        string $id,
-        ?Storage $storage = null,
-        ?DateTimeFormatter $dateTimeFormatter = null,
-    ): Response {
-        if (!$storage) {
+    public function detail(string $id, ViewHelper $helper): Response
+    {
+        if (!$helper->storage) {
             throw new \LogicException('Storage must be configured to use the dashboard.');
         }
 
-        if (!$message = $storage->find($id)) {
+        if (!$message = $helper->storage->find($id)) {
             throw $this->createNotFoundException('Message not found.');
         }
 
-        return $this->render('@ZenstruckMessengerMonitor/_detail.html.twig', [
+        return $this->render('@ZenstruckMessengerMonitor/detail.html.twig', [
+            'helper' => $helper,
             'message' => $message,
-            'other_attempts' => $storage->filter(Specification::create(['run_id' => $message->runId()])),
-            'time_formatter' => $dateTimeFormatter,
-            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
+            'other_attempts' => $helper->storage->filter(Specification::create(['run_id' => $message->runId()])),
         ]);
     }
 
     #[Route('/transports/{name}', name: 'zenstruck_messenger_monitor_transports', defaults: ['name' => null])]
     public function transports(
-        TransportMonitor $transports,
-        ?ScheduleMonitor $schedules = null,
-        ?DateTimeFormatter $dateTimeFormatter = null,
+        ViewHelper $helper,
 
         ?string $name = null,
     ): Response {
-        $transports = $transports->countable();
+        $transports = $helper->transports->countable();
 
         if (!\count($transports)) {
             throw new \LogicException('No countable transports configured.');
@@ -142,36 +119,31 @@ abstract class MessengerMonitorController extends AbstractController
         }
 
         return $this->render('@ZenstruckMessengerMonitor/transports.html.twig', [
-            'schedules' => $schedules,
+            'helper' => $helper,
             'transports' => $transports,
             'transport' => $transports->get($name),
-            'time_formatter' => $dateTimeFormatter,
-            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
         ]);
     }
 
     #[Route('/schedules/{name}', name: 'zenstruck_messenger_monitor_schedules', defaults: ['name' => null])]
     public function schedules(
-        TransportMonitor $transports,
-        ?ScheduleMonitor $schedules = null,
-        ?DateTimeFormatter $dateTimeFormatter = null,
+        ViewHelper $helper,
 
         ?string $name = null,
     ): Response {
-        if (!$schedules) {
+        if (!$helper->schedules) {
             throw new \LogicException('Scheduler must be configured to use the dashboard.');
         }
 
-        if (!\count($schedules)) {
+        if (!\count($helper->schedules)) {
             throw new \LogicException('No schedules configured.');
         }
 
         return $this->render('@ZenstruckMessengerMonitor/schedules.html.twig', [
-            'schedules' => $schedules,
-            'schedule' => $schedules->get($name),
-            'transports' => $transports->excludeSync()->excludeSchedules()->excludeFailed(),
-            'time_formatter' => $dateTimeFormatter,
-            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
+            'helper' => $helper,
+            'schedules' => $helper->schedules,
+            'schedule' => $helper->schedules->get($name),
+            'transports' => $helper->transports->excludeSync()->excludeSchedules()->excludeFailed(),
             'cron_humanizer' => new class() {
                 public function humanize(TriggerInterface $trigger, CronExpressionTrigger $cron, ?string $locale): string
                 {

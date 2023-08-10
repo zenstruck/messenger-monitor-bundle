@@ -8,9 +8,9 @@
     <div class="row">
         <div class="col-md-4 col-lg-3">
             <div class="card position-relative mb-3">
-                {% if workers.running %}
+                {% if helper.workers.running %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                        {{ workers.count }} <span class="visually-hidden">workers running</span>
+                        {{ helper.workers.count }} <span class="visually-hidden">workers running</span>
                     </span>
                 {% else %}
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -22,7 +22,7 @@
                     Worker Status
                 </div>
 
-                {% if workers.running %}
+                {% if helper.workers.running %}
                     <div class="table-responsive">
                         <table class="table card-table table-striped align-text-top">
                             <thead>
@@ -35,7 +35,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for worker in workers %}
+                            {% for worker in helper.workers %}
                                 <tr>
                                     <td>{{ loop.index }}</td>
                                     <td class="text-center">
@@ -115,10 +115,10 @@
                     </div>
                 {% endif %}
             </div>
-            {{ include('@ZenstruckMessengerMonitor/_snapshot.html.twig', {subtitle: '(Last 24 Hours)'}) }}
+            {{ include('@ZenstruckMessengerMonitor/components/snapshot.html.twig', {subtitle: '(Last 24 Hours)'}) }}
         </div>
         <div class="col-md-8 col-lg-9">
-            {% embed '@ZenstruckMessengerMonitor/_messages.html.twig' with {messages: messages.take(15)} %}
+            {% embed '@ZenstruckMessengerMonitor/components/messages.html.twig' with {messages: messages.take(15)} %}
                 {% block card_header %}
                     Recently Processed Messages
                     <em class="text-secondary">(Last 15)</em>

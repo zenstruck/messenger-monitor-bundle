@@ -66,8 +66,8 @@
                         <tr>
                             <th class="text-end text-nowrap">Time in Queue</th>
                             <td>
-                                {% if duration_format %}
-                                    <abbr title="{{ message.timeInQueue }}s">{{ time_formatter.formatDuration(message.timeInQueue) }}</abbr>
+                                {% if helper.canFormatDuration %}
+                                    <abbr title="{{ message.timeInQueue }}s">{{ helper.timeFormatter.formatDuration(message.timeInQueue) }}</abbr>
                                 {% else %}
                                     {{ message.timeInQueue }}s
                                 {% endif %}
@@ -76,8 +76,8 @@
                         <tr>
                             <th class="text-end text-nowrap">Time to Handle</th>
                             <td>
-                                {% if duration_format %}
-                                    <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
+                                {% if helper.canFormatDuration %}
+                                    <abbr title="{{ message.timeToHandle }}s">{{ helper.timeFormatter.formatDuration(message.timeToHandle) }}</abbr>
                                 {% else %}
                                     {{ message.timeToHandle }}s
                                 {% endif %}
@@ -86,8 +86,8 @@
                         <tr>
                             <th class="text-end text-nowrap">Dispatched At</th>
                             <td>
-                                {% if time_formatter %}
-                                    <abbr title="{{ message.dispatchedAt|date('c') }}">{{ time_formatter.formatDiff(message.dispatchedAt) }}</abbr>
+                                {% if helper.timeFormatter %}
+                                    <abbr title="{{ message.dispatchedAt|date('c') }}">{{ helper.timeFormatter.formatDiff(message.dispatchedAt) }}</abbr>
                                 {% else %}
                                     {{ message.dispatchedAt|date('c') }}
                                 {% endif %}
@@ -96,8 +96,8 @@
                         <tr>
                             <th class="text-end text-nowrap">Received At</th>
                             <td>
-                                {% if time_formatter %}
-                                    <abbr title="{{ message.receivedAt|date('c') }}">{{ time_formatter.formatDiff(message.receivedAt) }}</abbr>
+                                {% if helper.timeFormatter %}
+                                    <abbr title="{{ message.receivedAt|date('c') }}">{{ helper.timeFormatter.formatDiff(message.receivedAt) }}</abbr>
                                 {% else %}
                                     {{ message.receivedAt|date('c') }}
                                 {% endif %}
@@ -106,8 +106,8 @@
                         <tr>
                             <th class="text-end text-nowrap">Finished Handling At</th>
                             <td>
-                                {% if time_formatter %}
-                                    <abbr title="{{ message.finishedAt|date('c') }}">{{ time_formatter.formatDiff(message.finishedAt) }}</abbr>
+                                {% if helper.timeFormatter %}
+                                    <abbr title="{{ message.finishedAt|date('c') }}">{{ helper.timeFormatter.formatDiff(message.finishedAt) }}</abbr>
                                 {% else %}
                                     {{ message.finishedAt|date('c') }}
                                 {% endif %}

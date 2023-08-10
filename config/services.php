@@ -6,8 +6,8 @@ use Symfony\Component\Messenger\Event\WorkerRunningEvent;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
 use Zenstruck\Messenger\Monitor\Command\MonitorCommand;
-use Zenstruck\Messenger\Monitor\ScheduleMonitor;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
+use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Worker\WorkerListener;
 use Zenstruck\Messenger\Monitor\WorkerMonitor;
@@ -47,5 +47,15 @@ return static function (ContainerConfigurator $container): void {
                 service('zenstruck_messenger_monitor.history.storage')->nullOnInvalid(),
             ])
             ->tag('console.command')
+
+        ->set('zenstruck_messenger_monitor.view_helper', ViewHelper::class)
+            ->args([
+                service('zenstruck_messenger_monitor.transport_monitor'),
+                service('zenstruck_messenger_monitor.worker_monitor'),
+                service('zenstruck_messenger_monitor.history.storage')->nullOnInvalid(),
+                service('zenstruck_messenger_monitor.schedule_monitor')->nullOnInvalid(),
+                service('time.datetime_formatter')->nullOnInvalid(),
+            ])
+            ->alias(ViewHelper::class, 'zenstruck_messenger_monitor.view_helper')
     ;
 };

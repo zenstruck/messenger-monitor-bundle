@@ -88,7 +88,7 @@
                             </a>
                         </li>
 
-                        {% set countable_transports = transports.countable %}
+                        {% set countable_transports = helper.transports.countable %}
 
                         {% if countable_transports|length %}
                             <li class="nav-item dropdown">
@@ -100,11 +100,11 @@
                                     Transports
                                 </a>
                                 <ul class="dropdown-menu">
-                                    {% for transport in countable_transports %}
+                                    {% for item in countable_transports %}
                                         <li>
-                                            <a class="dropdown-item d-flex justify-content-between align-items-center" href="{{ path('zenstruck_messenger_monitor_transports', {name: transport.name}) }}">
-                                                {{ transport.name }}
-                                                <span class="badge rounded-pill text-bg-{{ transport|length > 0 ? 'primary' : 'secondary' }}">{{ transport|length }}</span>
+                                            <a class="dropdown-item d-flex justify-content-between align-items-center" href="{{ path('zenstruck_messenger_monitor_transports', {name: item.name}) }}">
+                                                {{ item.name }}
+                                                <span class="badge rounded-pill text-bg-{{ item|length > 0 ? 'primary' : 'secondary' }}">{{ item|length }}</span>
                                             </a>
                                         </li>
                                     {% endfor %}
@@ -118,10 +118,10 @@
                                 History
                             </a>
                         </li>
-                        {% if schedules and schedules|length %}
+                        {% if helper.schedules and helper.schedules|length %}
                             {% set isRunning = true %}
-                            {% for schedule in schedules %}
-                                {% if not schedule.isRunning %}
+                            {% for item in helper.schedules %}
+                                {% if not item.isRunning %}
                                     {% set isRunning = false %}
                                 {% endif %}
                             {% endfor %}
@@ -132,7 +132,7 @@
                                         <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
                                         <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
                                     </svg>
-                                    Schedule{% if schedules|length > 1 %}s{% endif %}
+                                    Schedule{% if helper.schedules|length > 1 %}s{% endif %}
                                 </a>
                             </li>
                         {% endif %}

@@ -47,8 +47,8 @@
                             <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
                         </td>
                         <td class="text-center">
-                            {% if duration_format %}
-                                <abbr title="{{ message.timeToHandle }}s">{{ time_formatter.formatDuration(message.timeToHandle) }}</abbr>
+                            {% if helper.canFormatDuration %}
+                                <abbr title="{{ message.timeToHandle }}s">{{ helper.timeFormatter.formatDuration(message.timeToHandle) }}</abbr>
                             {% else %}
                                 {{ message.timeToHandle }}s
                             {% endif %}
@@ -64,8 +64,8 @@
                             {% endfor %}
                         </td>
                         <td>
-                            {% if time_formatter %}
-                                <abbr title="{{ message.finishedAt|date('c') }}">{{ time_formatter.formatDiff(message.finishedAt) }}</abbr>
+                            {% if helper.timeFormatter %}
+                                <abbr title="{{ message.finishedAt|date('c') }}">{{ helper.timeFormatter.formatDiff(message.finishedAt) }}</abbr>
                             {% else %}
                                 {{ message.finishedAt|date('c') }}
                             {% endif %}

@@ -33,8 +33,8 @@
             <tr>
                 <th class="text-end">Average Wait Time</th>
                 <td>
-                    {% if duration_format %}
-                        <abbr title="{{ snapshot.averageWaitTime|round }}s">{{ time_formatter.formatDuration(snapshot.averageWaitTime) }}</abbr>
+                    {% if helper.canFormatDuration %}
+                        <abbr title="{{ snapshot.averageWaitTime|round }}s">{{ helper.timeFormatter.formatDuration(snapshot.averageWaitTime) }}</abbr>
                     {% else %}
                         {{ snapshot.averageWaitTime|round }}s
                     {% endif %}
@@ -43,8 +43,8 @@
             <tr>
                 <th class="text-end">Average Handling Time</th>
                 <td>
-                    {% if duration_format %}
-                        <abbr title="{{ snapshot.averageHandlingTime|round }}s">{{ time_formatter.formatDuration(snapshot.averageHandlingTime) }}</abbr>
+                    {% if helper.canFormatDuration %}
+                        <abbr title="{{ snapshot.averageHandlingTime|round }}s">{{ helper.timeFormatter.formatDuration(snapshot.averageHandlingTime) }}</abbr>
                     {% else %}
                         {{ snapshot.averageHandlingTime|round }}s
                     {% endif %}
