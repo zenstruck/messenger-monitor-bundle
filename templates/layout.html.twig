@@ -81,6 +81,27 @@
                         <li class="nav-item">
                             <a class="nav-link{{ route == 'zenstruck_messenger_monitor_dashboard' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_dashboard' %} aria-current="page"{% endif %} href="{{ path('zenstruck_messenger_monitor_dashboard') }}">Dashboard</a>
                         </li>
+
+                        {% set countable_transports = transports.countable %}
+
+                        {% if countable_transports|length %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle{{ route == 'zenstruck_messenger_monitor_transports' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_transports' %} aria-current="page"{% endif %} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Transports
+                                </a>
+                                <ul class="dropdown-menu">
+                                    {% for transport in countable_transports %}
+                                        <li>
+                                            <a class="dropdown-item d-flex justify-content-between align-items-center" href="{{ path('zenstruck_messenger_monitor_transports', {name: transport.name}) }}">
+                                                {{ transport.name }}
+                                                <span class="badge rounded-pill text-bg-{{ transport|length > 0 ? 'primary' : 'secondary' }}">{{ transport|length }}</span>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endif %}
+
                         <li class="nav-item">
                             <a class="d-flex align-items-center nav-link{{ route == 'zenstruck_messenger_monitor_history' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_history' %} aria-current="page"{% endif %} href="{{ path('zenstruck_messenger_monitor_history') }}">
                                 <svg fill="currentcolor" height="1em" width="1em" class="me-2"><use xlink:href="#history-icon"/></svg>

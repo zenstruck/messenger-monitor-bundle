@@ -14,6 +14,7 @@ namespace Zenstruck\Messenger\Monitor\Transport;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
+use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
 final class QueuedMessage
@@ -45,6 +46,13 @@ final class QueuedMessage
      */
     public function stamps(): array
     {
-        return \array_map(static fn(StampInterface $stamp) => new Type($stamp), $this->envelope->all()); // @phpstan-ignore-line
+        $stamps = \array_merge(...\array_values($this->envelope->all())); // @phpstan-ignore-line
+
+        return \array_map(static fn(StampInterface $stamp) => new Type($stamp), $stamps);
+    }
+
+    public function dispatchedAt(): ?\DateTimeImmutable
+    {
+        return $this->envelope->last(MonitorStamp::class)?->dispatchedAt();
     }
 }

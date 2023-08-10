@@ -11,7 +11,6 @@
 
 namespace Zenstruck\Messenger\Monitor;
 
-use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\Receiver\ListableReceiverInterface;
 use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
 use Symfony\Component\Messenger\Transport\Sync\SyncTransport;

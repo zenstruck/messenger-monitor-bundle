@@ -1,0 +1,98 @@
+{% extends '@ZenstruckMessengerMonitor/layout.html.twig' %}
+
+{% block title %}Schedules{% endblock %}
+
+{% block breadcrumb_items %}
+    {{ parent() }}
+    <li class="breadcrumb-item active" aria-current="page">Transports</li>
+{% endblock %}
+
+{% block content %}
+    <div class="card position-relative mb-3">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                {% for item in transports %}
+                    <li class="nav-item position-relative mx-2" role="presentation">
+                        {% if item|length %}
+                            <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                                {{ item|length }} <span class="visually-hidden">queued messages</span>
+                            </span>
+                        {% else %}
+                            <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary">
+                                0 <span class="visually-hidden">queued messages</span>
+                            </span>
+                        {% endif %}
+
+                        <a href="{{ path('zenstruck_messenger_monitor_transports', {name: item.name}) }}" class="nav-link{{ item.name == transport.name ? ' active' }}">
+                            {{ item.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="tab-content">
+            {% if not transport|length %}
+                <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
+                    <div>
+                        No Queued Messages.
+                    </div>
+                </div>
+            {% elseif not transport.isListable %}
+                <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
+                    <div>
+                        This transport is not listable.
+                    </div>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table card-table table-striped text-nowrap align-middle">
+                        <thead>
+                        <tr>
+                            <th>Message</th>
+                            <th>Dispatched At</th>
+                            <th>Stamps</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            {% for queued in transport.list %}
+                                <tr>
+                                    <td>
+                                        <abbr title="{{ queued.message }}">{{ queued.message.shortName }}</abbr>
+                                        {% if queued.message.description %}
+                                            <br><small class="text-secondary">{{ queued.message.description }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if queued.dispatchedAt %}
+                                            {% if time_formatter %}
+                                                <abbr title="{{ queued.dispatchedAt|date('c') }}">{{ time_formatter.formatDiff(queued.dispatchedAt) }}</abbr>
+                                            {% else %}
+                                                {{ queued.dispatchedAt|date('c') }}
+                                            {% endif %}
+                                        {% else %}
+                                            <em class="text-secondary">n/a</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% for stamp in queued.stamps %}
+                                                <div class="me-3">
+                                                    <abbr title="{{ stamp }}">{{ stamp.shortName }}</abbr>
+                                                    {% if stamp.description %}
+                                                        <br><small class="text-secondary">{{ stamp.description }}</small>
+                                                    {% endif %}
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

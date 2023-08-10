@@ -123,6 +123,33 @@ abstract class MessengerMonitorController extends AbstractController
         ]);
     }
 
+    #[Route('/transports/{name}', name: 'zenstruck_messenger_monitor_transports', defaults: ['name' => null])]
+    public function transports(
+        TransportMonitor $transports,
+        ?ScheduleMonitor $schedules = null,
+        ?DateTimeFormatter $dateTimeFormatter = null,
+
+        ?string $name = null,
+    ): Response {
+        $transports = $transports->countable();
+
+        if (!\count($transports)) {
+            throw new \LogicException('No countable transports configured.');
+        }
+
+        if (!$name) {
+            $name = $transports->names()[0];
+        }
+
+        return $this->render('@ZenstruckMessengerMonitor/transports.html.twig', [
+            'schedules' => $schedules,
+            'transports' => $transports,
+            'transport' => $transports->get($name),
+            'time_formatter' => $dateTimeFormatter,
+            'duration_format' => $dateTimeFormatter && \method_exists($dateTimeFormatter, 'formatDuration'),
+        ]);
+    }
+
     #[Route('/schedules/{name}', name: 'zenstruck_messenger_monitor_schedules', defaults: ['name' => null])]
     public function schedules(
         TransportMonitor $transports,
