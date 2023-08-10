@@ -1,0 +1,47 @@
+<div class="card">
+    <div class="card-header text-center">
+        Transports
+    </div>
+
+    {% if not transports|length %}
+        <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
+            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+            <div>
+                There are transports configured.
+            </div>
+        </div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table card-table table-striped align-text-top text-nowrap">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th class="text-center">Queued Messages</th>
+                    <th class="text-center">Workers</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for transport in transports %}
+                    <tr>
+                        <td>
+                            <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: transport.name})) }}" class="badge align-text-top text-bg-secondary">{{ transport.name }}</a>
+                        </td>
+                        <td class="text-center">
+                            {% if transport.countable %}
+                                {{ transport.count }}
+                            {% else %}
+                                <em class="text-secondary">n/a</em>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <strong class="{{ transport.workers|length > 0 ? 'text-success' : 'text-danger' }}">
+                                {{ transport.workers|length }}
+                            </strong>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>

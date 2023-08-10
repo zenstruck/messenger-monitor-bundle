@@ -7,113 +7,11 @@
 {% block content %}
     <div class="row">
         <div class="col-md-4 col-lg-3">
-            <div class="card position-relative mb-3">
-                {% if helper.workers.running %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-                        {{ helper.workers.count }} <span class="visually-hidden">workers running</span>
-                    </span>
-                {% else %}
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        0 <span class="visually-hidden">workers running</span>
-                    </span>
-                {% endif %}
-
-                <div class="card-header text-center">
-                    Worker Status
-                </div>
-
-                {% if helper.workers.running %}
-                    <div class="table-responsive">
-                        <table class="table card-table table-striped align-text-top">
-                            <thead>
-                            <tr>
-                                <th>&nbsp;</th>
-                                <th class="text-center">Status</th>
-                                <th>Transports</th>
-                                <th class="text-center"># Handled</th>
-                                <th class="text-center">Memory</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for worker in helper.workers %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td class="text-center">
-                                        <span class="badge align-text-top text-bg-{{ worker.isIdle ? 'success' : 'primary' }}">
-                                            {{ worker.status }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% for transport in worker.transports %}
-                                            <span class="badge align-text-top text-bg-secondary">{{ transport }}</span>
-                                        {% endfor %}
-                                    </td>
-                                    <td class="text-center">
-                                        {{ worker.messagesHandled }}
-                                    </td>
-                                    <td class="text-center">
-                                        {{ worker.memoryUsage }}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
-                        <svg fill="currentcolor" height="1em" width="1em" class="me-2 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                        <div>
-                            There are no workers running.
-                        </div>
-                    </div>
-                {% endif %}
+            <div class="mb-3">
+                {{ include('@ZenstruckMessengerMonitor/components/workers.html.twig') }}
             </div>
-            <div class="card position-relative mb-3">
-                <div class="card-header text-center">
-                    Transports
-                </div>
-
-                {% if not transports|length %}
-                    <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
-                        <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                        <div>
-                            There are transports configured.
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="table-responsive">
-                        <table class="table card-table table-striped align-text-top text-nowrap">
-                            <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th class="text-center">Queued Messages</th>
-                                <th class="text-center">Workers</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for transport in transports %}
-                                <tr>
-                                    <td>
-                                        <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: transport.name})) }}" class="badge align-text-top text-bg-secondary">{{ transport.name }}</a>
-                                    </td>
-                                    <td class="text-center">
-                                        {% if transport.countable %}
-                                            {{ transport.count }}
-                                        {% else %}
-                                            <em class="text-secondary">n/a</em>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-center">
-                                        <strong class="{{ transport.workers|length > 0 ? 'text-success' : 'text-danger' }}">
-                                            {{ transport.workers|length }}
-                                        </strong>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
+            <div class="mb-3">
+                {{ include('@ZenstruckMessengerMonitor/components/transports.html.twig') }}
             </div>
             {{ include('@ZenstruckMessengerMonitor/components/snapshot.html.twig', {subtitle: '(Last 24 Hours)'}) }}
         </div>

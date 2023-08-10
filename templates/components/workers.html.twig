@@ -1,0 +1,61 @@
+<div class="card position-relative">
+    {% if helper.workers.running %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+            {{ helper.workers.count }} <span class="visually-hidden">workers running</span>
+        </span>
+    {% else %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            0 <span class="visually-hidden">workers running</span>
+        </span>
+    {% endif %}
+
+    <div class="card-header text-center">
+        Worker Status
+    </div>
+
+    {% if helper.workers.running %}
+        <div class="table-responsive">
+            <table class="table card-table table-striped align-text-top">
+                <thead>
+                <tr>
+                    <th>&nbsp;</th>
+                    <th class="text-center">Status</th>
+                    <th>Transports</th>
+                    <th class="text-center"># Handled</th>
+                    <th class="text-center">Memory</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for worker in helper.workers %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td class="text-center">
+                            <span class="badge align-text-top text-bg-{{ worker.isIdle ? 'success' : 'primary' }}">
+                                {{ worker.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% for transport in worker.transports %}
+                                <span class="badge align-text-top text-bg-secondary">{{ transport }}</span>
+                            {% endfor %}
+                        </td>
+                        <td class="text-center">
+                            {{ worker.messagesHandled }}
+                        </td>
+                        <td class="text-center">
+                            {{ worker.memoryUsage }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
+            <svg fill="currentcolor" height="1em" width="1em" class="me-2 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+            <div>
+                There are no workers running.
+            </div>
+        </div>
+    {% endif %}
+</div>
