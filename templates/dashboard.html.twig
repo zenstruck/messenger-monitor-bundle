@@ -115,10 +115,15 @@
                     </div>
                 {% endif %}
             </div>
-            {{ include('@ZenstruckMessengerMonitor/components/_snapshot.html.twig', {subtitle: '(Last 24 Hours)'}) }}
+            {{ include('@ZenstruckMessengerMonitor/_snapshot.html.twig', {subtitle: '(Last 24 Hours)'}) }}
         </div>
         <div class="col-md-8 col-lg-9">
-            {{ include('@ZenstruckMessengerMonitor/components/_messages.html.twig', {title: 'Recently Processed Messages', subtitle: '(Last 15)', messages: messages.take(15)}) }}
+            {% embed '@ZenstruckMessengerMonitor/_messages.html.twig' with {messages: messages.take(15)} %}
+                {% block card_header %}
+                    Recently Processed Messages
+                    <em class="text-secondary">(Last 15)</em>
+                {% endblock %}
+            {% endembed %}
         </div>
     </div>
 {% endblock %}

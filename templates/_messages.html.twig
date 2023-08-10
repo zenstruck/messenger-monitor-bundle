@@ -1,9 +1,6 @@
 <div class="card position-relative mb-3">
     <div class="card-header">
-        {{ title|default('Messages') }}
-        {% if subtitle is defined %}
-            <em class="text-secondary">{{ subtitle }}</em>
-        {% endif %}
+        {% block card_header %}Messages{% endblock %}
     </div>
 
     {% if not messages|length %}

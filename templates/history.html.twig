@@ -108,10 +108,7 @@
         </div>
         <div class="btn-group me-2" role="group">
             <a href="#" onclick="window.location.reload();" class="btn btn-light">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-1 align-text-bottom" viewBox="0 0 16 16">
-                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-                </svg>
+                <svg width="16" height="16" fill="currentColor" class="me-1 align-text-bottom"><use xlink:href="#refresh-icon"/></svg>
                 Refresh
             </a>
         </div>
@@ -119,11 +116,16 @@
 
     <div class="row">
         <div class="col-md-4 col-lg-3">
-            {{ include('@ZenstruckMessengerMonitor/components/_snapshot.html.twig') }}
+            {{ include('@ZenstruckMessengerMonitor/_snapshot.html.twig') }}
         </div>
         <div class="col-md-8 col-lg-9">
             {% set paginator = snapshot.messages.paginate(app.request.query.getInt('page', 1), 10) %}
-            {{ include('@ZenstruckMessengerMonitor/components/_messages.html.twig', {messages: paginator, subtitle: 'Page '~paginator.currentPage~' of '~paginator.pageCount~' ('~paginator.totalCount~' total)'}) }}
+            {% embed '@ZenstruckMessengerMonitor/_messages.html.twig' with {messages: paginator} %}
+                {% block card_header %}
+                    Messages
+                    <em class="text-secondary">Page {{ paginator.currentPage }} of {{ paginator.pageCount }} ({{ paginator.totalCount }} total)</em>
+                {% endblock %}
+            {% endembed %}
             {% if paginator.haveToPaginate %}
                 <nav aria-label="Message Pagination" class="d-flex justify-content-center">
                     <ul class="pagination">
