@@ -19,8 +19,6 @@ use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
-use function Symfony\Component\Clock\now;
-
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
@@ -60,8 +58,8 @@ abstract class ProcessedMessage
         $this->description = $envelope->last(DescriptionStamp::class)?->value ?? $type->description();
         $this->dispatchedAt = $monitorStamp->dispatchedAt();
         $this->receivedAt = $monitorStamp->receivedAt();
-        $this->finishedAt = now();
-        $this->memoryUsage = \memory_get_usage(true);
+        $this->finishedAt = $monitorStamp->finishedAt();
+        $this->memoryUsage = $monitorStamp->memoryUsage();
         $this->transport = $monitorStamp->transport();
         $this->tags = (new Tags($envelope))->all();
 

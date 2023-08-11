@@ -26,6 +26,8 @@ final class MonitorStamp implements StampInterface
     private \DateTimeImmutable $dispatchedAt;
     private string $transport;
     private \DateTimeImmutable $receivedAt;
+    private \DateTimeImmutable $finishedAt;
+    private int $memoryUsage;
 
     public function __construct(?\DateTimeImmutable $dispatchedAt = null)
     {
@@ -39,12 +41,32 @@ final class MonitorStamp implements StampInterface
         $clone->transport = $transport;
         $clone->receivedAt = now();
 
+        unset($clone->finishedAt, $clone->memoryUsage);
+
+        return $clone;
+    }
+
+    public function markFinished(): self
+    {
+        if (!$this->isReceived()) {
+            throw new \LogicException('Message not yet received.');
+        }
+
+        $clone = clone $this;
+        $clone->finishedAt = now();
+        $clone->memoryUsage = \memory_get_usage(true);
+
         return $clone;
     }
 
     public function isReceived(): bool
     {
         return isset($this->receivedAt);
+    }
+
+    public function isFinished(): bool
+    {
+        return isset($this->finishedAt);
     }
 
     public function runId(): int
@@ -65,5 +87,15 @@ final class MonitorStamp implements StampInterface
     public function receivedAt(): \DateTimeImmutable
     {
         return $this->receivedAt ?? throw new \LogicException('Message not yet received.');
+    }
+
+    public function finishedAt(): \DateTimeImmutable
+    {
+        return $this->finishedAt ?? throw new \LogicException('Message not yet finished.');
+    }
+
+    public function memoryUsage(): int
+    {
+        return $this->memoryUsage ?? throw new \LogicException('Message not yet finished.');
     }
 }

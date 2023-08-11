@@ -75,7 +75,10 @@ final class HistoryListener
             return;
         }
 
-        $event->addStamps(new ResultStamp($this->createResults($event->getEnvelope())));
+        $event->addStamps(
+            $stamp->markFinished(),
+            new ResultStamp($this->createResults($event->getEnvelope()))
+        );
 
         $this->storage->save($event->getEnvelope());
     }
@@ -93,6 +96,7 @@ final class HistoryListener
         $throwable = $event->getThrowable();
 
         $event->addStamps(
+            $stamp->markFinished(),
             new ResultStamp($this->createResults($event->getEnvelope(), $throwable instanceof HandlerFailedException ? $throwable : null))
         );
 
