@@ -1,7 +1,7 @@
-<div class="card position-relative">
-    {% if helper.workers.running %}
+<div class="card position-relative"{{ attributes|default('') }}>
+    {% if workers.running %}
         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
-            {{ helper.workers.count }} <span class="visually-hidden">workers running</span>
+            {{ workers.count }} <span class="visually-hidden">workers running</span>
         </span>
     {% else %}
         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -9,11 +9,14 @@
         </span>
     {% endif %}
 
-    <div class="card-header text-center">
+    <div class="card-header d-flex align-items-center justify-content-between">
         Worker Status
+        {% if live|default(false) %}
+            {{ include('@ZenstruckMessengerMonitor/components/_loading.html.twig') }}
+        {% endif %}
     </div>
 
-    {% if helper.workers.running %}
+    {% if workers.running %}
         <div class="table-responsive">
             <table class="table card-table table-striped align-text-top">
                 <thead>
@@ -26,7 +29,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for worker in helper.workers %}
+                {% for worker in workers %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td class="text-center">

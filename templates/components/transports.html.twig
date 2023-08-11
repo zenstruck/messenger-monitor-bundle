@@ -1,6 +1,9 @@
-<div class="card">
-    <div class="card-header text-center">
+<div class="card"{{ attributes|default('') }}>
+    <div class="card-header d-flex align-items-center justify-content-between">
         Transports
+        {% if live|default(false) %}
+            {{ include('@ZenstruckMessengerMonitor/components/_loading.html.twig') }}
+        {% endif %}
     </div>
 
     {% if not transports|length %}

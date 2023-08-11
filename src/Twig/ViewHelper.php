@@ -22,13 +22,27 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
  */
 final class ViewHelper
 {
+    public const ASSET_MAPPER = 'asset_mapper';
+    public const ENCORE = 'encore';
+
+    /**
+     * @internal
+     *
+     * @param null|self::ASSET_MAPPER|self::ENCORE $assetManager
+     */
     public function __construct(
         public readonly TransportMonitor $transports,
         public readonly WorkerMonitor $workers,
         public readonly ?Storage $storage,
         public readonly ?ScheduleMonitor $schedules,
         public readonly ?DateTimeFormatter $timeFormatter,
+        public readonly ?string $assetManager = null,
     ) {
+    }
+
+    public function useLiveComponents(): bool
+    {
+        return null !== $this->assetManager;
     }
 
     public function canFormatDuration(): bool

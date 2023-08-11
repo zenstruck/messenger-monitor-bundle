@@ -11,14 +11,17 @@
 
 namespace Zenstruck\Messenger\Monitor\DependencyInjection;
 
+use Symfony\Component\AssetMapper\AssetMapperInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 use Symfony\Component\Scheduler\Schedule;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
+use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -31,6 +34,15 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
 
         $builder->getRootNode() // @phpstan-ignore-line
             ->children()
+                ->arrayNode('live_components')
+                    ->canBeEnabled()
+                    ->children()
+                        ->scalarNode('role')
+                            ->info('Role required to view live components.')
+                            ->defaultValue('ROLE_MESSENGER_MONITOR')
+                        ->end()
+                    ->end()
+                ->end()
                 ->arrayNode('storage')
                     ->children()
                         ->arrayNode('orm')
@@ -74,5 +86,34 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
                 $container->removeDefinition('zenstruck_messenger_monitor.command.schedule_purge');
             }
         }
+
+        if ($mergedConfig['live_components']['enabled']) {
+            $loader->load('live_components.php');
+
+            self::loadLiveComponents($container, $mergedConfig['live_components']);
+        }
+    }
+
+    /**
+     * @param mixed[] $config
+     */
+    private static function loadLiveComponents(ContainerBuilder $container, array $config): void
+    {
+        if (!isset($container->getParameter('kernel.bundles')['LiveComponentBundle'])) {
+            throw new LogicException('The "LiveComponentBundle" must be installed to use live components.');
+        }
+
+        if (!isset($container->getParameter('kernel.bundles')['StimulusBundle'])) {
+            throw new LogicException('The "StimulusBundle" must be installed to use live components.');
+        }
+
+        if (!\interface_exists(AssetMapperInterface::class) && !isset($container->getParameter('kernel.bundles')['WebpackEncoreBundle'])) {
+            throw new \LogicException('symfony/asset-mapper or encore must be available to use live components.');
+        }
+
+        $container->setParameter('zenstruck_messenger_monitor.security_role', $config['role']);
+        $container->getDefinition('zenstruck_messenger_monitor.view_helper')
+            ->setArgument(5, \interface_exists(AssetMapperInterface::class) ? ViewHelper::ASSET_MAPPER : ViewHelper::ENCORE)
+        ;
     }
 }
