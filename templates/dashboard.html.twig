@@ -33,8 +33,8 @@
             {% embed '@ZenstruckMessengerMonitor/components/messages.html.twig' with {messages: messages.take(15)} %}
                 {% block card_header %}
                     <div class="d-flex justify-content-between align-items-center">
-                        <span>Recently Processed Messages <em class="text-secondary">(Last 15)</em></span>
-                        {% embed '@ZenstruckMessengerMonitor/components/refresh_button.html.twig' %}
+                        <span>Recently Processed Messages <small><em class="text-secondary">Last 15</em></small></span>
+                        {% embed '@ZenstruckMessengerMonitor/_refresh_button.html.twig' %}
                             {% block class %}{{ parent() }} btn-outline-secondary{% endblock %}
                         {% endembed %}
                     </div>
