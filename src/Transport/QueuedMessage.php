@@ -17,6 +17,7 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
 use Zenstruck\Messenger\Monitor\History\Model\Tags;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
+use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
 final class QueuedMessage
@@ -40,7 +41,10 @@ final class QueuedMessage
      */
     public function message(): Type
     {
-        return new Type($this->envelope->getMessage());
+        return new Type(
+            $this->envelope->getMessage(),
+            $this->envelope->last(DescriptionStamp::class)?->value
+        );
     }
 
     /**

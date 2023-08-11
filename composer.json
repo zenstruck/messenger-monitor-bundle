@@ -29,6 +29,7 @@
         "symfony/asset-mapper": "^6.3",
         "symfony/console": "^6.3",
         "symfony/http-client-contracts": "^3.3",
+        "symfony/mailer": "^6.3",
         "symfony/phpunit-bridge": "^6.1",
         "symfony/process": "^6.3",
         "symfony/scheduler": "^6.3",

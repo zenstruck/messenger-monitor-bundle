@@ -19,6 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
+use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Scheduler\Schedule;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
@@ -76,6 +77,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
 
         if (\class_exists(Schedule::class)) {
             $loader->load('schedule.php');
+        }
+
+        if (\class_exists(MessageEvent::class)) {
+            $loader->load('mailer.php');
         }
 
         if ($entity = $mergedConfig['storage']['orm']['entity_class'] ?? null) {
