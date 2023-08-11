@@ -55,7 +55,10 @@
                         <tr>
                             <th>Message</th>
                             <th>Dispatched At</th>
-                            <th>Stamps</th>
+                            <th>Tags</th>
+                            {% if transport.isFailure %}
+                                <th>Exception</th>
+                            {% endif %}
                         </tr>
                         </thead>
                         <tbody>
@@ -79,17 +82,20 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            {% for stamp in queued.stamps %}
-                                                <div class="me-3">
-                                                    <abbr title="{{ stamp }}">{{ stamp.shortName }}</abbr>
-                                                    {% if stamp.description %}
-                                                        <br><small class="text-secondary">{{ stamp.description }}</small>
-                                                    {% endif %}
-                                                </div>
-                                            {% endfor %}
-                                        </div>
+                                        {% for tag in queued.tags %}
+                                            <span class="badge align-text-top text-bg-secondary">{{ tag }}</span>
+                                        {% endfor %}
                                     </td>
+                                    {% if transport.isFailure %}
+                                        <td>
+                                            {% if queued.exception %}
+                                                <strong class="text-danger"><abbr title="{{ queued.exception }}">{{ queued.exception.shortName }}</abbr>: {{ queued.exception.description }}</strong>
+                                            {% else %}
+                                                <em class="text-secondary">n/a</em>
+                                            {% endif %}
+
+                                        </td>
+                                    {% endif %}
                                 </tr>
                             {% endfor %}
                         </tbody>

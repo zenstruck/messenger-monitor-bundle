@@ -12,8 +12,10 @@
 namespace Zenstruck\Messenger\Monitor\Transport;
 
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Stamp\ErrorDetailsStamp;
 use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
+use Zenstruck\Messenger\Monitor\History\Model\Tags;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
@@ -51,8 +53,25 @@ final class QueuedMessage
         return \array_map(static fn(StampInterface $stamp) => new Type($stamp), $stamps);
     }
 
+    public function tags(): Tags
+    {
+        return new Tags($this->envelope);
+    }
+
     public function dispatchedAt(): ?\DateTimeImmutable
     {
         return $this->envelope->last(MonitorStamp::class)?->dispatchedAt();
+    }
+
+    /**
+     * @return Type<\Throwable>|null
+     */
+    public function exception(): ?Type
+    {
+        if ($stamp = $this->envelope->last(ErrorDetailsStamp::class)) {
+            return new Type($stamp->getExceptionClass(), $stamp->getExceptionMessage()); // @phpstan-ignore-line
+        }
+
+        return null;
     }
 }
