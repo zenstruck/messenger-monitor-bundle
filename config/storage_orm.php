@@ -48,7 +48,7 @@ return static function (ContainerConfigurator $container): void {
 
         ->set('.zenstruck_messenger_monitor.command.schedule_purge', SchedulePurgeCommand::class)
             ->args([
-                service('zenstruck_messenger_monitor.schedule_monitor'),
+                service('zenstruck_messenger_monitor.schedules'),
                 service('zenstruck_messenger_monitor.history.storage'),
             ])
             ->tag('console.command')

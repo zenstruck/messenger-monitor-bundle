@@ -32,7 +32,7 @@ final class ZenstruckMessengerMonitorBundleTest extends KernelTestCase
 
         $this->assertCount(1, $service->transportMonitor);
         $this->assertCount(0, $service->workerMonitor);
-        $this->assertCount(0, $service->scheduleMonitor);
+        $this->assertCount(0, $service->schedules);
     }
 
     /**

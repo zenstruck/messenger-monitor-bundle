@@ -22,7 +22,7 @@ use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Schedule\TaskInfo;
-use Zenstruck\Messenger\Monitor\ScheduleMonitor;
+use Zenstruck\Messenger\Monitor\Schedules;
 use Zenstruck\Messenger\Monitor\Stamp\Tag;
 
 /**
@@ -31,7 +31,7 @@ use Zenstruck\Messenger\Monitor\Stamp\Tag;
 #[AsCommand('messenger:monitor:schedule:purge', 'Purge old schedule history')]
 final class SchedulePurgeCommand extends Command
 {
-    public function __construct(private ScheduleMonitor $schedules, private Storage $storage)
+    public function __construct(private Schedules $schedules, private Storage $storage)
     {
         parent::__construct();
     }

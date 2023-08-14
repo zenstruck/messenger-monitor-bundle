@@ -24,7 +24,7 @@ use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
-use Zenstruck\Messenger\Monitor\ScheduleMonitor;
+use Zenstruck\Messenger\Monitor\Schedules;
 use Zenstruck\Messenger\Monitor\Stamp\Tag;
 use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
 
@@ -166,7 +166,7 @@ abstract class MessengerMonitorController extends AbstractController
         string $id,
         string $transport,
         Request $request,
-        ScheduleMonitor $schedules,
+        Schedules $schedules,
         MessageBusInterface $bus,
     ): Response {
         if (!$this->isCsrfTokenValid(\sprintf('trigger-%s-%s', $id, $transport), $request->headers->get('X-CSRF-Token'))) {

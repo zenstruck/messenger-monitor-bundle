@@ -25,7 +25,7 @@ use Zenstruck\Messenger\Monitor\Schedule\ScheduleInfo;
  *
  * @phpstan-import-type Input from Specification
  */
-final class ScheduleMonitor implements \IteratorAggregate, \Countable
+final class Schedules implements \IteratorAggregate, \Countable
 {
     /**
      * @internal

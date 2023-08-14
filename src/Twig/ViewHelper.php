@@ -13,7 +13,7 @@ namespace Zenstruck\Messenger\Monitor\Twig;
 
 use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Zenstruck\Messenger\Monitor\History\Storage;
-use Zenstruck\Messenger\Monitor\ScheduleMonitor;
+use Zenstruck\Messenger\Monitor\Schedules;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\WorkerMonitor;
 
@@ -34,7 +34,7 @@ final class ViewHelper
         public readonly TransportMonitor $transports,
         public readonly WorkerMonitor $workers,
         public readonly ?Storage $storage,
-        public readonly ?ScheduleMonitor $schedules,
+        public readonly ?Schedules $schedules,
         public readonly ?DateTimeFormatter $timeFormatter,
         public readonly ?string $assetManager = null,
     ) {

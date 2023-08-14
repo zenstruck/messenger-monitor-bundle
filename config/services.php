@@ -53,7 +53,7 @@ return static function (ContainerConfigurator $container): void {
                 service('zenstruck_messenger_monitor.transport_monitor'),
                 service('zenstruck_messenger_monitor.worker_monitor'),
                 service('zenstruck_messenger_monitor.history.storage')->nullOnInvalid(),
-                service('zenstruck_messenger_monitor.schedule_monitor')->nullOnInvalid(),
+                service('zenstruck_messenger_monitor.schedules')->nullOnInvalid(),
                 service('time.datetime_formatter')->nullOnInvalid(),
             ])
             ->alias(ViewHelper::class, 'zenstruck_messenger_monitor.view_helper')
