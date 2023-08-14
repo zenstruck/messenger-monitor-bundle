@@ -22,7 +22,7 @@ use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Zenstruck\Messenger\Monitor\History\Model\Result;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
-use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoring;
+use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
@@ -105,11 +105,11 @@ final class HistoryListener
 
     private function isMonitoringDisabled(Envelope $envelope): bool
     {
-        if ($envelope->last(DisableMonitoring::class)) {
+        if ($envelope->last(DisableMonitoringStamp::class)) {
             return true;
         }
 
-        if ((new \ReflectionClass($envelope->getMessage()))->getAttributes(DisableMonitoring::class)) {
+        if ((new \ReflectionClass($envelope->getMessage()))->getAttributes(DisableMonitoringStamp::class)) {
             return true;
         }
 

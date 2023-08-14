@@ -17,6 +17,6 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
  * @author Kevin Bond <kevinbond@gmail.com>
  */
 #[\Attribute(\Attribute::TARGET_CLASS)]
-final class DisableMonitoring implements StampInterface
+final class DisableMonitoringStamp implements StampInterface
 {
 }

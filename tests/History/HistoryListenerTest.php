@@ -26,7 +26,7 @@ use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\History\Storage;
-use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoring;
+use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
@@ -178,7 +178,7 @@ final class HistoryListenerTest extends TestCase
     public function can_disable_monitoring_with_envelope_stamp(): void
     {
         $listener = new HistoryListener($this->createMock(Storage::class), new ResultNormalizer(__DIR__));
-        $envelope = new Envelope(new \stdClass(), [new MonitorStamp(), new DisableMonitoring()]);
+        $envelope = new Envelope(new \stdClass(), [new MonitorStamp(), new DisableMonitoringStamp()]);
         $event = new WorkerMessageReceivedEvent($envelope, 'foo');
 
         $listener->receiveMessage($event);
@@ -201,7 +201,7 @@ final class HistoryListenerTest extends TestCase
     }
 }
 
-#[DisableMonitoring]
+#[DisableMonitoringStamp]
 class DisabledMonitoringMessage
 {
 }
