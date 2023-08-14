@@ -96,7 +96,7 @@
                             </a>
                         </li>
 
-                        {% set countable_transports = helper.transports.countable %}
+                        {% set countable_transports = helper.transports.filter.countable %}
 
                         {% if countable_transports|length %}
                             <li class="nav-item dropdown">

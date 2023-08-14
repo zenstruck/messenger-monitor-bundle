@@ -12,8 +12,6 @@
 namespace Zenstruck\Messenger\Monitor\Twig\Component;
 
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
-use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
-use Zenstruck\Messenger\Monitor\Transports;
 use Zenstruck\Messenger\Monitor\Twig\Component;
 
 /**
@@ -25,9 +23,4 @@ use Zenstruck\Messenger\Monitor\Twig\Component;
 )]
 class TransportsComponent extends Component
 {
-    #[ExposeInTemplate]
-    public function transports(): Transports
-    {
-        return $this->helper->transports->excludeSync()->excludeFailed();
-    }
 }

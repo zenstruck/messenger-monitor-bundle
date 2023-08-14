@@ -18,7 +18,7 @@
                 {% if helper.useLiveComponents %}
                     {{ include('@ZenstruckMessengerMonitor/components/_live_component.html.twig', {name: 'zenstruck_messenger_monitor_transports', data: {'data-poll': true}}) }}
                 {% else %}
-                    {{ include('@ZenstruckMessengerMonitor/components/transports.html.twig', {transports: helper.transports.excludeSync.excludeFailed}) }}
+                    {{ include('@ZenstruckMessengerMonitor/components/transports.html.twig', {transports: helper.transports}) }}
                 {% endif %}
             </div>
             <div class="mb-3">

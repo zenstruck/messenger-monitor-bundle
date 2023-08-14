@@ -32,7 +32,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for transport in transports %}
+                {% for transport in transports.filter.excludeSync.excludeFailed %}
                     <tr>
                         <td>
                             <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: transport.name})) }}" class="badge align-text-top text-bg-secondary">{{ transport.name }}</a>

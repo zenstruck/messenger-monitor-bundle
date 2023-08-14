@@ -37,8 +37,8 @@ final class TransportsTest extends TestCase
         $monitor = $this->create();
 
         $this->assertCount(5, $monitor);
-        $this->assertCount(2, $monitor->countable());
-        $this->assertCount(2, $monitor->listable());
+        $this->assertCount(2, $monitor->filter()->countable());
+        $this->assertCount(2, $monitor->filter()->listable());
     }
 
     /**

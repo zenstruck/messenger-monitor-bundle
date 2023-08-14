@@ -107,20 +107,20 @@ abstract class MessengerMonitorController extends AbstractController
 
         ?string $name = null,
     ): Response {
-        $transports = $helper->transports->countable();
+        $countable = $helper->transports->filter()->countable();
 
-        if (!\count($transports)) {
+        if (!\count($countable)) {
             throw new \LogicException('No countable transports configured.');
         }
 
         if (!$name) {
-            $name = $transports->names()[0];
+            $name = $countable->names()[0];
         }
 
         return $this->render('@ZenstruckMessengerMonitor/transport.html.twig', [
             'helper' => $helper,
-            'transports' => $transports,
-            'transport' => $transports->get($name),
+            'transports' => $countable,
+            'transport' => $helper->transports->get($name),
         ]);
     }
 
@@ -142,7 +142,7 @@ abstract class MessengerMonitorController extends AbstractController
             'helper' => $helper,
             'schedules' => $helper->schedules,
             'schedule' => $helper->schedules->get($name),
-            'transports' => $helper->transports->excludeSync()->excludeSchedules()->excludeFailed(),
+            'transports' => $helper->transports->filter()->excludeSync()->excludeSchedules()->excludeFailed(),
             'cron_humanizer' => new class() {
                 public function humanize(TriggerInterface $trigger, CronExpressionTrigger $cron, ?string $locale): string
                 {

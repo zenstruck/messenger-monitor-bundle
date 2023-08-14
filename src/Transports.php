@@ -11,12 +11,9 @@
 
 namespace Zenstruck\Messenger\Monitor;
 
-use Symfony\Component\Messenger\Transport\Receiver\ListableReceiverInterface;
-use Symfony\Component\Messenger\Transport\Receiver\MessageCountAwareInterface;
-use Symfony\Component\Messenger\Transport\Sync\SyncTransport;
 use Symfony\Component\Messenger\Transport\TransportInterface;
-use Symfony\Component\Scheduler\Messenger\SchedulerTransport;
 use Symfony\Contracts\Service\ServiceProviderInterface;
+use Zenstruck\Messenger\Monitor\Transport\TransportFilter;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 
 /**
@@ -28,12 +25,6 @@ use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
  */
 final class Transports implements \IteratorAggregate, \Countable
 {
-    /** @var string[] */
-    private array $names;
-
-    /** @var (callable(TransportInterface,string):bool)[] */
-    private array $filters = [];
-
     private TransportInfo $failure;
 
     /**
@@ -64,29 +55,9 @@ final class Transports implements \IteratorAggregate, \Countable
         return \iterator_to_array($this);
     }
 
-    public function countable(): self
+    public function filter(): TransportFilter
     {
-        return $this->filter(fn(TransportInterface $transport) => $transport instanceof MessageCountAwareInterface);
-    }
-
-    public function listable(): self
-    {
-        return $this->filter(fn(TransportInterface $transport) => $transport instanceof ListableReceiverInterface);
-    }
-
-    public function excludeSync(): self
-    {
-        return $this->filter(fn(TransportInterface $transport) => !$transport instanceof SyncTransport);
-    }
-
-    public function excludeSchedules(): self
-    {
-        return $this->filter(fn(TransportInterface $transport) => !$transport instanceof SchedulerTransport);
-    }
-
-    public function excludeFailed(): self
-    {
-        return $this->filter(fn(TransportInterface $transport, string $name) => !\str_contains($name, 'fail'));
+        return new TransportFilter($this->transports, $this->workers);
     }
 
     public function failure(): ?TransportInfo
@@ -109,20 +80,7 @@ final class Transports implements \IteratorAggregate, \Countable
      */
     public function names(): array
     {
-        return $this->names ??= \array_filter(
-            \array_keys($this->transports->getProvidedServices()),
-            function(string $name) {
-                $transport = $this->transports->get($name);
-
-                foreach ($this->filters as $filter) {
-                    if (!$filter($transport, $name)) {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        );
+        return \array_keys($this->transports->getProvidedServices());
     }
 
     public function getIterator(): \Traversable
@@ -135,18 +93,5 @@ final class Transports implements \IteratorAggregate, \Countable
     public function count(): int
     {
         return \count($this->names());
-    }
-
-    /**
-     * @param callable(TransportInterface,string):bool $filter
-     */
-    private function filter(callable $filter): self
-    {
-        $clone = clone $this;
-        $clone->filters[] = $filter;
-
-        unset($clone->names);
-
-        return $clone;
     }
 }
