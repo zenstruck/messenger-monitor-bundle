@@ -34,7 +34,7 @@ final class Schedules implements \IteratorAggregate, \Countable
      */
     public function __construct(
         private ServiceProviderInterface $schedules,
-        private TransportMonitor $transports,
+        private Transports $transports,
         private ?Storage $storage = null
     ) {
     }

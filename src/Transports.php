@@ -26,7 +26,7 @@ use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
  *
  * @implements \IteratorAggregate<string,TransportInfo>
  */
-final class TransportMonitor implements \IteratorAggregate, \Countable
+final class Transports implements \IteratorAggregate, \Countable
 {
     /** @var string[] */
     private array $names;

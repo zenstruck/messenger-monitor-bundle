@@ -20,14 +20,14 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableListableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\ListableTransport;
-use Zenstruck\Messenger\Monitor\TransportMonitor;
+use Zenstruck\Messenger\Monitor\Transports;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class TransportMonitorTest extends TestCase
+final class TransportsTest extends TestCase
 {
     /**
      * @test
@@ -78,9 +78,9 @@ final class TransportMonitorTest extends TestCase
         $this->assertSame(CountableListableTransport::class, $infos['fourth']->get()::class);
     }
 
-    private function create(): TransportMonitor
+    private function create(): Transports
     {
-        return new TransportMonitor(
+        return new Transports(
             new ServiceLocator([
                 'first' => fn() => $this->createMock(TransportInterface::class),
                 'second' => fn() => new CountableTransport(),

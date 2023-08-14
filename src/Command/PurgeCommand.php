@@ -20,7 +20,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
-use Zenstruck\Messenger\Monitor\TransportMonitor;
+use Zenstruck\Messenger\Monitor\Transports;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -28,7 +28,7 @@ use Zenstruck\Messenger\Monitor\TransportMonitor;
 #[AsCommand('messenger:monitor:purge', 'Purge message history')]
 final class PurgeCommand extends Command
 {
-    public function __construct(private Storage $storage, private TransportMonitor $transports)
+    public function __construct(private Storage $storage, private Transports $transports)
     {
         parent::__construct();
     }

@@ -42,7 +42,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('.zenstruck_messenger_monitor.command.purge', PurgeCommand::class)
             ->args([
                 service('zenstruck_messenger_monitor.history.storage'),
-                service('zenstruck_messenger_monitor.transport_monitor'),
+                service('zenstruck_messenger_monitor.transports'),
             ])
             ->tag('console.command')
 

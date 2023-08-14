@@ -17,7 +17,7 @@ use Zenstruck\Messenger\Monitor\History\Snapshot;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
-use Zenstruck\Messenger\Monitor\TransportMonitor;
+use Zenstruck\Messenger\Monitor\Transports;
 use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
 
 /**
@@ -35,7 +35,7 @@ final class ScheduleInfo implements \IteratorAggregate, \Countable
     public function __construct(
         private string $name,
         private ScheduleProviderInterface $provider,
-        private TransportMonitor $transports,
+        private Transports $transports,
         private ?Storage $storage,
     ) {
     }

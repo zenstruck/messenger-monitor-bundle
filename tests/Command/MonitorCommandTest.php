@@ -25,7 +25,7 @@ use Zenstruck\Messenger\Monitor\Command\MonitorCommand;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableListableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\ListableTransport;
-use Zenstruck\Messenger\Monitor\TransportMonitor;
+use Zenstruck\Messenger\Monitor\Transports;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Worker\WorkerListener;
 use Zenstruck\Messenger\Monitor\Workers;
@@ -42,7 +42,7 @@ final class MonitorCommandTest extends TestCase
     {
         $command = new MonitorCommand(
             new Workers(new WorkerCache(new NullAdapter())),
-            new TransportMonitor(new ServiceLocator([]), $this->workers())
+            new Transports(new ServiceLocator([]), $this->workers())
         );
 
         TestCommand::for($command)
@@ -74,7 +74,7 @@ final class MonitorCommandTest extends TestCase
 
         $command = new MonitorCommand(
             new Workers($cache),
-            new TransportMonitor(new ServiceLocator([
+            new Transports(new ServiceLocator([
                 'first' => fn() => $this->createMock(TransportInterface::class),
                 'second' => fn() => new CountableTransport(),
                 'third' => fn() => new ListableTransport(),

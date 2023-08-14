@@ -30,7 +30,7 @@ final class ZenstruckMessengerMonitorBundleTest extends KernelTestCase
         /** @var TestService $service */
         $service = self::getContainer()->get(TestService::class);
 
-        $this->assertCount(1, $service->transportMonitor);
+        $this->assertCount(1, $service->transports);
         $this->assertCount(0, $service->workers);
         $this->assertCount(0, $service->schedules);
     }
