@@ -21,12 +21,12 @@ use Symfony\Component\Messenger\Worker;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
 use Zenstruck\Messenger\Monitor\Worker\WorkerListener;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
-final class WorkerMonitorTest extends TestCase
+final class WorkersTest extends TestCase
 {
     private WorkerCache $cache;
 
@@ -40,7 +40,7 @@ final class WorkerMonitorTest extends TestCase
      */
     public function no_workers(): void
     {
-        $monitor = new WorkerMonitor($this->cache);
+        $monitor = new Workers($this->cache);
 
         $this->assertFalse($monitor->isRunning());
         $this->assertCount(0, $monitor);
@@ -55,7 +55,7 @@ final class WorkerMonitorTest extends TestCase
      */
     public function get_worker_infos(): void
     {
-        $monitor = new WorkerMonitor($this->cache);
+        $monitor = new Workers($this->cache);
         $listener1 = new WorkerListener($this->cache);
         $listener2 = new WorkerListener($this->cache);
         $worker2 = new Worker([
@@ -101,7 +101,7 @@ final class WorkerMonitorTest extends TestCase
      */
     public function get_worker_status(): void
     {
-        $monitor = new WorkerMonitor($this->cache);
+        $monitor = new Workers($this->cache);
         $listener = new WorkerListener($this->cache);
         $worker = new Worker([
             'first' => $this->createMock(ReceiverInterface::class),

@@ -15,7 +15,7 @@ use Knp\Bundle\TimeBundle\DateTimeFormatter;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Schedules;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -32,7 +32,7 @@ final class ViewHelper
      */
     public function __construct(
         public readonly TransportMonitor $transports,
-        public readonly WorkerMonitor $workers,
+        public readonly Workers $workers,
         public readonly ?Storage $storage,
         public readonly ?Schedules $schedules,
         public readonly ?DateTimeFormatter $timeFormatter,

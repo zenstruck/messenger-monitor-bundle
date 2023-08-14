@@ -22,7 +22,7 @@ use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\CountableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\ListableTransport;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -88,7 +88,7 @@ final class TransportMonitorTest extends TestCase
                 'fourth' => fn() => new CountableListableTransport(),
                 'fifth' => fn() => new SyncTransport($this->createMock(MessageBusInterface::class)),
             ]),
-            new WorkerMonitor(new WorkerCache(new NullAdapter()))
+            new Workers(new WorkerCache(new NullAdapter()))
         );
     }
 }

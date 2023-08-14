@@ -10,14 +10,14 @@ use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Worker\WorkerListener;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 return static function (ContainerConfigurator $container): void {
     $container->services()
         ->set('zenstruck_messenger_monitor.transport_monitor', TransportMonitor::class)
             ->args([
                 tagged_locator('messenger.receiver', 'alias'),
-                service('zenstruck_messenger_monitor.worker_monitor'),
+                service('zenstruck_messenger_monitor.workers'),
             ])
             ->alias(TransportMonitor::class, 'zenstruck_messenger_monitor.transport_monitor')
 
@@ -26,11 +26,11 @@ return static function (ContainerConfigurator $container): void {
                 service('cache.app'),
             ])
 
-        ->set('zenstruck_messenger_monitor.worker_monitor', WorkerMonitor::class)
+        ->set('zenstruck_messenger_monitor.workers', Workers::class)
             ->args([
                 service('.zenstruck_messenger_monitor.worker_cache'),
             ])
-            ->alias(WorkerMonitor::class, 'zenstruck_messenger_monitor.worker_monitor')
+            ->alias(Workers::class, 'zenstruck_messenger_monitor.workers')
 
         ->set('.zenstruck_messenger_monitor.worker_listener', WorkerListener::class)
             ->args([
@@ -42,7 +42,7 @@ return static function (ContainerConfigurator $container): void {
 
         ->set('.zenstruck_messenger_monitor.command.monitor', MonitorCommand::class)
             ->args([
-                service('zenstruck_messenger_monitor.worker_monitor'),
+                service('zenstruck_messenger_monitor.workers'),
                 service('zenstruck_messenger_monitor.transport_monitor'),
                 service('zenstruck_messenger_monitor.history.storage')->nullOnInvalid(),
             ])
@@ -51,7 +51,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('zenstruck_messenger_monitor.view_helper', ViewHelper::class)
             ->args([
                 service('zenstruck_messenger_monitor.transport_monitor'),
-                service('zenstruck_messenger_monitor.worker_monitor'),
+                service('zenstruck_messenger_monitor.workers'),
                 service('zenstruck_messenger_monitor.history.storage')->nullOnInvalid(),
                 service('zenstruck_messenger_monitor.schedules')->nullOnInvalid(),
                 service('time.datetime_formatter')->nullOnInvalid(),

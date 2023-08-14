@@ -21,7 +21,7 @@ use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\History\Storage\ORMStorage;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Entity\ProcessedMessage as ProcessedMessageImpl;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -36,7 +36,7 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         $this->load();
 
         $this->assertContainerBuilderHasAlias(TransportMonitor::class, 'zenstruck_messenger_monitor.transport_monitor');
-        $this->assertContainerBuilderHasAlias(WorkerMonitor::class, 'zenstruck_messenger_monitor.worker_monitor');
+        $this->assertContainerBuilderHasAlias(Workers::class, 'zenstruck_messenger_monitor.workers');
         $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasAliasConstraint(Storage::class)));
     }
 
@@ -48,7 +48,7 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         $this->load(['storage' => ['orm' => ['entity_class' => ProcessedMessageImpl::class]]]);
 
         $this->assertContainerBuilderHasAlias(TransportMonitor::class, 'zenstruck_messenger_monitor.transport_monitor');
-        $this->assertContainerBuilderHasAlias(WorkerMonitor::class, 'zenstruck_messenger_monitor.worker_monitor');
+        $this->assertContainerBuilderHasAlias(Workers::class, 'zenstruck_messenger_monitor.workers');
         $this->assertContainerBuilderHasService('zenstruck_messenger_monitor.history.storage', ORMStorage::class);
         $this->assertContainerBuilderHasServiceDefinitionWithArgument('zenstruck_messenger_monitor.history.storage', 1, ProcessedMessageImpl::class);
         $this->assertContainerBuilderHasAlias(Storage::class, 'zenstruck_messenger_monitor.history.storage');

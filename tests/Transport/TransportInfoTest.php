@@ -20,7 +20,7 @@ use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\ListableTransport;
 use Zenstruck\Messenger\Monitor\Transport\QueuedMessage;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -102,9 +102,9 @@ final class TransportInfoTest extends TestCase
         $this->assertCount(0, $transport->workers());
     }
 
-    private function workers(): WorkerMonitor
+    private function workers(): Workers
     {
-        return new WorkerMonitor(new WorkerCache(new NullAdapter()));
+        return new Workers(new WorkerCache(new NullAdapter()));
     }
 }
 

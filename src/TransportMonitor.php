@@ -43,7 +43,7 @@ final class TransportMonitor implements \IteratorAggregate, \Countable
      */
     public function __construct(
         private ServiceProviderInterface $transports,
-        private WorkerMonitor $workers,
+        private Workers $workers,
     ) {
     }
 

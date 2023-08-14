@@ -13,7 +13,7 @@ namespace Zenstruck\Messenger\Monitor\Tests\Fixture;
 
 use Zenstruck\Messenger\Monitor\Schedules;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -22,7 +22,7 @@ final class TestService
 {
     public function __construct(
         public readonly TransportMonitor $transportMonitor,
-        public readonly WorkerMonitor $workerMonitor,
+        public readonly Workers $workers,
         public readonly Schedules $schedules,
     ) {
     }

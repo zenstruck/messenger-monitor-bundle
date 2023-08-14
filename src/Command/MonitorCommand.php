@@ -27,7 +27,7 @@ use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 use Zenstruck\Messenger\Monitor\TransportMonitor;
 use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -36,7 +36,7 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
 final class MonitorCommand extends Command
 {
     public function __construct(
-        private WorkerMonitor $workers,
+        private Workers $workers,
         private TransportMonitor $transports,
         private ?Storage $storage = null,
     ) {

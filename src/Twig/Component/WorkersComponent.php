@@ -14,7 +14,7 @@ namespace Zenstruck\Messenger\Monitor\Twig\Component;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\TwigComponent\Attribute\ExposeInTemplate;
 use Zenstruck\Messenger\Monitor\Twig\Component;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -26,7 +26,7 @@ use Zenstruck\Messenger\Monitor\WorkerMonitor;
 class WorkersComponent extends Component
 {
     #[ExposeInTemplate]
-    public function workers(): WorkerMonitor
+    public function workers(): Workers
     {
         return $this->helper->workers;
     }

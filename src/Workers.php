@@ -19,7 +19,7 @@ use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
  *
  * @implements \IteratorAggregate<WorkerInfo>
  */
-final class WorkerMonitor implements \Countable, \IteratorAggregate
+final class Workers implements \Countable, \IteratorAggregate
 {
     /**
      * @internal

@@ -18,7 +18,7 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
 use Zenstruck\Collection;
 use Zenstruck\Collection\FactoryCollection;
 use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
-use Zenstruck\Messenger\Monitor\WorkerMonitor;
+use Zenstruck\Messenger\Monitor\Workers;
 
 use function Zenstruck\collect;
 
@@ -32,7 +32,7 @@ final class TransportInfo implements \IteratorAggregate, \Countable
     public function __construct(
         private string $name,
         private TransportInterface $transport,
-        private WorkerMonitor $workers,
+        private Workers $workers,
     ) {
     }
 
