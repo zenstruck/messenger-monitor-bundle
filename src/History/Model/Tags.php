@@ -12,7 +12,7 @@
 namespace Zenstruck\Messenger\Monitor\History\Model;
 
 use Symfony\Component\Messenger\Envelope;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -100,11 +100,11 @@ final class Tags implements \IteratorAggregate, \Countable, \Stringable
      */
     private static function parseFrom(Envelope $envelope): \Traversable
     {
-        foreach ((new \ReflectionClass($envelope->getMessage()))->getAttributes(Tag::class) as $attribute) {
+        foreach ((new \ReflectionClass($envelope->getMessage()))->getAttributes(TagStamp::class) as $attribute) {
             yield $attribute->newInstance()->value;
         }
 
-        foreach ($envelope->all(Tag::class) as $tag) {
+        foreach ($envelope->all(TagStamp::class) as $tag) {
             yield $tag->value; // @phpstan-ignore-line
         }
     }

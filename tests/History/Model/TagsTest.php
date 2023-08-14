@@ -14,7 +14,7 @@ namespace Zenstruck\Messenger\Monitor\Tests\History\Model;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
 use Zenstruck\Messenger\Monitor\History\Model\Tags;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -80,11 +80,11 @@ final class TagsTest extends TestCase
     public function create_from_envelope(): void
     {
         $envelope = new Envelope(new TestMessage(), [
-            new Tag('foo'),
-            new Tag('bar'),
-            new Tag('bar'),
-            new Tag('baz'),
-            new Tag('qux'),
+            new TagStamp('foo'),
+            new TagStamp('bar'),
+            new TagStamp('bar'),
+            new TagStamp('baz'),
+            new TagStamp('qux'),
         ]);
 
         $this->assertSame(['from', 'attribute', 'bar', 'foo', 'baz', 'qux'], (new Tags($envelope))->all());
@@ -104,9 +104,9 @@ final class TagsTest extends TestCase
     }
 }
 
-#[Tag('from')]
-#[Tag('attribute')]
-#[Tag('bar')]
+#[TagStamp('from')]
+#[TagStamp('attribute')]
+#[TagStamp('bar')]
 class TestMessage
 {
 }

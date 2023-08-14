@@ -27,7 +27,7 @@ use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoring;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -81,7 +81,7 @@ final class HistoryListenerTest extends TestCase
 
         $this->assertTrue($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
         $this->assertSame('foo', $event->getEnvelope()->last(MonitorStamp::class)->transport());
-        $this->assertEmpty($event->getEnvelope()->all(Tag::class));
+        $this->assertEmpty($event->getEnvelope()->all(TagStamp::class));
     }
 
     /**
@@ -104,8 +104,8 @@ final class HistoryListenerTest extends TestCase
 
         $this->assertTrue($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
         $this->assertSame('foo', $event->getEnvelope()->last(MonitorStamp::class)->transport());
-        $this->assertCount(1, $event->getEnvelope()->all(Tag::class));
-        $this->assertSame('schedule:default:id', $event->getEnvelope()->last(Tag::class)->value);
+        $this->assertCount(1, $event->getEnvelope()->all(TagStamp::class));
+        $this->assertSame('schedule:default:id', $event->getEnvelope()->last(TagStamp::class)->value);
     }
 
     /**

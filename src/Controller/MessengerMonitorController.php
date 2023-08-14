@@ -25,7 +25,7 @@ use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\Schedules;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
 
 /**
@@ -181,8 +181,8 @@ abstract class MessengerMonitorController extends AbstractController
         }
 
         $bus->dispatch($message, [
-            new Tag('manual'),
-            Tag::forSchedule($task),
+            new TagStamp('manual'),
+            TagStamp::forSchedule($task),
             new TransportNamesStamp($transport),
         ]);
 

@@ -23,7 +23,7 @@ use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Schedule\TaskInfo;
 use Zenstruck\Messenger\Monitor\Schedules;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -70,7 +70,7 @@ final class SchedulePurgeCommand extends Command
 
             foreach ($io->progressIterate($schedule) as $task) {
                 /** @var TaskInfo $task */
-                $spec = Specification::new()->with(Tag::forSchedule($task)->value);
+                $spec = Specification::new()->with(TagStamp::forSchedule($task)->value);
 
                 if ($this->storage->count($spec) <= $keep) {
                     continue; // not enough to purge
@@ -111,7 +111,7 @@ final class SchedulePurgeCommand extends Command
     {
         foreach ($this->schedules as $schedule) {
             foreach ($schedule as $task) {
-                yield Tag::forSchedule($task)->value;
+                yield TagStamp::forSchedule($task)->value;
             }
         }
     }

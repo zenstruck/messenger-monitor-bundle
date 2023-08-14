@@ -15,7 +15,7 @@ use Symfony\Component\Scheduler\RecurringMessage;
 use Zenstruck\Messenger\Monitor\History\Snapshot;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -65,7 +65,7 @@ final class TaskInfo
     public function history(Specification|array|null $specification = null): Snapshot
     {
         return Specification::create($specification)
-            ->with(Tag::forSchedule($this)->value)
+            ->with(TagStamp::forSchedule($this)->value)
             ->snapshot($this->storage ?? throw new \LogicException('No history storage configured.'))
         ;
     }

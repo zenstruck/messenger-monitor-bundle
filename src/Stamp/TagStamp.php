@@ -19,7 +19,7 @@ use Zenstruck\Messenger\Monitor\Schedule\TaskInfo;
  * @author Kevin Bond <kevinbond@gmail.com>
  */
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
-final class Tag implements StampInterface, \Stringable
+final class TagStamp implements StampInterface, \Stringable
 {
     public function __construct(
         public readonly string $value,

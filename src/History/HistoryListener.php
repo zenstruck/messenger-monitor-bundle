@@ -23,7 +23,7 @@ use Zenstruck\Messenger\Monitor\History\Model\Result;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoring;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -57,7 +57,7 @@ final class HistoryListener
             // scheduler transport doesn't trigger SendMessageToTransportsEvent
             $stamp = new MonitorStamp($scheduledStamp->messageContext->triggeredAt);
 
-            $event->addStamps(Tag::forSchedule($scheduledStamp));
+            $event->addStamps(TagStamp::forSchedule($scheduledStamp));
         }
 
         if ($stamp instanceof MonitorStamp) {

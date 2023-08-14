@@ -20,7 +20,7 @@ use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\StringableObject;
 
 /**
@@ -80,11 +80,11 @@ final class ProcessedMessageTest extends TestCase
             (new MonitorStamp())->markReceived('foo'),
             new RedeliveryStamp(2),
             new ResultStamp([['exception' => \RuntimeException::class, 'message' => 'failure', 'data' => []]]),
-            new Tag('foo'),
-            new Tag('bar'),
-            new Tag('bar'),
-            new Tag('baz'),
-            new Tag('qux'),
+            new TagStamp('foo'),
+            new TagStamp('bar'),
+            new TagStamp('bar'),
+            new TagStamp('baz'),
+            new TagStamp('qux'),
         ]);
 
         $message = new class($envelope, new \RuntimeException('fail')) extends ProcessedMessage {

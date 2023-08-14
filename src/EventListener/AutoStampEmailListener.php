@@ -15,7 +15,7 @@ use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Mailer\Header\TagHeader;
 use Symfony\Component\Mime\Email;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
-use Zenstruck\Messenger\Monitor\Stamp\Tag;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -39,7 +39,7 @@ final class AutoStampEmailListener
         $tag = $message->getHeaders()->get('X-Tag');
 
         if ($tag instanceof TagHeader) {
-            $event->addStamp(new Tag($tag->getValue()));
+            $event->addStamp(new TagStamp($tag->getValue()));
         }
 
         if (!$subject = $message->getSubject()) {
