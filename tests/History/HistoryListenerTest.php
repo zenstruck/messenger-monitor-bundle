@@ -24,9 +24,9 @@ use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\HistoryListener;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
-use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
+use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**

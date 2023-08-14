@@ -21,8 +21,8 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Zenstruck\Messenger\Monitor\History\Model\Result;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
-use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
+use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**

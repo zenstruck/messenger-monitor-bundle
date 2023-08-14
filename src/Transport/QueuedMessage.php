@@ -16,8 +16,8 @@ use Symfony\Component\Messenger\Stamp\ErrorDetailsStamp;
 use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
 use Zenstruck\Messenger\Monitor\History\Model\Tags;
-use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
+use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
 final class QueuedMessage

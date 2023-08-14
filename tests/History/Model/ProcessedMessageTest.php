@@ -18,8 +18,8 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
-use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
+use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\StringableObject;
 

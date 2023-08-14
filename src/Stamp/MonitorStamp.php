@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Zenstruck\Messenger\Monitor\History\Stamp;
+namespace Zenstruck\Messenger\Monitor\Stamp;
 
 use Symfony\Component\Messenger\Stamp\StampInterface;
 

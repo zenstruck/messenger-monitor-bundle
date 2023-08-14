@@ -14,8 +14,8 @@ namespace Zenstruck\Messenger\Monitor\History\Model;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Bytes;
-use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
+use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
 /**
