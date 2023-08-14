@@ -20,8 +20,8 @@ use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Zenstruck\Messenger\Monitor\History\Model\Result;
+use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
-use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
@@ -75,12 +75,9 @@ final class HistoryListener
             return;
         }
 
-        $event->addStamps(
-            $stamp->markFinished(),
-            new ResultStamp($this->createResults($event->getEnvelope()))
-        );
+        $event->addStamps($stamp->markFinished());
 
-        $this->storage->save($event->getEnvelope());
+        $this->storage->save($event->getEnvelope(), $this->createResults($event->getEnvelope()));
     }
 
     public function handleFailure(WorkerMessageFailedEvent $event): void
@@ -95,12 +92,13 @@ final class HistoryListener
 
         $throwable = $event->getThrowable();
 
-        $event->addStamps(
-            $stamp->markFinished(),
-            new ResultStamp($this->createResults($event->getEnvelope(), $throwable instanceof HandlerFailedException ? $throwable : null))
-        );
+        $event->addStamps($stamp->markFinished());
 
-        $this->storage->save($event->getEnvelope(), $throwable);
+        $this->storage->save(
+            $event->getEnvelope(),
+            $this->createResults($event->getEnvelope(), $throwable instanceof HandlerFailedException ? $throwable : null),
+            $throwable,
+        );
     }
 
     private function isMonitoringDisabled(Envelope $envelope): bool
@@ -116,10 +114,7 @@ final class HistoryListener
         return false;
     }
 
-    /**
-     * @return Structure[]
-     */
-    private function createResults(Envelope $envelope, ?HandlerFailedException $exception = null): array
+    private function createResults(Envelope $envelope, ?HandlerFailedException $exception = null): Results
     {
         $results = [];
 
@@ -132,17 +127,17 @@ final class HistoryListener
         }
 
         if (!$exception) {
-            return $results;
+            return new Results($results);
         }
 
         foreach ($exception->getNestedExceptions() as $nested) {
             $results[] = [
                 'exception' => $nested::class,
                 'message' => $nested->getMessage(),
-                'data' => $this->normalizer->normalizeException($nested),
+                'data' => $this->normalizer->normalize($nested),
             ];
         }
 
-        return $results;
+        return new Results($results);
     }
 }

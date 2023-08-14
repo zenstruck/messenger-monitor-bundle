@@ -17,8 +17,8 @@ use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
+use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
-use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Stub\StringableObject;
@@ -42,11 +42,12 @@ final class ProcessedMessageTest extends TestCase
 
         $stamp = $stamp->markReceived('foo');
 
-        $envelope = new Envelope(new \stdClass(), [$stamp]);
-
         Clock::get()->sleep(2);
 
-        $message = new class($envelope) extends ProcessedMessage {
+        $stamp = $stamp->markFinished();
+
+        $envelope = new Envelope(new \stdClass(), [$stamp]);
+        $message = new class($envelope, new Results([])) extends ProcessedMessage {
             public function id(): string|int|null
             {
                 return null;
@@ -77,9 +78,8 @@ final class ProcessedMessageTest extends TestCase
     public function full_constructor(): void
     {
         $envelope = new Envelope(new StringableObject(), [
-            (new MonitorStamp())->markReceived('foo'),
+            (new MonitorStamp())->markReceived('foo')->markFinished(),
             new RedeliveryStamp(2),
-            new ResultStamp([['exception' => \RuntimeException::class, 'message' => 'failure', 'data' => []]]),
             new TagStamp('foo'),
             new TagStamp('bar'),
             new TagStamp('bar'),
@@ -87,7 +87,7 @@ final class ProcessedMessageTest extends TestCase
             new TagStamp('qux'),
         ]);
 
-        $message = new class($envelope, new \RuntimeException('fail')) extends ProcessedMessage {
+        $message = new class($envelope, new Results([['exception' => \RuntimeException::class, 'message' => 'failure', 'data' => []]]), new \RuntimeException('fail')) extends ProcessedMessage {
             public function id(): string|int|null
             {
                 return null;
@@ -111,7 +111,7 @@ final class ProcessedMessageTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        new class(new Envelope(new \stdClass())) extends ProcessedMessage {
+        new class(new Envelope(new \stdClass()), new Results([])) extends ProcessedMessage {
             public function id(): string|int|null
             {
                 return null;
@@ -125,11 +125,11 @@ final class ProcessedMessageTest extends TestCase
     public function can_add_description_with_stamp(): void
     {
         $envelope = new Envelope(new StringableObject(), [
-            (new MonitorStamp())->markReceived('foo'),
+            (new MonitorStamp())->markReceived('foo')->markFinished(),
             new DescriptionStamp('description value'),
         ]);
 
-        $message = new class($envelope) extends ProcessedMessage {
+        $message = new class($envelope, new Results([])) extends ProcessedMessage {
             public function id(): string|int|null
             {
                 return null;

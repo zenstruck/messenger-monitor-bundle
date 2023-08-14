@@ -14,6 +14,7 @@ namespace Zenstruck\Messenger\Monitor\History;
 use Symfony\Component\Messenger\Envelope;
 use Zenstruck\Collection;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
+use Zenstruck\Messenger\Monitor\History\Model\Results;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -29,7 +30,7 @@ interface Storage
 
     public function purge(Specification $specification): int;
 
-    public function save(Envelope $envelope, ?\Throwable $exception = null): void;
+    public function save(Envelope $envelope, Results $results, ?\Throwable $exception = null): void;
 
     public function delete(mixed $id): void;
 

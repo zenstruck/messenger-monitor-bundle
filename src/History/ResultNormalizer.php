@@ -39,8 +39,39 @@ final class ResultNormalizer
      */
     public function normalize(mixed $result): array
     {
+        $result = $this->doNormalize($result);
+
+        \array_walk_recursive($result, static function(mixed &$value) {
+            $value = self::convert($value);
+        });
+
+        return $result;
+    }
+
+    private static function convert(mixed $value): int|float|string|bool|null
+    {
+        if (null === $value || \is_scalar($value)) {
+            return $value;
+        }
+
+        if ($value instanceof \DateTimeInterface) {
+            return $value->format('c');
+        }
+
+        return \get_debug_type($value);
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function doNormalize(mixed $result): array
+    {
         if (null === $result) {
             return [];
+        }
+
+        if ($result instanceof \Throwable) {
+            return $this->normalizeException($result);
         }
 
         if ($result instanceof RunProcessContext) { // @phpstan-ignore-line
@@ -79,7 +110,7 @@ final class ResultNormalizer
     /**
      * @return array<string, mixed>
      */
-    public function normalizeException(\Throwable $exception): array
+    private function normalizeException(\Throwable $exception): array
     {
         $result = ['stack_trace' => $this->normalizeTrace($exception)];
 

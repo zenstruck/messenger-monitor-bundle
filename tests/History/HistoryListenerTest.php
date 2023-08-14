@@ -22,9 +22,9 @@ use Symfony\Component\Scheduler\Generator\MessageContext;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\HistoryListener;
+use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
-use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
@@ -118,13 +118,16 @@ final class HistoryListenerTest extends TestCase
             new HandledStamp('handler', 'return'),
         ]);
         $storage = $this->createMock(Storage::class);
-        $storage->expects($this->once())->method('save')->with($this->isInstanceOf(Envelope::class));
+        $storage->expects($this->once())->method('save')->with(
+            $this->isInstanceOf(Envelope::class),
+            $this->isInstanceOf(Results::class),
+        );
 
         $listener = new HistoryListener($storage, new ResultNormalizer(__DIR__));
 
         $listener->handleSuccess($event = new WorkerMessageHandledEvent($envelope, 'foo'));
 
-        $this->assertCount(1, $event->getEnvelope()->all(ResultStamp::class));
+        $this->assertTrue($event->getEnvelope()->last(MonitorStamp::class)->isFinished());
     }
 
     /**
@@ -149,13 +152,17 @@ final class HistoryListenerTest extends TestCase
         $envelope = new Envelope(new \stdClass(), [(new MonitorStamp())->markReceived('foo')]);
         $exception = new \RuntimeException();
         $storage = $this->createMock(Storage::class);
-        $storage->expects($this->once())->method('save')->with($this->isInstanceOf(Envelope::class), $exception);
+        $storage->expects($this->once())->method('save')->with(
+            $this->isInstanceOf(Envelope::class),
+            $this->isInstanceOf(Results::class),
+            $exception,
+        );
 
         $listener = new HistoryListener($storage, new ResultNormalizer(__DIR__));
 
         $listener->handleFailure($event = new WorkerMessageFailedEvent($envelope, 'foo', $exception));
 
-        $this->assertCount(1, $event->getEnvelope()->all(ResultStamp::class));
+        $this->assertTrue($event->getEnvelope()->last(MonitorStamp::class)->isFinished());
     }
 
     /**

@@ -49,7 +49,7 @@ final class ResultNormalizerTest extends TestCase
      */
     public function normalize_exception(): void
     {
-        $result = (new ResultNormalizer(__DIR__))->normalizeException(new \RuntimeException('foo'));
+        $result = (new ResultNormalizer(__DIR__))->normalize(new \RuntimeException('foo'));
 
         $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
     }
@@ -100,7 +100,7 @@ final class ResultNormalizerTest extends TestCase
         $exception = $this->createMock(HttpExceptionInterface::class);
         $exception->expects($this->once())->method('getResponse')->willReturn($response);
 
-        $result = $normalizer->normalizeException($exception);
+        $result = $normalizer->normalize($exception);
 
         $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
         $this->assertSame(200, $result['status_code']);
@@ -144,7 +144,7 @@ final class ResultNormalizerTest extends TestCase
         try {
             (new RunProcessMessageHandler())(new RunProcessMessage(['invalid']));
         } catch (RunProcessFailedException $e) {
-            $result = $normalizer->normalizeException($e);
+            $result = $normalizer->normalize($e);
 
             $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
             $this->assertSame(127, $result['exit_code']);
@@ -183,10 +183,68 @@ final class ResultNormalizerTest extends TestCase
 
         $normalizer = new ResultNormalizer(__DIR__);
         $context = new RunCommandFailedException('fail', new RunCommandContext(new RunCommandMessage('command'), 1, 'output'));
-        $result = $normalizer->normalizeException($context);
+        $result = $normalizer->normalize($context);
 
         $this->assertSame(1, $result['exit_code']);
         $this->assertSame('output', $result['output']);
         $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
+    }
+
+    /**
+     * @test
+     */
+    public function converts_values_to_scalar(): void
+    {
+        $normalizer = new ResultNormalizer(__DIR__);
+
+        $this->assertSame($this->normalizedValues(), $normalizer->normalize($this->rawValues()));
+    }
+
+    private function rawValues(): array
+    {
+        try {
+            return [
+                'nested1' => [
+                    'nested2' => [
+                        'datetime' => new \DateTime('2021-01-04 11:22:13 America/New_York'),
+                        'int' => 56,
+                        'array' => ['value1', 'value2', fn($a) => $a],
+                        'resource' => $resource = \fopen(__FILE__, 'r'),
+                        'nested3' => [
+                            'foo' => 'bar',
+                        ],
+                    ],
+                    'float' => 65.6,
+                    'function' => fn($a) => $a,
+                    'object1' => new \stdClass(),
+                ],
+                'string' => 'value',
+                'null' => null,
+            ];
+        } finally {
+            \fclose($resource);
+        }
+    }
+
+    private function normalizedValues(): array
+    {
+        return [
+            'nested1' => [
+                'nested2' => [
+                    'datetime' => '2021-01-04T11:22:13-05:00',
+                    'int' => 56,
+                    'array' => ['value1', 'value2', 'Closure'],
+                    'resource' => 'resource (closed)',
+                    'nested3' => [
+                        'foo' => 'bar',
+                    ],
+                ],
+                'float' => 65.6,
+                'function' => 'Closure',
+                'object1' => \stdClass::class,
+            ],
+            'string' => 'value',
+            'null' => null,
+        ];
     }
 }

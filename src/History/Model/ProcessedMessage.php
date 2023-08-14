@@ -15,7 +15,6 @@ use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Bytes;
 use Zenstruck\Messenger\Monitor\History\Stamp\MonitorStamp;
-use Zenstruck\Messenger\Monitor\History\Stamp\ResultStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
@@ -46,9 +45,9 @@ abstract class ProcessedMessage
     private ?string $failureMessage = null;
 
     /** @var Structure[]|Results */
-    private array|Results $results = [];
+    private array|Results $results;
 
-    final public function __construct(Envelope $envelope, ?\Throwable $exception = null)
+    final public function __construct(Envelope $envelope, Results $results, ?\Throwable $exception = null)
     {
         $monitorStamp = $envelope->last(MonitorStamp::class) ?? throw new \LogicException('Required stamp not available');
         $type = new Type($envelope->getMessage());
@@ -62,13 +61,10 @@ abstract class ProcessedMessage
         $this->memoryUsage = $monitorStamp->memoryUsage();
         $this->transport = $monitorStamp->transport();
         $this->tags = (new Tags($envelope))->all();
+        $this->results = $results;
 
         if ($retryStamp = $envelope->last(RedeliveryStamp::class)) {
             $this->attempt += $retryStamp->getRetryCount();
-        }
-
-        if ($resultStamp = $envelope->last(ResultStamp::class)) {
-            $this->results = $resultStamp->results();
         }
 
         if ($exception) {

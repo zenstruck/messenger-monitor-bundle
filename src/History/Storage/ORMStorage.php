@@ -19,6 +19,7 @@ use Symfony\Component\Messenger\Envelope;
 use Zenstruck\Collection;
 use Zenstruck\Collection\Doctrine\ORM\EntityResult;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
+use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\History\Storage;
 
@@ -56,10 +57,10 @@ final class ORMStorage implements Storage
         return $this->queryBuilderFor($specification, order: false)->delete()->getQuery()->execute();
     }
 
-    public function save(Envelope $envelope, ?\Throwable $exception = null): void
+    public function save(Envelope $envelope, Results $results, ?\Throwable $exception = null): void
     {
         $om = $this->om();
-        $object = new $this->entityClass($envelope, $exception);
+        $object = new $this->entityClass($envelope, $results, $exception);
 
         $om->persist($object);
         $om->flush();
