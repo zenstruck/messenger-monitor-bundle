@@ -13,6 +13,9 @@ namespace Zenstruck\Messenger\Monitor\History;
 
 use Symfony\Component\Console\Exception\RunCommandFailedException;
 use Symfony\Component\Console\Messenger\RunCommandContext;
+use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mime\Header\HeaderInterface;
+use Symfony\Component\Mime\Message;
 use Symfony\Component\Process\Exception\RunProcessFailedException;
 use Symfony\Component\Process\Messenger\RunProcessContext;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientException;
@@ -59,6 +62,10 @@ final class ResultNormalizer
             return self::normalizeResponse($result);
         }
 
+        if ($result instanceof SentMessage) {
+            return self::normalizeEmail($result);
+        }
+
         if (\is_object($result)) {
             return \array_filter([
                 'class' => $result::class,
@@ -95,6 +102,28 @@ final class ResultNormalizer
         }
 
         return $result;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function normalizeEmail(SentMessage $message): array
+    {
+        $original = $message->getOriginalMessage();
+
+        if (!$original instanceof Message) {
+            return ['class' => $message];
+        }
+
+        $headers = $original->getHeaders()->all();
+        $headers = $headers instanceof \Traversable ? \iterator_to_array($headers) : $headers;
+        $headers = \array_map(static fn(HeaderInterface $header) => $header->getBodyAsString(), $headers);
+
+        return [
+            'id' => $message->getMessageId(),
+            'headers' => $headers,
+            'debug' => $message->getDebug(),
+        ];
     }
 
     private function normalizeTrace(\Throwable $exception): string

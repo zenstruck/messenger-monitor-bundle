@@ -42,8 +42,16 @@ final class AutoStampEmailListener
             $event->addStamp(new Tag($tag->getValue()));
         }
 
-        if ($subject = $message->getSubject()) {
-            $event->addStamp(new DescriptionStamp($subject));
+        if (!$subject = $message->getSubject()) {
+            return;
         }
+
+        $description = $subject;
+
+        if (1 === \count($to = $message->getTo())) {
+            $description = \sprintf('"%s" to "%s"', $description, $to[0]->toString());
+        }
+
+        $event->addStamp(new DescriptionStamp($description));
     }
 }
