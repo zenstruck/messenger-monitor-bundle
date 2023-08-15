@@ -32,7 +32,7 @@
                     {% if 'All' != current_transport %}
                         <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({transport: null})) }}">All</a></li>
                     {% endif %}
-                    {% for t in helper.transports.filter.excludeSync.excludeFailed.names %}
+                    {% for t in helper.transports.filter.excludeSync.names %}
                         {% if t != current_transport %}
                             <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({transport: t})) }}">{{ t }}</a></li>
                         {% endif %}
