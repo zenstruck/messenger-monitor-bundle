@@ -76,6 +76,17 @@ final class TransportInfo implements \IteratorAggregate, \Countable
         );
     }
 
+    public function find(mixed $id): ?QueuedMessage
+    {
+        if (!$this->transport instanceof ListableReceiverInterface) {
+            throw new \LogicException(\sprintf('Transport "%s" does not implement "%s".', $this->name, ListableReceiverInterface::class));
+        }
+
+        $envelope = $this->transport->find($id);
+
+        return $envelope ? new QueuedMessage($envelope) : null;
+    }
+
     /**
      * @return WorkerInfo[]
      */
