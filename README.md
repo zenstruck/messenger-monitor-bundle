@@ -21,9 +21,11 @@ historical snapshot whose period can be customized with the `--period` option.
 
 ## Storage
 
-> **Note**: This step is required to use the [User Interface](#user-interface) and [History](#history).
+> [!NOTE]
+> This step is required to use the [User Interface](#user-interface) and [History](#history).
 
-> **Note**: Only Doctrine ORM is currently available as a storage engine.
+> [!NOTE]
+> Only Doctrine ORM is currently available as a storage engine.
 
 ### Configuration
 
@@ -70,7 +72,8 @@ historical snapshot whose period can be customized with the `--period` option.
 ### Usage
 
 Once configured, consumed messages are tracked and saved. These _processed messages_
-contain a lot of useful information and can be viewed in the [user interface](#user-interface).
+contain a lot of useful information and can be viewed in the [user interface](#user-interface)
+or the [provided tools](#history).
 
 #### Disable Monitoring
 
@@ -147,10 +150,8 @@ bin/console messenger:monitor:purge --older-than 1-week
 bin/console messenger:monitor:purge --exclude-schedules # ignore messages tagged with "schedule"
 ```
 
-> **Note**: If using `symfony/schedule`, you might want to keep a specific # of these messages
-> as they might only run once a month or year.
-
-> **Tip**: Schedule this command to run daily with `symfony/schedule` and
+> [!NOTE]
+> Schedule this command to run daily with `symfony/schedule` and
 > [`RunCommandMessage`](https://symfony.com/doc/6.4/messenger.html#trigger-a-command).
 
 #### `messenger:monitor:schedule:purge` Command
@@ -172,12 +173,14 @@ Use the `--remove-orphans` option to delete schedule task runs that are no longe
 bin/console messenger:monitor:schedule:purge --remove-orphans
 ```
 
-> **Tip**: Schedule this command to run daily with `symfony/schedule` and
+> [!NOTE]
+> Schedule this command to run daily with `symfony/schedule` and
 > [`RunCommandMessage`](https://symfony.com/doc/6.4/messenger.html#trigger-a-command).
 
 ## User Interface
 
-> **Note**: [Storage](#storage) must be configured for this feature.
+> [!NOTE]
+> [Storage](#storage) must be configured for this feature.
 
 Create a controller that extends `Zenstruck\Messenger\Monitor\Controller\MessengerMonitorController`
 in your app:
@@ -200,13 +203,15 @@ final class MessengerMonitorController extends BaseMessengerMonitorController
 
 You can now access the dashboard at: `/admin/messenger` or with the route `zenstruck_messenger_monitor_dashboard`.
 
-> **Warning**: It is important that your `MessengerMonitorController` is only accessible by
+> [!WARNING]
+> It is important that your `MessengerMonitorController` is only accessible by
 > site administrators as it contains sensitive application information. Use either the
 > `IsGranted` attribute on your controller as shown above and/or ensure the controller is
 > behind an [access-controlled firewall](https://symfony.com/doc/current/security.html#securing-url-patterns-access-control)
 > that only allows site administrators.
 
-> **Tip**: Install `knplabs/knp-time-bundle` (`composer require knplabs/knp-time-bundle`) to display
+> [!NOTE]
+> Install `knplabs/knp-time-bundle` (`composer require knplabs/knp-time-bundle`) to display
 > friendlier times and durations in the UI.
 
 ## Advanced Usage
@@ -233,7 +238,8 @@ You can now access the dashboard at: `/admin/messenger` or with the route `zenst
 
 ### History
 
-> **Note**: [Storage](#storage) must be configured for this feature.
+> [!NOTE]
+> [Storage](#storage) must be configured for this feature.
 
 #### `Storage` Service
 
