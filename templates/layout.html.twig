@@ -63,6 +63,41 @@
                         ;
                     });
                 });
+
+                document.querySelectorAll('.ajax-toast-trigger').forEach(element => {
+                    element.addEventListener('click', (event) => {
+                        event.preventDefault();
+
+                        fetch(element.getAttribute('href'), {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-Token': element.dataset.token,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                            .then(response => {
+                                const el = document.getElementById('trigger-toast').cloneNode(true);
+
+                                el.classList.remove('d-none');
+                                el.classList.add('toast');
+
+                                if (response.ok) {
+                                    el.classList.add('text-bg-success');
+                                    el.querySelector('.toast-body').innerHTML = element.dataset.success;
+                                } else {
+                                    el.classList.add('text-bg-danger');
+                                    el.querySelector('.toast-body').innerHTML = element.dataset.failure;
+                                }
+
+                                document.getElementById('toast-container').appendChild(el);
+
+                                const toast = new bootstrap.Toast(el);
+
+                                toast.show();
+                            })
+                            .catch(error => console.error('Error:', error));
+                    });
+                });
             });
         </script>
 
@@ -205,6 +240,15 @@
     <div class="modal fade" id="message-details-modal" tabindex="-1" aria-labelledby="message-details-modal-label" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content"></div>
+        </div>
+    </div>
+{% endblock %}
+{% block toast_template %}
+    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3 mt-5"></div>
+    <div id="trigger-toast" class="d-none" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 {% endblock %}

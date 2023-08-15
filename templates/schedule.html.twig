@@ -1,53 +1,10 @@
 {% extends '@ZenstruckMessengerMonitor/layout.html.twig' %}
 
-{% block title %}Schedules{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.schedule-task-trigger').forEach(element => {
-                element.addEventListener('click', (event) => {
-                    event.preventDefault();
-
-                    fetch(element.getAttribute('href'), {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-Token': element.dataset.token,
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                    .then(response => {
-                        const el = document.getElementById('trigger-toast').cloneNode(true);
-
-                        el.classList.remove('d-none');
-                        el.classList.add('toast');
-
-                        if (response.ok) {
-                            el.classList.add('text-bg-success');
-                            el.querySelector('.toast-body').innerHTML = 'Successfully triggered task.';
-                        } else {
-                            el.classList.add('text-bg-danger');
-                            el.querySelector('.toast-body').innerHTML = 'Failed to trigger task.';
-                        }
-
-                        document.getElementById('toast-container').appendChild(el);
-
-                        const toast = new bootstrap.Toast(el);
-
-                        toast.show();
-                    })
-                    .catch(error => console.error('Error:', error));
-                });
-            });
-        });
-    </script>
-{% endblock %}
+{% block title %}Schedule{% endblock %}
 
 {% block breadcrumb_items %}
     {{ parent() }}
-    <li class="breadcrumb-item active" aria-current="page">Schedules</li>
+    <li class="breadcrumb-item active" aria-current="page">Schedule</li>
 {% endblock %}
 
 {% block content %}
@@ -207,7 +164,7 @@
                                         </button>
                                         <ul class="dropdown-menu" data-boundary="viewport">
                                             {% for t in transports.names %}
-                                                <li><a class="dropdown-item schedule-task-trigger" data-token="{{ csrf_token(['trigger', task.id, t]|join('-')) }}" href="{{ path('zenstruck_messenger_monitor_schedule_trigger', {name: schedule.name, id: task.id, transport: t}) }}">{{ t }}</a></li>
+                                                <li><a class="dropdown-item ajax-toast-trigger" data-success="Successfully triggered scheduled task" data-fail="Failed to trigger scheduled task" data-token="{{ csrf_token(['trigger', task.id, t]|join('-')) }}" href="{{ path('zenstruck_messenger_monitor_schedule_trigger', {name: schedule.name, id: task.id, transport: t}) }}">{{ t }}</a></li>
                                             {% endfor %}
                                         </ul>
                                     </div>
@@ -218,14 +175,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
-
-    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3 mt-5"></div>
-    <div id="trigger-toast" class="d-none" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body"></div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 {% endblock %}
