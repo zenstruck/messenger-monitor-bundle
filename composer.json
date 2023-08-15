@@ -1,6 +1,6 @@
 {
     "name": "zenstruck/messenger-monitor-bundle",
-    "description": "Provides information about your Messenger workers, queues, and transports.",
+    "description": "Batteries included UI to monitor your Messenger workers, transports, schedules, and messages.",
     "homepage": "https://github.com/zenstruck/messenger-monitor-bundle",
     "type": "symfony-bundle",
     "license": "MIT",
