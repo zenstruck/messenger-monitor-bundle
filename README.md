@@ -1,5 +1,8 @@
 # zenstruck/messenger-monitor-bundle
 
+[![CI](https://github.com/zenstruck/messenger-monitor-bundle/actions/workflows/ci.yml/badge.svg)](https://github.com/zenstruck/messenger-monitor-bundle/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/zenstruck/messenger-monitor-bundle/graph/badge.svg?token=lMZg5LdYUZ)](https://codecov.io/gh/zenstruck/messenger-monitor-bundle)
+
 Batteries included UI to monitor your Messenger workers, transports, schedules, and messages.
 
 ![Screenshot](screenshot.png)
