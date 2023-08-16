@@ -158,7 +158,7 @@ bin/console messenger:monitor:purge --exclude-schedules # ignore messages tagged
 
 If using `symfony/schedule`, you might want to keep a specific # of these messages as they might run
 very infrequently. When running `messenger:monitor:purge`, add the `--exclude-schedules` option to
-avoid deleting schedule history. Then run `messenger:monitor:schedule:purge` keep a specific number
+avoid deleting schedule history. Then run `messenger:monitor:schedule:purge` to keep a specific number
 (10 by default) of _task run histories_.
 
 ```bash
@@ -213,6 +213,10 @@ You can now access the dashboard at: `/admin/messenger` or with the route `zenst
 > [!NOTE]
 > Install `knplabs/knp-time-bundle` (`composer require knplabs/knp-time-bundle`) to display
 > friendlier times and durations in the UI.
+
+> [!NOTE]
+> Install `lorisleiva/cron-translator` (`composer require lorisleiva/cron-translator`) to display
+> friendlier CRON values for your scheduled tasks.
 
 ## Advanced Usage
 
