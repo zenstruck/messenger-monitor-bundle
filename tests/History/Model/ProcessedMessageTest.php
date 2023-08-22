@@ -48,7 +48,7 @@ final class ProcessedMessageTest extends TestCase
 
         $envelope = new Envelope(new \stdClass(), [$stamp]);
         $message = new class($envelope, new Results([])) extends ProcessedMessage {
-            public function id(): string|int|null
+            public function id(): string|int|\Stringable|null
             {
                 return null;
             }

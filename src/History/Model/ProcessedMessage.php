@@ -74,7 +74,7 @@ abstract class ProcessedMessage
     }
 
 
-    abstract public function id(): mixed;
+    abstract public function id(): string|int|\Stringable|null;
 
     final public function runId(): int
     {

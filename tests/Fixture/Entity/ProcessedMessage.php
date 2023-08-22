@@ -18,7 +18,7 @@ use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage as BaseProcessedM
  */
 final class ProcessedMessage extends BaseProcessedMessage
 {
-    public function id(): string|int|null
+    public function id(): string|int|\Stringable|null
     {
         return null;
     }
