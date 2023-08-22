@@ -21,6 +21,7 @@ use Zenstruck\Messenger\Monitor\Type;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
+ * @template TModelId
  * @phpstan-import-type Structure from Result
  */
 abstract class ProcessedMessage
@@ -73,7 +74,10 @@ abstract class ProcessedMessage
         }
     }
 
-    abstract public function id(): string|int|null;
+    /**
+     * @return TModelId
+     */
+    abstract public function id(): mixed;
 
     final public function runId(): int
     {
