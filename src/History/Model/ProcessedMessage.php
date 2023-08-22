@@ -47,7 +47,7 @@ abstract class ProcessedMessage
     /** @var Structure[]|Results */
     private array|Results $results;
 
-    final public function __construct(Envelope $envelope, Results $results, ?\Throwable $exception = null)
+    public function __construct(Envelope $envelope, Results $results, ?\Throwable $exception = null)
     {
         $monitorStamp = $envelope->last(MonitorStamp::class) ?? throw new \LogicException('Required stamp not available');
         $type = new Type($envelope->getMessage());
