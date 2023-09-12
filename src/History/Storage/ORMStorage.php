@@ -35,6 +35,8 @@ final class ORMStorage implements Storage
     /** @var EntityRepository<T> */
     private EntityRepository $repository;
 
+    private string $idProperty;
+
     /**
      * @param class-string<T> $entityClass
      */
@@ -80,26 +82,35 @@ final class ORMStorage implements Storage
 
     public function averageWaitTime(Specification $specification): ?float
     {
-        return (new EntityResult($this->queryBuilderFor($specification)->select('AVG(m.receivedAt - m.dispatchedAt)')))
-            ->asFloat()
-            ->first()
+        $qb = $this
+            ->queryBuilderFor($specification)
+            ->select('AVG(m.receivedAt - m.dispatchedAt)')
+            ->groupBy('m.'.$this->idProperty())
         ;
+
+        return (new EntityResult($qb))->asFloat()->first();
     }
 
     public function averageHandlingTime(Specification $specification): ?float
     {
-        return (new EntityResult($this->queryBuilderFor($specification)->select('AVG(m.finishedAt - m.receivedAt)')))
-            ->asFloat()
-            ->first()
+        $qb = $this
+            ->queryBuilderFor($specification)
+            ->select('AVG(m.finishedAt - m.receivedAt)')
+            ->groupBy('m.'.$this->idProperty())
         ;
+
+        return (new EntityResult($qb))->asFloat()->first();
     }
 
     public function count(Specification $specification): int
     {
-        return (new EntityResult($this->queryBuilderFor($specification)->select('COUNT(m.finishedAt)')))
-            ->asInt()
-            ->first(0)
+        $qb = $this
+            ->queryBuilderFor($specification)
+            ->select('COUNT(m.finishedAt)')
+            ->groupBy('m.'.$this->idProperty())
         ;
+
+        return (new EntityResult($qb))->asInt()->first(0);
     }
 
     private function om(): ObjectManager
@@ -170,5 +181,22 @@ final class ORMStorage implements Storage
         }
 
         return $qb;
+    }
+
+    private function idProperty(): string
+    {
+        if (isset($this->idProperty)) {
+            return $this->idProperty;
+        }
+
+        if (!$ids = $this->om()->getClassMetadata($this->entityClass)->getIdentifierFieldNames()) {
+            throw new \LogicException(\sprintf('"%s" must have an identifier.', $this->entityClass));
+        }
+
+        if (1 !== \count($ids)) {
+            throw new \LogicException(\sprintf('"%s" must have a single identifier.', $this->entityClass));
+        }
+
+        return $this->idProperty = $ids[0];
     }
 }
