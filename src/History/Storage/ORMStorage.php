@@ -169,11 +169,11 @@ final class ORMStorage implements Storage
         };
 
         foreach ($tags as $i => $tag) {
-            $qb->andWhere('m.tags LIKE :tag'.$i)->setParameter('tag'.$i, '%'.$tag.'%');
+            $qb->andWhere('CAST(m.tags as varchar) LIKE :tag'.$i)->setParameter('tag'.$i, '%'.$tag.'%');
         }
 
         foreach ($notTags as $i => $notTag) {
-            $qb->andWhere('m.tags NOT LIKE :not_tag'.$i)->setParameter('not_tag'.$i, '%'.$notTag.'%');
+            $qb->andWhere('CAST(m.tags as varchar) NOT LIKE :not_tag'.$i)->setParameter('not_tag'.$i, '%'.$notTag.'%');
         }
 
         if ($order) {
