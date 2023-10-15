@@ -128,7 +128,7 @@ add your own in one of two ways:
 
     $bus->dispatch(new MyMessage(), [new TagStamp('tag-1'), new TagStamp('tag-2')])
     ```
-2. Add the `DisableMonitoringStamp` as a class attribute to your message:
+2. Add the `TagStamp` as a class attribute to your message:
     ```php
     use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
