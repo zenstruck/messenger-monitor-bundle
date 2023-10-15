@@ -40,7 +40,8 @@
     },
     "suggest": {
         "knplabs/knp-time-bundle": "For human readable timestamps and durations on your dashboard.",
-        "lorisleiva/cron-translator": "For human readable cron expressions on your dashboard."
+        "lorisleiva/cron-translator": "For human readable cron expressions on your dashboard.",
+        "symfony/ux-live-component": "For Live Components"
     },
     "config": {
         "preferred-install": "dist",
