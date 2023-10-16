@@ -149,10 +149,12 @@ add your own in one of two ways:
 
 If your app handles a lot of messages, the processed message database table will get very large.
 The `messenger:monitor:purge` clears messages older than a specific date:
+See [`Period`](https://github.com/zenstruck/messenger-monitor-bundle/blob/1.x/src/History/Period.php#L19) for allowed values.
 
 ```bash
 bin/console messenger:monitor:purge # by default, purges all messages older than 1 month
 
+bin/console messenger:monitor:purge --older-than all
 bin/console messenger:monitor:purge --older-than 1-day
 bin/console messenger:monitor:purge --older-than 1-week
 
