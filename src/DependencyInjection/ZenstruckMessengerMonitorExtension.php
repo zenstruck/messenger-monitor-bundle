@@ -105,11 +105,11 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
     private static function loadLiveComponents(ContainerBuilder $container, array $config): void
     {
         if (!isset($container->getParameter('kernel.bundles')['LiveComponentBundle'])) {
-            throw new LogicException('The "LiveComponentBundle" must be installed to use live components.');
+            throw new LogicException('"LiveComponentBundle" (symfony/ux-live-component) must be installed to use live components.');
         }
 
         if (!isset($container->getParameter('kernel.bundles')['StimulusBundle'])) {
-            throw new LogicException('The "StimulusBundle" must be installed to use live components.');
+            throw new LogicException('The "StimulusBundle" (symfony/stimulus-bundle) must be installed to use live components.');
         }
 
         if (!\interface_exists(AssetMapperInterface::class) && !isset($container->getParameter('kernel.bundles')['WebpackEncoreBundle'])) {
