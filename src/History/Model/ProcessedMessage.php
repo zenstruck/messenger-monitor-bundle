@@ -36,9 +36,7 @@ abstract class ProcessedMessage
     private \DateTimeImmutable $finishedAt;
     private int $memoryUsage;
     private string $transport;
-
-    /** @var string[] */
-    private array $tags;
+    private ?string $tags;
 
     /** @var class-string<\Throwable> */
     private ?string $failureType = null;
@@ -51,6 +49,7 @@ abstract class ProcessedMessage
     {
         $monitorStamp = $envelope->last(MonitorStamp::class) ?? throw new \LogicException('Required stamp not available');
         $type = new Type($envelope->getMessage());
+        $tags = new Tags($envelope);
 
         $this->runId = $monitorStamp->runId();
         $this->type = $type->class();
@@ -60,7 +59,7 @@ abstract class ProcessedMessage
         $this->finishedAt = $monitorStamp->finishedAt();
         $this->memoryUsage = $monitorStamp->memoryUsage();
         $this->transport = $monitorStamp->transport();
-        $this->tags = (new Tags($envelope))->all();
+        $this->tags = $tags->count() ? (string) $tags : null;
         $this->results = $results;
 
         if ($retryStamp = $envelope->last(RedeliveryStamp::class)) {
