@@ -58,17 +58,7 @@ historical snapshot whose period can be customized with the `--period` option.
     }
     ```
 
-2. Clear Cache:
-    ```bash
-    bin/console cache:clear
-    ```
-
-3. Create and execute the migration:
-    ```bash
-    bin/console doctrine:migrations:diff
-    bin/console doctrine:migrations:migrate
-    ```
-4. Add the entity class to the bundle config:
+2. Add the entity class to the bundle config:
     ```yaml
     # config/packages/zenstruck_messenger_monitor.yaml
 
@@ -76,6 +66,17 @@ historical snapshot whose period can be customized with the `--period` option.
         storage:
             orm:
                 entity_class: App\Entity\ProcessedMessage
+    ```
+
+3. Clear Cache:
+    ```bash
+    bin/console cache:clear
+    ```
+
+4. Create and execute the migration:
+    ```bash
+    bin/console doctrine:migrations:diff
+    bin/console doctrine:migrations:migrate
     ```
 
 ### Usage
