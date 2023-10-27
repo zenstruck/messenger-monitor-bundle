@@ -163,12 +163,12 @@ bin/console messenger:monitor:purge --exclude-schedules # ignore messages tagged
 ```
 
 > [!NOTE]
-> Schedule this command to run daily with `symfony/schedule` and
+> Schedule this command to run daily with `symfony/scheduler` and
 > [`RunCommandMessage`](https://symfony.com/doc/6.4/messenger.html#trigger-a-command).
 
 #### `messenger:monitor:schedule:purge` Command
 
-If using `symfony/schedule`, you might want to keep a specific # of these messages as they might run
+If using `symfony/scheduler`, you might want to keep a specific # of these messages as they might run
 very infrequently. When running `messenger:monitor:purge`, add the `--exclude-schedules` option to
 avoid deleting schedule history. Then run `messenger:monitor:schedule:purge` to keep a specific number
 (10 by default) of _task run histories_.
