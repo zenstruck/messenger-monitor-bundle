@@ -64,7 +64,7 @@ final class TransportInfo implements \IteratorAggregate, \Countable
     /**
      * @return Collection<int,QueuedMessage>
      */
-    public function list(?int $limit = null): Collection
+    public function list(?int $limit = 500): Collection
     {
         if (!$this->transport instanceof ListableReceiverInterface) {
             throw new \LogicException(\sprintf('Transport "%s" does not implement "%s".', $this->name, ListableReceiverInterface::class));
