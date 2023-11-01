@@ -35,7 +35,7 @@
         "symfony/scheduler": "^6.3|^7.0",
         "symfony/security-bundle": "^6.3|^7.0",
         "symfony/ux-live-component": "^2.10",
-        "symfony/var-dumper": "^5.4|^6.0|^7.0",
+        "symfony/var-dumper": "^6.3|^7.0",
         "zenstruck/console-test": "^1.5"
     },
     "suggest": {
