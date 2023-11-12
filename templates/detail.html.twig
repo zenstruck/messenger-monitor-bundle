@@ -125,6 +125,38 @@
             </div>
         </div>
         <div class="col-md-7">
+            <div class="card mb-3">
+                <div class="card-header">
+                    Input data
+                </div>
+                <table class="table card-table table-striped align-middle" style="table-layout: fixed; width: 100%;">
+                    {% for key,value in message.input %}
+                        <tr>
+                            <th class="text-end w-25">{{ key }}</th>
+                            <td>
+                                {% if value is same as true %}
+                                    <code>true</code>
+                                {% elseif value is same as false %}
+                                    <code>false</code>
+                                {% elseif value is same as null %}
+                                    <code>null</code>
+                                {% elseif value is iterable %}
+                                    <pre class="mb-0" style="white-space: pre; max-height: 340px; overflow: auto;">{{ value|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                                {% elseif value matches "\/\n/" %}
+                                    <pre class="mb-0" style="white-space: pre; max-height: 340px; overflow: auto;">{{ value }}</pre>
+                                {% else %}
+                                    <code>{{ value }}</code>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td class="text-center text-secondary">No input data.</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+
             {% for result in message.results %}
                 <div class="card mb-3">
                     <div class="card-header">
