@@ -59,10 +59,10 @@ final class ORMStorage implements Storage
         return $this->queryBuilderFor($specification, order: false)->delete()->getQuery()->execute();
     }
 
-    public function save(Envelope $envelope, Results $results, ?\Throwable $exception = null): void
+    public function save(Envelope $envelope, array $data, Results $results, ?\Throwable $exception = null): void
     {
         $om = $this->om();
-        $object = new $this->entityClass($envelope, $results, $exception);
+        $object = new $this->entityClass($envelope, $data, $results, $exception);
 
         $om->persist($object);
         $om->flush();

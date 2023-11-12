@@ -7,6 +7,7 @@
         <field name="runId" column="run_id" type="integer" />
         <field name="attempt" column="attempt" type="smallint" />
         <field name="type" column="message_type" />
+        <field name="input" column="input" type="json" />
         <field name="description" column="description" nullable="true" />
         <field name="dispatchedAt" column="dispatched_at" type="datetime_immutable" />
         <field name="receivedAt" column="received_at" type="datetime_immutable" />
