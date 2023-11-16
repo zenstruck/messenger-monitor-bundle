@@ -23,7 +23,7 @@
         "doctrine/orm": "^2.15",
         "knplabs/knp-time-bundle": "^1.20|^2.0",
         "lorisleiva/cron-translator": "^0.4.3",
-        "matthiasnoback/symfony-dependency-injection-test": "^4.3",
+        "matthiasnoback/symfony-dependency-injection-test": "^4.3|^5.0",
         "phpstan/phpstan": "^1.4",
         "phpunit/phpunit": "^9.6.0",
         "symfony/asset-mapper": "^6.3|^7.0",
