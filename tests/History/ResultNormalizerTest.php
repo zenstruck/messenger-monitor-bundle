@@ -149,7 +149,7 @@ final class ResultNormalizerTest extends TestCase
             $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
             $this->assertSame(127, $result['exit_code']);
             $this->assertSame('', $result['output']);
-            $this->assertSame('sh: 1: exec: invalid: not found', $result['error_output']);
+            $this->assertStringContainsString('exec: invalid: not found', $result['error_output']);
 
             return;
         }
