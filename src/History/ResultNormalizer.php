@@ -74,18 +74,18 @@ final class ResultNormalizer
             return $this->normalizeException($result);
         }
 
-        if ($result instanceof RunProcessContext) { // @phpstan-ignore-line
+        if ($result instanceof RunProcessContext) {
             return [
-                'exit_code' => $result->exitCode, // @phpstan-ignore-line
-                'output' => self::trim($result->output), // @phpstan-ignore-line
-                'error_output' => self::trim($result->errorOutput), // @phpstan-ignore-line
+                'exit_code' => $result->exitCode,
+                'output' => self::trim($result->output),
+                'error_output' => self::trim($result->errorOutput),
             ];
         }
 
-        if ($result instanceof RunCommandContext) { // @phpstan-ignore-line
+        if ($result instanceof RunCommandContext) {
             return [
-                'exit_code' => $result->exitCode, // @phpstan-ignore-line
-                'output' => self::trim($result->output), // @phpstan-ignore-line
+                'exit_code' => $result->exitCode,
+                'output' => self::trim($result->output),
             ];
         }
 
@@ -120,12 +120,12 @@ final class ResultNormalizer
             $result['previous_stack_trace'] = $this->normalizeTrace($previous);
         }
 
-        if ($exception instanceof RunProcessFailedException) { // @phpstan-ignore-line
-            return [...$result, ...$this->normalize($exception->context)]; // @phpstan-ignore-line
+        if ($exception instanceof RunProcessFailedException) {
+            return [...$result, ...$this->normalize($exception->context)];
         }
 
-        if ($exception instanceof RunCommandFailedException) { // @phpstan-ignore-line
-            return [...$result, ...$this->normalize($exception->context)]; // @phpstan-ignore-line
+        if ($exception instanceof RunCommandFailedException) {
+            return [...$result, ...$this->normalize($exception->context)];
         }
 
         if ($exception instanceof HttpExceptionInterface) {

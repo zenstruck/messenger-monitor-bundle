@@ -32,16 +32,16 @@ final class TriggerInfo
 
     public function inner(): TriggerInterface
     {
-        return $this->trigger instanceof AbstractDecoratedTrigger ? $this->trigger->inner() : $this->trigger; // @phpstan-ignore-line
+        return $this->trigger instanceof AbstractDecoratedTrigger ? $this->trigger->inner() : $this->trigger;
     }
 
     /**
      * @return AbstractDecoratedTrigger[]
      */
-    public function decorators(): array // @phpstan-ignore-line
+    public function decorators(): array
     {
-        if ($this->trigger instanceof AbstractDecoratedTrigger) { // @phpstan-ignore-line
-            return \iterator_to_array($this->trigger->decorators()); // @phpstan-ignore-line
+        if ($this->trigger instanceof AbstractDecoratedTrigger) {
+            return \iterator_to_array($this->trigger->decorators());
         }
 
         return [];
@@ -50,9 +50,9 @@ final class TriggerInfo
     /**
      * @return Type<AbstractDecoratedTrigger>[]
      */
-    public function decoratorTypes(): array // @phpstan-ignore-line
+    public function decoratorTypes(): array
     {
-        return \array_map(static fn(AbstractDecoratedTrigger $t) => new Type($t), $this->decorators()); // @phpstan-ignore-line
+        return \array_map(static fn(AbstractDecoratedTrigger $t) => new Type($t), $this->decorators());
     }
 
     /**
