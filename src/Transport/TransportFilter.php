@@ -95,7 +95,7 @@ final class TransportFilter implements \IteratorAggregate, \Countable
                 }
 
                 return true;
-            }
+            },
         );
     }
 

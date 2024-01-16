@@ -43,7 +43,7 @@ final class QueuedMessage
     {
         return new Type(
             $this->envelope->getMessage(),
-            $this->envelope->last(DescriptionStamp::class)?->value
+            $this->envelope->last(DescriptionStamp::class)?->value,
         );
     }
 

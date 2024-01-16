@@ -188,7 +188,7 @@ final class MonitorCommand extends Command
                 $info->isCountable() ? \count($info) : '<comment>n/a</comment>',
                 \count($info->workers()),
             ],
-            $transports
+            $transports,
         ));
 
         $table->render();

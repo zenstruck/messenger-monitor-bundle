@@ -71,7 +71,7 @@ final class WorkerCache implements \IteratorAggregate
 
                 return [$metadata, $status, $id, $messagesHandled, $memoryUsage];
             },
-            \INF // force saving
+            \INF, // force saving
         );
     }
 

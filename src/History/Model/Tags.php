@@ -85,11 +85,11 @@ final class Tags implements \IteratorAggregate, \Countable, \Stringable
 
                     return \array_map(
                         static fn(int $i) => \implode(':', \array_slice($parts, 0, $i + 1)),
-                        \array_keys($parts)
+                        \array_keys($parts),
                     );
                 },
-                $this->value
-            )
+                $this->value,
+            ),
         );
 
         return $clone;

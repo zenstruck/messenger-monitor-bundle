@@ -42,7 +42,7 @@ final class MonitorCommandTest extends TestCase
     {
         $command = new MonitorCommand(
             new Workers(new WorkerCache(new NullAdapter())),
-            new Transports(new ServiceLocator([]), $this->workers())
+            new Transports(new ServiceLocator([]), $this->workers()),
         );
 
         TestCommand::for($command)
@@ -79,7 +79,7 @@ final class MonitorCommandTest extends TestCase
                 'second' => fn() => new CountableTransport(),
                 'third' => fn() => new ListableTransport(),
                 'fourth' => fn() => new CountableListableTransport(),
-            ]), $this->workers())
+            ]), $this->workers()),
         );
 
         TestCommand::for($command)

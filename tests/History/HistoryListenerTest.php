@@ -94,7 +94,7 @@ final class HistoryListenerTest extends TestCase
             'default',
             'id',
             $this->createMock(TriggerInterface::class),
-            new \DateTimeImmutable()
+            new \DateTimeImmutable(),
         ))]);
         $event = new WorkerMessageReceivedEvent($envelope, 'foo');
 

@@ -88,7 +88,7 @@ final class TransportsTest extends TestCase
                 'fourth' => fn() => new CountableListableTransport(),
                 'fifth' => fn() => new SyncTransport($this->createMock(MessageBusInterface::class)),
             ]),
-            new Workers(new WorkerCache(new NullAdapter()))
+            new Workers(new WorkerCache(new NullAdapter())),
         );
     }
 }

@@ -49,19 +49,19 @@ final class PeriodTest extends TestCase
 
         $this->assertEquals(
             [$now->modify('-1 hour'), null],
-            Period::IN_LAST_HOUR->timestamps()
+            Period::IN_LAST_HOUR->timestamps(),
         );
         $this->assertEquals(
             [$now->modify('-1 day'), null],
-            Period::IN_LAST_DAY->timestamps()
+            Period::IN_LAST_DAY->timestamps(),
         );
         $this->assertEquals(
             [$now->modify('-7 days'), null],
-            Period::IN_LAST_WEEK->timestamps()
+            Period::IN_LAST_WEEK->timestamps(),
         );
         $this->assertEquals(
             [$now->modify('-1 month'), null],
-            Period::IN_LAST_MONTH->timestamps()
+            Period::IN_LAST_MONTH->timestamps(),
         );
     }
 }
