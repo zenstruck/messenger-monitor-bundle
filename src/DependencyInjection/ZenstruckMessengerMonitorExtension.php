@@ -87,6 +87,11 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__.'/../../config'));
         $loader->load('services.php');
 
+        $cache = new Reference($mergedConfig['cache']['pool'], ContainerBuilder::NULL_ON_INVALID_REFERENCE);
+        if($cache === null) {
+            throw new LogicException(\sprintf('Cache pool "%s" not found.', $mergedConfig['cache']['pool']));
+        }
+
         $container->getDefinition('.zenstruck_messenger_monitor.worker_cache')
             ->setArgument(0, new Reference($mergedConfig['cache']['pool']))
             ->setArgument(1, $mergedConfig['cache']['expired_worker_ttl']);
