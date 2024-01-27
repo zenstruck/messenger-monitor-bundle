@@ -18,6 +18,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 use Symfony\Component\Mailer\Event\MessageEvent;
 use Symfony\Component\Scheduler\Schedule;
@@ -59,6 +60,17 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('cache')
+                    ->children()
+                        ->scalarNode('pool')
+                            ->info('Cache pool to use for worker cache.')
+                            ->defaultValue('cache.app')
+                        ->end()
+                        ->integerNode('expired_worker_ttl')
+                            ->info('How long to keep expired workers in cache (in seconds).')
+                            ->defaultValue(3600)
+                    ->end()
+                ->end()
             ->end()
         ;
 
@@ -74,6 +86,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
     {
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__.'/../../config'));
         $loader->load('services.php');
+
+        $container->getDefinition('.zenstruck_messenger_monitor.worker_cache')
+            ->setArgument(0, new Reference($mergedConfig['cache']['pool']))
+            ->setArgument(1, $mergedConfig['cache']['expired_worker_ttl']);
 
         if (\class_exists(Schedule::class)) {
             $loader->load('schedule.php');
