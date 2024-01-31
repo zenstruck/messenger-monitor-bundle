@@ -61,6 +61,7 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
                     ->end()
                 ->end()
                 ->arrayNode('cache')
+                    ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('pool')
                             ->info('Cache pool to use for worker cache.')
@@ -69,6 +70,7 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
                         ->integerNode('expired_worker_ttl')
                             ->info('How long to keep expired workers in cache (in seconds).')
                             ->defaultValue(3600)
+                        ->end()
                     ->end()
                 ->end()
             ->end()
@@ -86,11 +88,6 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
     {
         $loader = new PhpFileLoader($container, new FileLocator(__DIR__.'/../../config'));
         $loader->load('services.php');
-
-        $cache = new Reference($mergedConfig['cache']['pool'], ContainerBuilder::NULL_ON_INVALID_REFERENCE);
-        if($cache === null) {
-            throw new LogicException(\sprintf('Cache pool "%s" not found.', $mergedConfig['cache']['pool']));
-        }
 
         $container->getDefinition('.zenstruck_messenger_monitor.worker_cache')
             ->setArgument(0, new Reference($mergedConfig['cache']['pool']))
