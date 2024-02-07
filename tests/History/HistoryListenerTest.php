@@ -206,9 +206,60 @@ final class HistoryListenerTest extends TestCase
 
         $this->assertFalse($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
     }
+
+    /**
+     * @test
+     */
+    public function can_disable_monitoring_message_attribute_without_handler(): void
+    {
+        $listener = new HistoryListener($this->createMock(Storage::class), new ResultNormalizer(__DIR__));
+        $envelope = new Envelope(new DisabledMonitoringWithoutHandlerMessage(), [new MonitorStamp()]);
+        $event = new WorkerMessageReceivedEvent($envelope, 'foo');
+
+        $listener->receiveMessage($event);
+
+        $this->assertFalse($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
+    }
+
+    /**
+     * @test
+     */
+    public function handle_disable_monitoring_message_attribute_with_handler(): void
+    {
+        $listener = new HistoryListener($this->createMock(Storage::class), new ResultNormalizer(__DIR__));
+        $envelope = new Envelope(
+            new EnabledMonitoringWithHandlerMessage(),
+            [
+                new MonitorStamp(),
+                new HandledStamp(EnabledMonitoringWithHandlerMessageHandler::class, 'result'),
+            ],
+        );
+        $event = new WorkerMessageReceivedEvent($envelope, 'foo');
+
+        $listener->receiveMessage($event);
+
+        $this->assertTrue($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
+    }
 }
 
 #[DisableMonitoringStamp]
 class DisabledMonitoringMessage
 {
+}
+
+#[DisableMonitoringStamp(true)]
+class DisabledMonitoringWithoutHandlerMessage
+{
+}
+
+#[DisableMonitoringStamp(true)]
+class EnabledMonitoringWithHandlerMessage
+{
+}
+
+class EnabledMonitoringWithHandlerMessageHandler
+{
+    public function __invoke(EnabledMonitoringWithHandlerMessage $message): void
+    {
+    }
 }
