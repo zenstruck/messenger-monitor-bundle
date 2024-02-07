@@ -106,6 +106,16 @@ You may want to disable monitoring for certain messages. There are two ways to d
     {
     }
     ```
+3. You may want to disable monitoring for messages that are dispatched without any handler.
+You can do this by using the `DisableMonitoringStamp` with optional constructor argument `true`:
+    ```php
+    use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
+
+    #[DisableMonitoringStamp(onlyWhenNoHandler: true)]
+    class MyMessage
+    {
+    }
+    ```
 
 #### Description
 
