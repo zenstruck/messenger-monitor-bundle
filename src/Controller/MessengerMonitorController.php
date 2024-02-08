@@ -20,6 +20,7 @@ use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Scheduler\Generator\MessageContext;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
 use Zenstruck\Messenger\Monitor\History\Period;
@@ -174,17 +175,33 @@ abstract class MessengerMonitorController extends AbstractController
         }
 
         $task = $schedules->get($name)->task($id);
-        $message = $task->get()->getMessage();
 
-        if ($message instanceof RedispatchMessage) {
-            $message = $message->envelope;
+        $context = new MessageContext(
+            $schedules->get($name)->name(),
+            $task->id(),
+            $task->trigger()->get(),
+            new \DateTimeImmutable(),
+        );
+
+        // backwards compatibility with symfony/scheduler 6.3
+        // @phpstan-ignore-next-line
+        if (method_exists($task->get(), 'getMessage')) {
+            $messages = [$task->get()->getMessage()];
+        } else {
+            $messages = $task->get()->getMessages($context);
         }
 
-        $bus->dispatch($message, [
-            new TagStamp('manual'),
-            TagStamp::forSchedule($task),
-            new TransportNamesStamp($transport),
-        ]);
+        foreach ($messages as $message) {
+            if ($message instanceof RedispatchMessage) {
+                $message = $message->envelope;
+            }
+
+            $bus->dispatch($message, [
+                new TagStamp('manual'),
+                TagStamp::forSchedule($task),
+                new TransportNamesStamp($transport),
+            ]);
+        }
 
         return new Response(null, 204);
     }
