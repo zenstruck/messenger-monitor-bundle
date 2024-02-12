@@ -130,7 +130,7 @@ final class HistoryListener
             return new Results($results);
         }
 
-        foreach ($exception->getNestedExceptions() as $nested) {
+        foreach ($exception->getWrappedExceptions() as $nested) {
             $results[] = [
                 'exception' => $nested::class,
                 'message' => $nested->getMessage(),
