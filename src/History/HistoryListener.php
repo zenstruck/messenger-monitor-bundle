@@ -111,7 +111,15 @@ final class HistoryListener
             return $this->hasNoHandlers($envelope);
         }
 
-        if ($attributes = (new \ReflectionClass($envelope->getMessage()))->getAttributes(DisableMonitoringStamp::class)) {
+        $reflection = new \ReflectionClass($envelope->getMessage());
+        $attributes = [];
+
+        while ($reflection !== false && $attributes === []) {
+            $attributes = $reflection->getAttributes(DisableMonitoringStamp::class);
+            $reflection = $reflection->getParentClass();
+        }
+
+        if ($attributes !== []) {
             if ($attributes[0]->newInstance()->onlyWhenNoHandler === false) {
                 return true;
             }
