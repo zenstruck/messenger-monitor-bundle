@@ -277,4 +277,8 @@ zenstruck_messenger_monitor:
 
             # Your Doctrine entity class that extends "Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage"
             entity_class:         ~
+    cache:
+      pool: app.cache # If using workers in docker. You can use shared cache pool for all workers
+      expired_worker_ttl:  3600
+
 ```

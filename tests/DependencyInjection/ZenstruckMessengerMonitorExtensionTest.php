@@ -74,6 +74,19 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         $this->load(['storage' => ['orm' => ['entity_class' => ProcessedMessage::class]]]);
     }
 
+    /**
+     * @test
+     */
+    public function cache_config(): void
+    {
+        $this->load(['cache' => ['pool' => 'cache.app', 'expired_worker_ttl' => 7200]]);
+
+        $workerCacheDefinition = $this->container->getDefinition('.zenstruck_messenger_monitor.worker_cache');
+
+        $this->assertEquals('cache.app', (string) $workerCacheDefinition->getArgument(0));
+        $this->assertEquals(7200, $workerCacheDefinition->getArgument(1));
+    }
+
     protected function getContainerExtensions(): array
     {
         return [new ZenstruckMessengerMonitorExtension()];
