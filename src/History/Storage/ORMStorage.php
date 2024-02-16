@@ -173,10 +173,10 @@ final class ORMStorage implements Storage
         }
 
         foreach ($notTags as $i => $notTag) {
-            $expr = $tags === []
+            $expr = [] === $tags
                 ? $qb->expr()->orX(
                     $qb->expr()->isNull('m.tags'),
-                    $qb->expr()->notLike('m.tags', ':not_tag'.$i)
+                    $qb->expr()->notLike('m.tags', ':not_tag'.$i),
                 )
                 : 'm.tags NOT LIKE :not_tag'.$i;
 
