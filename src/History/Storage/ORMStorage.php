@@ -173,7 +173,14 @@ final class ORMStorage implements Storage
         }
 
         foreach ($notTags as $i => $notTag) {
-            $qb->andWhere('m.tags NOT LIKE :not_tag'.$i)->setParameter('not_tag'.$i, '%'.$notTag.'%');
+            $expr = $tags === []
+                ? $qb->expr()->orX(
+                    $qb->expr()->isNull('m.tags'),
+                    $qb->expr()->notLike('m.tags', ':not_tag'.$i)
+                )
+                : 'm.tags NOT LIKE :not_tag'.$i;
+
+            $qb->andWhere($expr)->setParameter('not_tag'.$i, '%'.$notTag.'%');
         }
 
         if ($order) {
