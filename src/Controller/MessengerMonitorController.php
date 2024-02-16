@@ -183,15 +183,7 @@ abstract class MessengerMonitorController extends AbstractController
             new \DateTimeImmutable(),
         );
 
-        // backwards compatibility with symfony/scheduler 6.3
-        // @phpstan-ignore-next-line
-        if (method_exists($task->get(), 'getMessage')) {
-            $messages = [$task->get()->getMessage()];
-        } else {
-            $messages = $task->get()->getMessages($context);
-        }
-
-        foreach ($messages as $message) {
+        foreach ($task->get()->getMessages($context) as $message) {
             if ($message instanceof RedispatchMessage) {
                 $message = $message->envelope;
             }

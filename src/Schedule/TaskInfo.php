@@ -55,12 +55,6 @@ final class TaskInfo
      */
     public function messages(): array
     {
-        // backwards compatibility with symfony/scheduler 6.3
-        // @phpstan-ignore-next-line
-        if (method_exists($this->task, 'getMessage')) {
-            return [new MessageInfo($this->task->getMessage())];
-        }
-
         $context = new MessageContext(
             $this->schedule->name(),
             $this->task->getId(),
