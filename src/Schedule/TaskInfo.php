@@ -65,7 +65,7 @@ final class TaskInfo
         $messages = $this->task->getMessages($context);
 
         $messagesInfo = [];
-        foreach($messages as $message) {
+        foreach ($messages as $message) {
             $messagesInfo[] = new MessageInfo($message);
         }
 
