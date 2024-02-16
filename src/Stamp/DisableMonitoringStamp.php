@@ -19,4 +19,7 @@ use Symfony\Component\Messenger\Stamp\StampInterface;
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class DisableMonitoringStamp implements StampInterface
 {
+    public function __construct(public readonly bool $onlyWhenNoHandler = false)
+    {
+    }
 }
