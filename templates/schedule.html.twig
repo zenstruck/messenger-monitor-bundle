@@ -61,24 +61,26 @@
                         <tr>
                             <td>{{ task.id }}</td>
                             <td>
-                                {% set message = task.message %}
-                                {% set type = message.type %}
+                                {%  for message in task.messages %}
+                                    {% set type = message.type %}
 
-                                <abbr title="{{ type }}">{{ type.shortName }}</abbr>
+                                    <abbr title="{{ type }}">{{ type.shortName }}</abbr>
 
-                                {% if type.description %}
-                                    <br><small class="text-secondary">{{ type.description }}</small>
-                                {% endif %}
+                                    {% if type.description %}
+                                        <br><small class="text-secondary">{{ type.description }}</small>
+                                    {% endif %}
 
-                                {% if message.redispatch %}
-                                    <br>
-                                    <small>
-                                        Dispatched on:
-                                        {% for t in message.redispatchTransports %}
-                                            <span class="badge text-bg-secondary">{{ t }}</span>
-                                        {% endfor %}
-                                    </small>
-                                {% endif %}
+                                    {% if message.redispatch %}
+                                        <br>
+                                        <small>
+                                            Dispatched on:
+                                            {% for t in message.redispatchTransports %}
+                                                <span class="badge text-bg-secondary">{{ t }}</span>
+                                            {% endfor %}
+                                        </small>
+                                    {% endif %}
+                                    {% if not loop.last %}<hr class="border-secondary-subtle my-1">{% endif %}
+                                {% endfor %}
                             </td>
                             {% set trigger = task.trigger %}
                             <td>
