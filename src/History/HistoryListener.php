@@ -104,7 +104,7 @@ final class HistoryListener
     private function isMonitoringDisabled(Envelope $envelope): bool
     {
         if ($stamp = $envelope->last(DisableMonitoringStamp::class)) {
-            if ($stamp->onlyWhenNoHandler === false) {
+            if (false === $stamp->onlyWhenNoHandler) {
                 return true;
             }
 
@@ -114,13 +114,13 @@ final class HistoryListener
         $reflection = new \ReflectionClass($envelope->getMessage());
         $attributes = [];
 
-        while ($reflection !== false && $attributes === []) {
+        while (false !== $reflection && [] === $attributes) {
             $attributes = $reflection->getAttributes(DisableMonitoringStamp::class);
             $reflection = $reflection->getParentClass();
         }
 
-        if ($attributes !== []) {
-            if ($attributes[0]->newInstance()->onlyWhenNoHandler === false) {
+        if ([] !== $attributes) {
+            if (false === $attributes[0]->newInstance()->onlyWhenNoHandler) {
                 return true;
             }
 
@@ -159,6 +159,6 @@ final class HistoryListener
 
     private function hasNoHandlers(Envelope $envelope): bool
     {
-        return $envelope->all(HandledStamp::class) === [];
+        return [] === $envelope->all(HandledStamp::class);
     }
 }
