@@ -22,7 +22,7 @@
         "doctrine/doctrine-bundle": "^2.10",
         "doctrine/orm": "^2.15",
         "knplabs/knp-time-bundle": "^1.20|^2.0",
-        "liip/monitor-bundle": "3.x-dev",
+        "liip/monitor-bundle": "^3.0",
         "lorisleiva/cron-translator": "^0.4.3",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3|^5.0",
         "phpstan/phpstan": "^1.4",
