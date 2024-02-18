@@ -22,7 +22,7 @@
         "doctrine/doctrine-bundle": "^2.10",
         "doctrine/orm": "^2.15",
         "knplabs/knp-time-bundle": "^1.20|^2.0",
-        "liip/monitor-bundle": "dev-feat/ohdear",
+        "liip/monitor-bundle": "3.x-dev",
         "lorisleiva/cron-translator": "^0.4.3",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3|^5.0",
         "phpstan/phpstan": "^1.4",
@@ -55,11 +55,5 @@
         "psr-4": { "Zenstruck\\Messenger\\Monitor\\Tests\\": ["tests/"] }
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
-    "repositories": {
-        "liip/LiipMonitorBundle": {
-            "type": "vcs",
-            "url": "git@github.com:Chris53897/LiipMonitorBundle.git"
-        }
-    }
+    "prefer-stable": true
 }
