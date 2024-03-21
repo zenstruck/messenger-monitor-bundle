@@ -80,6 +80,16 @@ final class ORMStorage implements Storage
         $om->flush();
     }
 
+    public function availableMessageTypes(Specification $specification): Collection
+    {
+        $qb = $this->queryBuilderFor($specification->ignoreMessageType(), false)
+            ->select('DISTINCT m.type')
+            ->orderBy('m.type', 'ASC')
+        ;
+
+        return (new EntityResult($qb))->asString();
+    }
+
     public function averageWaitTime(Specification $specification): ?float
     {
         $qb = $this

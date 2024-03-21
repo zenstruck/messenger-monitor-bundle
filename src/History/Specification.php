@@ -188,6 +188,14 @@ final class Specification
         return $clone;
     }
 
+    public function ignoreMessageType(): self
+    {
+        $clone = clone $this;
+        $clone->messageType = null;
+
+        return $clone;
+    }
+
     /**
      * @return array{
      *     from: ?\DateTimeImmutable,
@@ -219,6 +227,11 @@ final class Specification
     public function snapshot(Storage $storage): Snapshot
     {
         return new Snapshot($storage, $this);
+    }
+
+    public function filters(Storage $storage): Filters
+    {
+        return new Filters($storage, $this);
     }
 
     private static function parseDate(string|\DateTimeImmutable|null $value): ?\DateTimeImmutable

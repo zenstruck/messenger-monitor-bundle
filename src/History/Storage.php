@@ -39,4 +39,9 @@ interface Storage
     public function averageHandlingTime(Specification $specification): ?float;
 
     public function count(Specification $specification): int;
+
+    /**
+     * @return Collection<int,string>
+     */
+    public function availableMessageTypes(Specification $specification): Collection;
 }
