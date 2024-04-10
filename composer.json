@@ -20,7 +20,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^2.10",
-        "doctrine/orm": "^2.15",
+        "doctrine/orm": "^2.15|^3.1",
         "knplabs/knp-time-bundle": "^1.20|^2.0",
         "lorisleiva/cron-translator": "^0.4.3",
         "matthiasnoback/symfony-dependency-injection-test": "^4.3|^5.0",
