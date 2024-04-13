@@ -35,8 +35,6 @@ final class ORMStorage implements Storage
     /** @var EntityRepository<T> */
     private EntityRepository $repository;
 
-    private string $idProperty;
-
     /**
      * @param class-string<T> $entityClass
      */
@@ -95,7 +93,6 @@ final class ORMStorage implements Storage
         $qb = $this
             ->queryBuilderFor($specification)
             ->select('AVG(m.receivedAt - m.dispatchedAt)')
-            ->groupBy('m.'.$this->idProperty())
         ;
 
         return (new EntityResult($qb))->asFloat()->first();
@@ -106,7 +103,6 @@ final class ORMStorage implements Storage
         $qb = $this
             ->queryBuilderFor($specification)
             ->select('AVG(m.finishedAt - m.receivedAt)')
-            ->groupBy('m.'.$this->idProperty())
         ;
 
         return (new EntityResult($qb))->asFloat()->first();
@@ -117,7 +113,6 @@ final class ORMStorage implements Storage
         $qb = $this
             ->queryBuilderFor($specification)
             ->select('COUNT(m.finishedAt)')
-            ->groupBy('m.'.$this->idProperty())
         ;
 
         return (new EntityResult($qb))->asInt()->first(0);
@@ -198,22 +193,5 @@ final class ORMStorage implements Storage
         }
 
         return $qb;
-    }
-
-    private function idProperty(): string
-    {
-        if (isset($this->idProperty)) {
-            return $this->idProperty;
-        }
-
-        if (!$ids = $this->om()->getClassMetadata($this->entityClass)->getIdentifierFieldNames()) {
-            throw new \LogicException(\sprintf('"%s" must have an identifier.', $this->entityClass));
-        }
-
-        if (1 !== \count($ids)) {
-            throw new \LogicException(\sprintf('"%s" must have a single identifier.', $this->entityClass));
-        }
-
-        return $this->idProperty = $ids[0];
     }
 }
