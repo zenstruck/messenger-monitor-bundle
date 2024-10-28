@@ -18,6 +18,7 @@ use Symfony\Component\Console\Messenger\RunCommandMessage;
 use Symfony\Component\Process\Exception\RunProcessFailedException;
 use Symfony\Component\Process\Messenger\RunProcessMessage;
 use Symfony\Component\Process\Messenger\RunProcessMessageHandler;
+use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -142,14 +143,16 @@ final class ResultNormalizerTest extends TestCase
         $normalizer = new ResultNormalizer(__DIR__);
 
         try {
-            (new RunProcessMessageHandler())(new RunProcessMessage(['invalid']));
+            (new RunProcessMessageHandler())(new RunProcessMessage([
+                (new PhpExecutableFinder())->find(), '-r', "file_put_contents('php://stdout', 'STANDARD') && file_put_contents('php://stderr', 'ERROR') && exit(127);",
+            ]));
         } catch (RunProcessFailedException $e) {
             $result = $normalizer->normalize($e);
 
             $this->assertStringContainsString(__FUNCTION__, $result['stack_trace']);
             $this->assertSame(127, $result['exit_code']);
-            $this->assertSame('', $result['output']);
-            $this->assertStringContainsString('exec: invalid: not found', $result['error_output']);
+            $this->assertSame('STANDARD', $result['output']);
+            $this->assertSame('ERROR', $result['error_output']);
 
             return;
         }
