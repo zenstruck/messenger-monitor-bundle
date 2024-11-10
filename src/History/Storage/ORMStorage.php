@@ -92,7 +92,7 @@ final class ORMStorage implements Storage
     {
         $qb = $this
             ->queryBuilderFor($specification, false)
-            ->select('AVG(m.receivedAt - m.dispatchedAt)')
+            ->select('AVG(m.waitTime)')
         ;
 
         return (new EntityResult($qb))->asFloat()->first();
@@ -102,7 +102,7 @@ final class ORMStorage implements Storage
     {
         $qb = $this
             ->queryBuilderFor($specification, false)
-            ->select('AVG(m.finishedAt - m.receivedAt)')
+            ->select('AVG(m.handleTime)')
         ;
 
         return (new EntityResult($qb))->asFloat()->first();

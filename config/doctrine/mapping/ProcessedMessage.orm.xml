@@ -11,6 +11,8 @@
         <field name="dispatchedAt" column="dispatched_at" type="datetime_immutable" />
         <field name="receivedAt" column="received_at" type="datetime_immutable" />
         <field name="finishedAt" column="finished_at" type="datetime_immutable" />
+        <field name="waitTime" column="wait_time" type="integer" />
+        <field name="handleTime" column="handle_time" type="integer" />
         <field name="memoryUsage" column="memory_usage" type="integer" />
         <field name="transport" column="transport" />
         <field name="tags" column="tags" nullable="true" />

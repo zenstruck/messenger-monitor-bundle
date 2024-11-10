@@ -37,6 +37,8 @@ abstract class ProcessedMessage
     private int $memoryUsage;
     private string $transport;
     private ?string $tags;
+    private int $waitTime;
+    private int $handleTime;
 
     /** @var class-string<\Throwable> */
     private ?string $failureType = null;
@@ -61,6 +63,8 @@ abstract class ProcessedMessage
         $this->transport = $monitorStamp->transport();
         $this->tags = $tags->count() ? (string) $tags : null;
         $this->results = $results;
+        $this->waitTime = \max(0, $this->receivedAt->getTimestamp() - $this->dispatchedAt->getTimestamp());
+        $this->handleTime = \max(0, $this->finishedAt->getTimestamp() - $this->receivedAt->getTimestamp());
 
         if ($retryStamp = $envelope->last(RedeliveryStamp::class)) {
             $this->attempt += $retryStamp->getRetryCount();
@@ -143,17 +147,17 @@ abstract class ProcessedMessage
 
     final public function timeInQueue(): int
     {
-        return \max(0, $this->receivedAt->getTimestamp() - $this->dispatchedAt->getTimestamp());
+        return $this->waitTime;
     }
 
     final public function timeToHandle(): int
     {
-        return \max(0, $this->finishedAt->getTimestamp() - $this->receivedAt->getTimestamp());
+        return $this->handleTime;
     }
 
     final public function timeToProcess(): int
     {
-        return \max(0, $this->finishedAt->getTimestamp() - $this->dispatchedAt->getTimestamp());
+        return $this->waitTime + $this->handleTime;
     }
 
     final public function memoryUsage(): Bytes
