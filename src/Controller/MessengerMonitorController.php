@@ -48,6 +48,28 @@ abstract class MessengerMonitorController extends AbstractController
         ]);
     }
 
+    #[Route('/statistics', name: 'zenstruck_messenger_monitor_statistics')]
+    public function statistics(
+        Request $request,
+        ViewHelper $helper,
+    ): Response {
+        if (!$helper->storage) {
+            throw new \LogicException('Storage must be configured to use the dashboard.');
+        }
+
+        $period = Period::parse($request->query->getString('period'));
+        $specification = Specification::create([ // @phpstan-ignore-line
+            'period' => $period,
+        ]);
+
+        return $this->render('@ZenstruckMessengerMonitor/statistics.html.twig', [
+            'helper' => $helper,
+            'periods' => [...Period::inLastCases(), ...Period::absoluteCases()],
+            'period' => $period,
+            'statistics' => $specification->snapshot($helper->storage)->perMessageStatistics(),
+        ]);
+    }
+
     #[Route('/history', name: 'zenstruck_messenger_monitor_history')]
     public function history(
         Request $request,

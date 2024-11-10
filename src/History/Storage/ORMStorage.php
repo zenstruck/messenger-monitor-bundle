@@ -57,6 +57,19 @@ final class ORMStorage implements Storage
         return $this->queryBuilderFor($specification, order: false)->delete()->getQuery()->execute();
     }
 
+    public function foo(Specification $specification): int
+    {
+        $qb = $this->queryBuilderFor($specification, false)
+            ->select('m.type')
+            ->addSelect('COUNT(m.type) as count')
+            ->addSelect('AVG(m.receivedAt - m.dispatchedAt) as avg_wait_time')
+            ->addSelect('AVG(m.finishedAt - m.receivedAt) as avg_handling_time')
+            ->groupBy('m.type')
+        ;
+
+        dd($qb->getQuery()->execute());
+    }
+
     public function save(Envelope $envelope, Results $results, ?\Throwable $exception = null): void
     {
         $om = $this->om();
