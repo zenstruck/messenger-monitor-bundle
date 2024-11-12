@@ -49,6 +49,17 @@
                     </div>
                 </div>
             {% else %}
+                {% set queuedMessages = transport.list(limit) %}
+
+                {% if queuedMessages|length == limit %}
+                    <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+                        <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
+                        <div>
+                            Only showing the oldest {{ limit }} messages.
+                        </div>
+                    </div>
+                {% endif %}
+
                 <div class="table-responsive">
                     <table class="table card-table table-striped text-nowrap align-middle">
                         <thead>
@@ -63,7 +74,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                            {% for queued in transport.list %}
+                            {% for queued in queuedMessages %}
                                 <tr>
                                     <td>
                                         <abbr title="{{ queued.message }}">{{ queued.message.shortName }}</abbr>

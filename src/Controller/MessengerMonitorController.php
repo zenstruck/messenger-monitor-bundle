@@ -129,7 +129,7 @@ abstract class MessengerMonitorController extends AbstractController
     #[Route('/transport/{name}', name: 'zenstruck_messenger_monitor_transport', defaults: ['name' => null])]
     public function transports(
         ViewHelper $helper,
-
+        Request $request,
         ?string $name = null,
     ): Response {
         $countable = $helper->transports->filter()->countable();
@@ -146,6 +146,7 @@ abstract class MessengerMonitorController extends AbstractController
             'helper' => $helper,
             'transports' => $countable,
             'transport' => $helper->transports->get($name),
+            'limit' => $request->query->getInt('limit', 50),
         ]);
     }
 
