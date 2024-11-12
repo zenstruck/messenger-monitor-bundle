@@ -66,7 +66,7 @@ abstract class MessengerMonitorController extends AbstractController
             'helper' => $helper,
             'periods' => [...Period::inLastCases(), ...Period::absoluteCases()],
             'period' => $period,
-            'statistics' => $specification->snapshot($helper->storage)->perMessageStatistics(),
+            'metrics' => $specification->snapshot($helper->storage)->perMessageTypeMetrics(),
         ]);
     }
 

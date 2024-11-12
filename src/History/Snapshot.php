@@ -12,8 +12,8 @@
 namespace Zenstruck\Messenger\Monitor\History;
 
 use Zenstruck\Collection;
+use Zenstruck\Messenger\Monitor\History\Model\MessageTypeMetric;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
-use Zenstruck\Messenger\Monitor\Type;
 
 use function Symfony\Component\Clock\now;
 
@@ -46,15 +46,11 @@ final class Snapshot
     }
 
     /**
-     * @return Collection<int, array{Type<object>,Snapshot}>
+     * @return Collection<int,MessageTypeMetric>
      */
-    public function perMessageStatistics(): iterable
+    public function perMessageTypeMetrics(): iterable
     {
-        return $this->storage
-            ->availableMessageTypes($this->specification)
-            ->eager()
-            ->map(fn(string $class) => [new Type($class), new Snapshot($this->storage, $this->specification->for($class))])
-        ;
+        return $this->storage->perMessageTypeMetrics($this->specification);
     }
 
     public function totalCount(): int
@@ -121,7 +117,7 @@ final class Snapshot
         return $this->handledPer(60 * 60 * 24);
     }
 
-    private function totalSeconds(): int
+    public function totalSeconds(): int
     {
         if (isset($this->totalSeconds)) {
             return $this->totalSeconds;

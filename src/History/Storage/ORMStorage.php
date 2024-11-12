@@ -18,6 +18,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Messenger\Envelope;
 use Zenstruck\Collection;
 use Zenstruck\Collection\Doctrine\ORM\EntityResult;
+use Zenstruck\Messenger\Monitor\History\Model\MessageTypeMetric;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\Specification;
@@ -57,17 +58,32 @@ final class ORMStorage implements Storage
         return $this->queryBuilderFor($specification, order: false)->delete()->getQuery()->execute();
     }
 
-    public function foo(Specification $specification): int
+    public function perMessageTypeMetrics(Specification $specification): Collection
     {
         $qb = $this->queryBuilderFor($specification, false)
             ->select('m.type')
-            ->addSelect('COUNT(m.type) as count')
-            ->addSelect('AVG(m.receivedAt - m.dispatchedAt) as avg_wait_time')
-            ->addSelect('AVG(m.finishedAt - m.receivedAt) as avg_handling_time')
+            ->addSelect('COUNT(m.type) as total_count')
+            ->addSelect('COUNT(m.failureType) as failure_count')
+            ->addSelect('AVG(m.waitTime) as avg_wait_time')
+            ->addSelect('AVG(m.handleTime) as avg_handling_time')
             ->groupBy('m.type')
         ;
 
-        dd($qb->getQuery()->execute());
+        $totalSeconds = $specification->snapshot($this)->totalSeconds();
+
+        return (new EntityResult($qb))
+            ->as(function(array $data) use ($totalSeconds) {
+                return new MessageTypeMetric(
+                    $data['type'],
+                    $data['total_count'],
+                    $data['failure_count'],
+                    $data['avg_wait_time'],
+                    $data['avg_handling_time'],
+                    $totalSeconds,
+                );
+            })
+            ->eager() // bug in zenstruck/collection: https://github.com/zenstruck/collection/issues/47
+        ;
     }
 
     public function save(Envelope $envelope, Results $results, ?\Throwable $exception = null): void

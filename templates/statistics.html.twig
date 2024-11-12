@@ -39,7 +39,7 @@
             Per-Message Statistics
         </div>
 
-        {% if not statistics|length %}
+        {% if not metrics|length %}
             <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
                 <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
                 <div>
@@ -62,19 +62,17 @@
                 </tr>
                 </thead>
                 <tbody>
-                    {% for stat in statistics %}
-                        {% set type = stat.0 %}
-                        {% set snapshot = stat.1 %}
+                    {% for metric in metrics %}
                         <tr>
-                            <td class="text-start"><abbr title="{{ type.class }}">{{ type.shortName }}</abbr></td>
+                            <td class="text-start"><abbr title="{{ metric.type }}">{{ metric.type.shortName }}</abbr></td>
                             <td class="text-start">
-                                {{ snapshot.totalCount }}
-                                {% if snapshot.failureCount %}
-                                    <em>(<strong class="text-danger">{{ snapshot.failureCount }}</strong> failures)</em>
+                                {{ metric.totalCount }}
+                                {% if metric.failureCount %}
+                                    <em>(<strong class="text-danger">{{ metric.failureCount }}</strong> failures)</em>
                                 {% endif %}
                             </td>
                             <td>
-                                {% set failRate = (snapshot.failRate * 100)|round %}
+                                {% set failRate = (metric.failRate * 100)|round %}
                                 {% if failRate < 5 %}
                                     <span class="text-success">{{ failRate }}%</span>
                                 {% elseif failRate < 10 %}
@@ -85,26 +83,26 @@
                             </td>
                             <td>
                                 {% if helper.canFormatDuration %}
-                                    <abbr title="{{ snapshot.averageWaitTime|round }}s">{{ helper.timeFormatter.formatDuration(snapshot.averageWaitTime) }}</abbr>
+                                    <abbr title="{{ metric.averageWaitTime|round }}s">{{ helper.timeFormatter.formatDuration(metric.averageWaitTime) }}</abbr>
                                 {% else %}
-                                    {{ snapshot.averageWaitTime|round }}s
+                                    {{ metric.averageWaitTime|round }}s
                                 {% endif %}
                             </td>
                             <td>
                                 {% if helper.canFormatDuration %}
-                                    <abbr title="{{ snapshot.averageHandlingTime|round }}s">{{ helper.timeFormatter.formatDuration(snapshot.averageHandlingTime) }}</abbr>
+                                    <abbr title="{{ metric.averageHandlingTime|round }}s">{{ helper.timeFormatter.formatDuration(metric.averageHandlingTime) }}</abbr>
                                 {% else %}
-                                    {{ snapshot.averageHandlingTime|round }}s
+                                    {{ metric.averageHandlingTime|round }}s
                                 {% endif %}
                             </td>
                             <td>
-                                {{ snapshot.handledPerMinute|round(2) }}
+                                {{ metric.handledPerMinute|round(2) }}
                             </td>
                             <td>
-                                {{ snapshot.handledPerHour|round(2) }}
+                                {{ metric.handledPerHour|round(2) }}
                             </td>
                             <td>
-                                {{ snapshot.handledPerDay|round(2) }}
+                                {{ metric.handledPerDay|round(2) }}
                             </td>
                         </tr>
                     {% endfor %}

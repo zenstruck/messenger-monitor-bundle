@@ -13,6 +13,7 @@ namespace Zenstruck\Messenger\Monitor\History;
 
 use Symfony\Component\Messenger\Envelope;
 use Zenstruck\Collection;
+use Zenstruck\Messenger\Monitor\History\Model\MessageTypeMetric;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
 
@@ -39,6 +40,11 @@ interface Storage
     public function averageHandlingTime(Specification $specification): ?float;
 
     public function count(Specification $specification): int;
+
+    /**
+     * @return Collection<int,MessageTypeMetric>
+     */
+    public function perMessageTypeMetrics(Specification $specification): Collection;
 
     /**
      * @return Collection<int,class-string>
