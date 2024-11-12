@@ -27,8 +27,8 @@ final class MessageTypeMetric
         string $class,
         public readonly int $totalCount,
         public readonly int $failureCount,
-        public readonly int $averageWaitTime,
-        public readonly int $averageHandlingTime,
+        public readonly float $averageWaitTime,
+        public readonly float $averageHandlingTime,
         private readonly int $totalSeconds,
     ) {
         $this->type = new Type($class);

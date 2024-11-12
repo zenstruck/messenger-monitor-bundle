@@ -60,7 +60,7 @@ final class ORMStorage implements Storage
 
     public function perMessageTypeMetrics(Specification $specification): Collection
     {
-        $qb = $this->queryBuilderFor($specification, false)
+        $qb = $this->queryBuilderFor($specification->ignoreMessageType(), false)
             ->select('m.type')
             ->addSelect('COUNT(m.type) as total_count')
             ->addSelect('COUNT(m.failureType) as failure_count')
@@ -77,8 +77,8 @@ final class ORMStorage implements Storage
                     $data['type'],
                     $data['total_count'],
                     $data['failure_count'],
-                    $data['avg_wait_time'],
-                    $data['avg_handling_time'],
+                    (float) $data['avg_wait_time'],
+                    (float) $data['avg_handling_time'],
                     $totalSeconds,
                 );
             })
