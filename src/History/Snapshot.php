@@ -48,7 +48,7 @@ final class Snapshot
     /**
      * @return Collection<int,MessageTypeMetric>
      */
-    public function perMessageTypeMetrics(): iterable
+    public function perMessageTypeMetrics(): Collection
     {
         return $this->storage->perMessageTypeMetrics($this->specification);
     }
