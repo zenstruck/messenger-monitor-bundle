@@ -15,7 +15,7 @@ jobs:
         php: [ 8.1, 8.2, 8.3, 8.4 ]
         deps: [ highest ]
         symfony: [ 6.4.*, 7.1.*, 7.2.* ]
-        database: [ mysql, sqlite, pgsql ]
+        database: [ mysql, sqlite, pgsql, mariadb ]
         include:
           - php: 8.1
             deps: lowest
@@ -28,6 +28,17 @@ jobs:
             symfony: 7.2.*
 
     services:
+      mariadb:
+        image: ${{ contains(matrix.database, 'mariadb') && 'mariadb:10.11' || '' }}
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: db
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized || mysqladmin ping --protocol tcp --silent"
+
+        ports:
+          - "3306:3306"
+
       postgres:
         image: ${{ contains(matrix.database, 'pgsql') && 'postgres:15' || '' }}
         env:
@@ -43,7 +54,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: ${{ contains(matrix.database, 'mysql') && 'mysql://root:root@localhost:3306/db?serverVersion=5.7.42' || contains(matrix.database, 'pgsql') && 'postgresql://root:root@localhost:5432/db?serverVersion=15' || contains(matrix.database, 'sqlite') && 'sqlite:///%kernel.project_dir%/var/data.db' || '' }}
+      DATABASE_URL: ${{ contains(matrix.database, 'mysql') && 'mysql://root:root@localhost:3306/db?serverVersion=5.7.42' || contains(matrix.database, 'pgsql') && 'postgresql://root:root@localhost:5432/db?serverVersion=15' || contains(matrix.database, 'sqlite') && 'sqlite:///%kernel.project_dir%/var/data.db' || contains(matrix.database, 'mariadb') && 'mysql://root@127.0.0.1:3306/db?serverVersion=10.11.2-MariaDB&charset=utf8mb4' || '' }}
 
     steps:
       - name: Checkout code
