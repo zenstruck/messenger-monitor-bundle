@@ -131,7 +131,7 @@
             {{ include('@ZenstruckMessengerMonitor/components/snapshot.html.twig') }}
         </div>
         <div class="col-md-8 col-lg-9">
-            {% set paginator = snapshot.messages.paginate(app.request.query.getInt('page', 1), 10) %}
+            {% set paginator = snapshot.messages.paginate(app.request.query.getInt('page', 1), 10).strict %}
             {% embed '@ZenstruckMessengerMonitor/components/messages.html.twig' with {messages: paginator} %}
                 {% block card_header %}
                     Messages
