@@ -41,7 +41,7 @@ final class Result
 
     public function handler(): ?Type
     {
-        if (!isset($this->data['handler'])) {
+        if (!isset($this->data['handler']) || !\is_string($this->data['handler'])) {
             return null;
         }
 

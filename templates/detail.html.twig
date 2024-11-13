@@ -130,17 +130,21 @@
                     <div class="card-header">
                         {% if result.isFailure %}
                             <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom text-danger" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                            <abbr title="{{ result.failure }}"><code>{{ result.failure.shortName }}</code></abbr>
                         {% else %}
                             <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom text-success" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
+                        {% endif %}
+                        {% set handler = result.handler|default %}
+                        {% if handler %}
                             <code>
-                                <abbr title="{{ result.handler }}">{{ result.handler.shortName }}</abbr>{% if result.handler.description %}::{{ result.handler.description }}(){% endif %}
+                                <abbr title="{{ handler }}">{{ handler.shortName }}</abbr>{% if handler.description %}::{{ handler.description }}(){% endif %}
                             </code>
-                            Results
+                        {% else %}
+                            <small class="text-secondary"><em>Unknown Handler</em></small>
                         {% endif %}
                     </div>
                     {% if result.isFailure %}
                         <div class="alert card-alert alert-danger mb-0">
+                            <abbr title="{{ result.failure }}"><code>{{ result.failure.shortName }}</code></abbr>:
                             {{ result.failure.description }}
                         </div>
                     {% endif %}
