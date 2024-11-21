@@ -11,6 +11,7 @@ use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Worker\WorkerListener;
 use Zenstruck\Messenger\Monitor\Workers;
+use Zenstruck\Messenger\Monitor\Check\WorkerRunningCheck;
 
 return static function (ContainerConfigurator $container): void {
     $container->services()
@@ -58,5 +59,11 @@ return static function (ContainerConfigurator $container): void {
                 service('security.csrf.token_manager')->nullOnInvalid(),
             ])
             ->alias(ViewHelper::class, 'zenstruck_messenger_monitor.view_helper')
+
+        ->set('zenstruck_messenger_monitor.worker_running_check', WorkerRunningCheck::class)
+            ->args([
+                service('.zenstruck_messenger_monitor.worker_cache'),
+            ])
+            ->alias(WorkerRunningCheck::class, 'zenstruck_messenger_monitor.worker_running_check')
     ;
 };
