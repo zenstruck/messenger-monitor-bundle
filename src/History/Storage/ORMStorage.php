@@ -82,7 +82,6 @@ final class ORMStorage implements Storage
                     $totalSeconds,
                 );
             })
-            ->eager() // bug in zenstruck/collection: https://github.com/zenstruck/collection/issues/47
         ;
     }
 
