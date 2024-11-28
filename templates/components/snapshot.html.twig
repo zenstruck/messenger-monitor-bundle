@@ -35,13 +35,13 @@
             <tr>
                 <th class="text-end">Average Wait Time</th>
                 <td>
-                    <abbr title="{{ snapshot.averageWaitTime|round }}s">{{ helper.formatDuration(snapshot.averageWaitTime) }}</abbr>
+                    <abbr title="{{ (snapshot.averageWaitTime / 1000)|round(3) }}s">{{ helper.formatDuration(snapshot.averageWaitTime) }}</abbr>
                 </td>
             </tr>
             <tr>
                 <th class="text-end">Average Handling Time</th>
                 <td>
-                    <abbr title="{{ snapshot.averageHandlingTime|round }}s">{{ helper.formatDuration(snapshot.averageHandlingTime) }}</abbr>
+                    <abbr title="{{ (snapshot.averageHandlingTime / 1000)|round(3) }}s">{{ helper.formatDuration(snapshot.averageHandlingTime) }}</abbr>
                 </td>
             </tr>
             <tr>

@@ -82,10 +82,10 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <abbr title="{{ metric.averageWaitTime|round }}s">{{ helper.formatDuration(metric.averageWaitTime) }}</abbr>
+                                <abbr title="{{ (metric.averageWaitTime / 1000)|round(3) }}s">{{ helper.formatDuration(metric.averageWaitTime) }}</abbr>
                             </td>
                             <td>
-                                <abbr title="{{ metric.averageHandlingTime|round }}s">{{ helper.formatDuration(metric.averageHandlingTime) }}</abbr>
+                                <abbr title="{{ (metric.averageHandlingTime / 1000)|round(3) }}s">{{ helper.formatDuration(metric.averageHandlingTime) }}</abbr>
                             </td>
                             <td>
                                 {{ metric.handledPerMinute|round(2) }}

@@ -47,7 +47,7 @@
                             <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
                         </td>
                         <td class="text-center">
-                            <abbr title="{{ message.timeToHandle }}s">{{ helper.formatDuration(message.timeToHandle) }}</abbr>
+                            <abbr title="{{ (message.timeToHandle / 1000)|round(3) }}s">{{ helper.formatDuration(message.timeToHandle) }}</abbr>
                         </td>
                         <td class="text-center">
                             {{ message.memoryUsage }}

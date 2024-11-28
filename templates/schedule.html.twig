@@ -131,7 +131,7 @@
                             </td>
                             <td class="text-center">
                                 {% if message %}
-                                    <abbr title="{{ message.timeToHandle }}s">{{ helper.formatDuration(message.timeToHandle) }}</abbr>
+                                    <abbr title="{{ (message.timeToHandle / 1000)|round(3) }}s">{{ helper.formatDuration(message.timeToHandle) }}</abbr>
                                 {% else %}
                                     <em class="text-secondary">-</em>
                                 {% endif %}
