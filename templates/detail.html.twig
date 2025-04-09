@@ -141,7 +141,7 @@
                                         <code>null</code>
                                     {% elseif value is iterable %}
                                         <pre class="mb-0" style="white-space: pre; max-height: 340px; overflow: auto;">{{ value|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
-                                    {% elseif value matches "\/\n/" %}
+                                    {% elseif value matches "/\n/" %}
                                         <pre class="mb-0" style="white-space: pre; max-height: 340px; overflow: auto;">{{ value }}</pre>
                                     {% else %}
                                         <code>{{ value }}</code>
