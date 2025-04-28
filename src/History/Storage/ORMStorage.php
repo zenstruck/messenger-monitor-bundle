@@ -90,6 +90,7 @@ final class ORMStorage implements Storage
 
         $om->persist($object);
         $om->flush();
+        $om->clear();
     }
 
     public function delete(mixed $id): void
@@ -102,6 +103,7 @@ final class ORMStorage implements Storage
 
         $om->remove($message);
         $om->flush();
+        $om->clear();
     }
 
     public function availableMessageTypes(Specification $specification): Collection

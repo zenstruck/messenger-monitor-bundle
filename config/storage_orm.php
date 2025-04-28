@@ -45,8 +45,8 @@ return static function (ContainerConfigurator $container): void {
                 service('zenstruck_messenger_monitor.history.storage'),
                 service('.zenstruck_messenger_monitor.history.result_normalizer'),
             ])
-            ->tag('kernel.event_listener', ['method' => 'handleSuccess', 'event' => WorkerMessageHandledEvent::class])
-            ->tag('kernel.event_listener', ['method' => 'handleFailure', 'event' => WorkerMessageFailedEvent::class])
+            ->tag('kernel.event_listener', ['method' => 'handleSuccess', 'event' => WorkerMessageHandledEvent::class, 'priority' => -100])
+            ->tag('kernel.event_listener', ['method' => 'handleFailure', 'event' => WorkerMessageFailedEvent::class, 'priority' => -100])
 
         ->set('.zenstruck_messenger_monitor.command.purge', PurgeCommand::class)
             ->args([
