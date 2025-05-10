@@ -50,7 +50,9 @@ final class ORMStorage implements Storage
 
     public function filter(Specification $specification): Collection
     {
-        return new EntityResult($this->queryBuilderFor($specification));
+        return (new EntityResult($this->queryBuilderFor($specification)))
+            ->disableOutputWalkers()
+        ;
     }
 
     public function purge(Specification $specification): int
