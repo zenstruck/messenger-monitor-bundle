@@ -197,14 +197,14 @@ abstract class MessengerMonitorController extends AbstractController
             'schedule' => $helper->schedules->get($name),
             'transports' => $helper->transports->filter()->excludeSync()->excludeSchedules()->excludeFailed(),
             'cron_humanizer' => new class {
-                public function humanize(TriggerInterface $trigger, CronExpressionTrigger $cron, ?string $locale): string
+                public function humanize(TriggerInterface $trigger, CronExpressionTrigger $cron): string
                 {
                     $title = 'Activate humanized version with composer require lorisleiva/cron-translator';
                     $body = (string) $cron;
 
                     if (\class_exists(CronTranslator::class)) {
                         $title = $body;
-                        $body = CronTranslator::translate((string) $cron, $locale ?? 'en');
+                        $body = CronTranslator::translate((string) $cron);
                     }
 
                     return \str_replace((string) $cron, \sprintf('<abbr title="%s">%s</abbr>', $title, $body), (string) $trigger);
