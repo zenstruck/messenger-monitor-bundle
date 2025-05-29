@@ -64,13 +64,23 @@ final class ResultNormalizerTest extends TestCase
         $response = $this->createMock(ResponseInterface::class);
         $response->expects($this->once())->method('getStatusCode')->willReturn(200);
         $response->expects($this->once())->method('getHeaders')->willReturn(['header' => 'value']);
-        $response->expects($this->once())->method('getInfo')->willReturn(['info' => 'value']);
+        $response->expects($this->once())->method('getInfo')->willReturn([
+            'info' => 'value',
+            'nested' => [
+                'key' => new \stdClass(),
+            ],
+        ]);
 
         $this->assertSame(
             [
                 'status_code' => 200,
                 'headers' => ['header' => 'value'],
-                'info' => ['info' => 'value'],
+                'info' => [
+                    'info' => 'value',
+                    'nested' => [
+                        'key' => \stdClass::class,
+                    ],
+                ],
             ],
             $normalizer->normalize($response),
         );
@@ -216,6 +226,7 @@ final class ResultNormalizerTest extends TestCase
                         'nested3' => [
                             'foo' => 'bar',
                         ],
+                        'binary' => \pack('C*', 0b11001010),
                     ],
                     'float' => 65.6,
                     'function' => fn($a) => $a,
@@ -241,6 +252,7 @@ final class ResultNormalizerTest extends TestCase
                     'nested3' => [
                         'foo' => 'bar',
                     ],
+                    'binary' => '(binary data)',
                 ],
                 'float' => 65.6,
                 'function' => 'Closure',

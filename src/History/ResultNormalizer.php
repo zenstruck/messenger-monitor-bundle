@@ -50,6 +50,10 @@ final class ResultNormalizer
 
     private static function convert(mixed $value): int|float|string|bool|null
     {
+        if (\is_string($value) && !\mb_check_encoding($value, 'UTF-8')) {
+            return '(binary data)';
+        }
+
         if (null === $value || \is_scalar($value)) {
             return $value;
         }
