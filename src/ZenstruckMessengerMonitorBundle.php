@@ -27,7 +27,7 @@ final class ZenstruckMessengerMonitorBundle extends Bundle
         if (\class_exists(DoctrineOrmMappingsPass::class)) {
             $container->addCompilerPass(DoctrineOrmMappingsPass::createXmlMappingDriver(
                 [__DIR__.'/../config/doctrine/mapping' => 'Zenstruck\Messenger\Monitor\History\Model'],
-                [],
+                ['zenstruck_messenger_monitor.history.orm_manager'],
                 'zenstruck_messenger_monitor.history.orm_enabled',
                 [],
                 true,
