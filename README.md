@@ -69,6 +69,7 @@ historical snapshot whose period can be customized with the `--period` option.
     ```
     > [!NOTE]
     > If you are using a different entity manager, you must also set the `zenstruck_messenger_monitor.history.orm_manager` parameter to the name of that manager.
+
 3. Clear Cache:
     ```bash
     bin/console cache:clear
