@@ -38,7 +38,7 @@ final class Snapshot extends Metric
     }
 
     /**
-     * @return Collection<int,ProcessedMessage>
+     * @return Collection<ProcessedMessage, int>
      */
     public function messages(): Collection
     {
@@ -46,7 +46,7 @@ final class Snapshot extends Metric
     }
 
     /**
-     * @return Collection<int,MessageTypeMetric>
+     * @return Collection<MessageTypeMetric, int>
      */
     public function perMessageTypeMetrics(): Collection
     {

@@ -25,7 +25,7 @@ interface Storage
     public function find(mixed $id): ?ProcessedMessage;
 
     /**
-     * @return Collection<int,ProcessedMessage>
+     * @return Collection<ProcessedMessage, int>
      */
     public function filter(Specification $specification): Collection;
 
@@ -48,12 +48,12 @@ interface Storage
     public function count(Specification $specification): int;
 
     /**
-     * @return Collection<int,MessageTypeMetric>
+     * @return Collection<MessageTypeMetric, int>
      */
     public function perMessageTypeMetrics(Specification $specification): Collection;
 
     /**
-     * @return Collection<int,class-string>
+     * @return Collection<class-string, int>
      */
     public function availableMessageTypes(Specification $specification): Collection;
 }

@@ -62,7 +62,7 @@ final class TransportInfo implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return Collection<int,QueuedMessage>
+     * @return Collection<QueuedMessage, int>
      */
     public function list(?int $limit = null): Collection
     {

@@ -16,7 +16,7 @@ use Zenstruck\Messenger\Monitor\Type;
 
 final class Filters
 {
-    /** @var Collection<int,Type> */
+    /** @var Collection<Type, int> */
     private Collection $availableMessageTypes;
 
     public function __construct(private readonly Storage $storage, private readonly Specification $specification)
@@ -24,7 +24,7 @@ final class Filters
     }
 
     /**
-     * @return Collection<int,Type>
+     * @return Collection<Type, int>
      */
     public function availableMessageTypes(): Collection
     {
