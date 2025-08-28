@@ -43,6 +43,7 @@ final class WorkerCache implements \IteratorAggregate
         $ids[$id] = now()->getTimestamp();
 
         $item->set($ids);
+        $item->expiresAfter($this->expiredWorkerTtl);
 
         $this->cache->save($item);
         $this->set($id, $metadata, WorkerInfo::IDLE, $messagesHandled, $memoryUsage);
@@ -55,6 +56,7 @@ final class WorkerCache implements \IteratorAggregate
         unset($ids[$id]);
 
         $item->set($ids);
+        $item->expiresAfter($this->expiredWorkerTtl);
 
         $this->cache->save($item);
     }
@@ -73,28 +75,47 @@ final class WorkerCache implements \IteratorAggregate
             },
             \INF, // force saving
         );
+
+        // Refresh ID list TTL to keep it alive while workers are active
+        $item = $this->cache->getItem(self::ID_LIST_KEY);
+        if ($item->isHit()) {
+            $item->expiresAfter($this->expiredWorkerTtl);
+            $this->cache->save($item);
+        }
     }
 
     public function getIterator(): \Traversable
     {
+        $idsItem = $this->cache->getItem(self::ID_LIST_KEY);
+
         /** @var array<int,int> $ids */
-        $ids = $this->cache->get(
-            self::ID_LIST_KEY,
-            static fn() => [],
-            0, // never perform early expiration
-        );
+        $ids = $idsItem->isHit() ? $idsItem->get() : [];
 
         $keys = \array_map(
             static fn(int $id) => self::WORKER_KEY_PREFIX.$id,
             \array_keys($ids),
         );
 
+        $activeIds = [];
+
         foreach ($this->cache->getItems($keys) as $item) {
+            if (!$item->isHit()) {
+                continue;
+            }
+
             [$metadata, $status, $id, $messagesHandled, $memoryUsage] = $item->get();
 
             if ($id) {
+                $activeIds[$id] = $ids[$id];
                 yield new WorkerInfo($metadata, $status, $ids[$id], $messagesHandled, $memoryUsage);
             }
+        }
+
+        // Clean up stale IDs if any were found
+        if (\count($activeIds) < \count($ids)) {
+            $idsItem->set($activeIds);
+            $idsItem->expiresAfter($this->expiredWorkerTtl);
+            $this->cache->save($idsItem);
         }
     }
 
