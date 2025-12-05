@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: [ 8.1, 8.2, 8.3, 8.4 ]
+        php: [ 8.1, 8.2, 8.3, 8.4, 8.5 ]
         deps: [ highest ]
-        symfony: [ 6.4.*, 7.2.*, 7.3.* ]
+        symfony: [ 6.4.*, 7.4.*, 8.0.* ]
         database: [ mysql, sqlite, pgsql, mariadb ]
         include:
           - php: 8.1
@@ -23,9 +23,15 @@ jobs:
             database: mysql
         exclude:
           - php: 8.1
-            symfony: 7.2.*
+            symfony: 7.4.*
           - php: 8.1
-            symfony: 7.3.*
+            symfony: 7.4.*
+          - php: 8.1
+            symfony: 8.0.*
+          - php: 8.2
+            symfony: 8.0.*
+          - php: 8.3
+            symfony: 8.0.*
 
     services:
       mariadb:
@@ -58,7 +64,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -68,7 +74,7 @@ jobs:
           tools: flex
 
       - name: Install dependencies
-        uses: ramsey/composer-install@v2
+        uses: ramsey/composer-install@v3
         with:
           dependency-versions: ${{ matrix.deps }}
           composer-options: --prefer-dist
