@@ -11,6 +11,7 @@
 
 namespace Zenstruck\Messenger\Monitor\Tests\Fixture;
 
+use Doctrine\Bundle\DoctrineBundle\Dbal\BlacklistSchemaAssetFilter;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
@@ -96,6 +97,13 @@ final class TestKernel extends Kernel
             $c->prependExtensionConfig('doctrine', [
                 'orm' => [
                     'auto_generate_proxy_classes' => true,
+                ],
+            ]);
+
+            $c->prependExtensionConfig('doctrine', [
+                'orm' => [
+                    'enable_lazy_ghost_objects' => true,
+                    'enable_native_lazy_objects' => true,
                 ],
             ]);
         }
