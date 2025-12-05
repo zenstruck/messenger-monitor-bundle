@@ -13,6 +13,7 @@ namespace Zenstruck\Messenger\Monitor\Tests\Fixture;
 
 use Doctrine\Bundle\DoctrineBundle\Dbal\BlacklistSchemaAssetFilter;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Doctrine\ORM\Mapping\LegacyReflectionFields;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -100,12 +101,14 @@ final class TestKernel extends Kernel
                 ],
             ]);
 
-            $c->prependExtensionConfig('doctrine', [
+            if (class_exists(LegacyReflectionFields::class) && PHP_VERSION_ID >= 80400) {
+                $c->prependExtensionConfig('doctrine', [
                 'orm' => [
                     'enable_lazy_ghost_objects' => true,
                     'enable_native_lazy_objects' => true,
                 ],
             ]);
+            }
         }
 
         $c->register(TestService::class)->setAutowired(true)->setPublic(true);
