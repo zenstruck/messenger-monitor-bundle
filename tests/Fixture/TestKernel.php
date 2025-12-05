@@ -76,7 +76,7 @@ final class TestKernel extends Kernel
         $c->loadFromExtension('doctrine', [
             'dbal' => ['url' => '%env(resolve:DATABASE_URL)%'],
             'orm' => [
-                'auto_generate_proxy_classes' => true,
+                #'auto_generate_proxy_classes' => true,
                 'auto_mapping' => true,
                 'mappings' => [
                     'Test' => [
