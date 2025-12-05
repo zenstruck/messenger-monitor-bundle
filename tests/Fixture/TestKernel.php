@@ -90,6 +90,16 @@ final class TestKernel extends Kernel
             ],
         ]);
 
+        $doctrineBundleV3 = !class_exists(BlacklistSchemaAssetFilter::class);
+
+        if (!$doctrineBundleV3) {
+            $c->prependExtensionConfig('doctrine', [
+                'orm' => [
+                    'auto_generate_proxy_classes' => true,
+                ],
+            ]);
+        }
+
         $c->register(TestService::class)->setAutowired(true)->setPublic(true);
         $c->register(MessageAHandler::class)->setAutowired(true)->setAutoconfigured(true);
         $c->register(MessageCHandler1::class)->setAutowired(true)->setAutoconfigured(true);
