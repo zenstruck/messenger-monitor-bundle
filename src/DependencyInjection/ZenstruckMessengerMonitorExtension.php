@@ -27,10 +27,6 @@ use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
  */
 final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension implements ConfigurationInterface
 {
-    /**
-     * TODO can be removed after Symfony 8.0.1 is released
-     * @return TreeBuilder<'array'>
-     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $builder = new TreeBuilder('zenstruck_messenger_monitor');
