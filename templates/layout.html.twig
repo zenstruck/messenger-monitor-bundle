@@ -41,6 +41,12 @@
             .spinner-border-slow {
                 animation-duration: 1.5s;
             }
+
+            .btn-clipboard {
+                top: 0.5rem;
+                right: 1.25rem;
+                z-index: 1;
+            }
         </style>
     {% endblock %}
 
@@ -178,6 +184,32 @@
 
                     document.body.appendChild(form);
                     form.submit();
+                }
+            });
+
+            Stimulus.register('clipboard', class extends Controller {
+                static targets = ['source', 'button'];
+
+                async copy() {
+                    try {
+                        await navigator.clipboard.writeText(this.sourceTarget.textContent);
+                        this.showFeedback(true);
+                    } catch (err) {
+                        this.showFeedback(false);
+                    }
+                }
+
+                showFeedback(success) {
+                    const icon = this.buttonTarget.querySelector('use');
+                    const originalIcon = icon.getAttribute('xlink:href');
+
+                    icon.setAttribute('xlink:href', success ? '#check-circle-fill' : '#exclamation-triangle-fill');
+                    this.buttonTarget.classList.add(success ? 'text-success' : 'text-danger');
+
+                    setTimeout(() => {
+                        icon.setAttribute('xlink:href', originalIcon);
+                        this.buttonTarget.classList.remove('text-success', 'text-danger');
+                    }, 1500);
                 }
             });
         </script>
@@ -327,6 +359,10 @@
         <symbol id="refresh-icon" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
             <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+        </symbol>
+        <symbol id="clipboard-icon" viewBox="0 0 16 16">
+            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+            <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
         </symbol>
     </svg>
 {% endblock %}
