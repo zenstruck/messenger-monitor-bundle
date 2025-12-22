@@ -25,13 +25,23 @@ final class ZenstruckMessengerMonitorBundle extends Bundle
         parent::build($container);
 
         if (\class_exists(DoctrineOrmMappingsPass::class)) {
-            $container->addCompilerPass(DoctrineOrmMappingsPass::createXmlMappingDriver(
-                [__DIR__.'/../config/doctrine/mapping' => 'Zenstruck\Messenger\Monitor\History\Model'],
-                ['zenstruck_messenger_monitor.history.orm_manager'],
-                'zenstruck_messenger_monitor.history.orm_enabled',
-                [],
-                true,
-            ));
+            $reflection = new \ReflectionClass(DoctrineOrmMappingsPass::class);
+            if ($reflection->getMethod('createXmlMappingDriver')->getParameters()[3]->getName() === 'aliasMap') {
+                $container->addCompilerPass(DoctrineOrmMappingsPass::createXmlMappingDriver(
+                    [__DIR__.'/../config/doctrine/mapping' => 'Zenstruck\Messenger\Monitor\History\Model'],
+                    ['zenstruck_messenger_monitor.history.orm_manager'],
+                    'zenstruck_messenger_monitor.history.orm_enabled',
+                    [],
+                    true,
+                ));
+            } else {
+                $container->addCompilerPass(DoctrineOrmMappingsPass::createXmlMappingDriver(
+                    [__DIR__.'/../config/doctrine/mapping' => 'Zenstruck\Messenger\Monitor\History\Model'],
+                    ['zenstruck_messenger_monitor.history.orm_manager'],
+                    'zenstruck_messenger_monitor.history.orm_enabled',
+                    true, // @phpstan-ignore-line
+                ));
+            }
         }
     }
 
