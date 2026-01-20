@@ -70,6 +70,15 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
                         ->end()
                     ->end()
                 ->end()
+                ->arrayNode('history')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('orm_manager')
+                            ->info('Entity Manager name')
+                            ->defaultValue('default')
+                        ->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 
@@ -89,6 +98,7 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
         $container->getDefinition('.zenstruck_messenger_monitor.worker_cache')
             ->setArgument(0, new Reference($mergedConfig['cache']['pool']))
             ->setArgument(1, $mergedConfig['cache']['expired_worker_ttl']);
+        $container->setParameter('zenstruck_messenger_monitor.history.orm_manager', $mergedConfig['history']['orm_manager']);
 
         if (\class_exists(Schedule::class)) {
             $loader->load('schedule.php');
