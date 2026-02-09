@@ -31,7 +31,8 @@ interface Storage
 
     public function purge(Specification $specification): int;
 
-    public function save(Envelope $envelope, Results $results, ?\Throwable $exception = null): void;
+    /** @param array{body: string, headers?: array<string, string>}|null $input */
+    public function save(Envelope $envelope, ?array $input, Results $results, ?\Throwable $exception = null): void;
 
     public function delete(mixed $id): void;
 

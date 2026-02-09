@@ -16,9 +16,11 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
+use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
+use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 
 /**
@@ -31,6 +33,7 @@ final class HandleMonitorStampListener
     public function __construct(
         private Storage $storage,
         private ResultNormalizer $normalizer,
+        private SerializerInterface $serializer
     ) {
     }
 
@@ -46,7 +49,13 @@ final class HandleMonitorStampListener
 
         $event->addStamps($stamp->markFinished());
 
-        $this->storage->save($event->getEnvelope(), $this->createResults($event->getEnvelope()));
+        $input = null;
+        if (!$this->isInputMonitoringDisabled($event->getEnvelope())) {
+            /** @var array{body: string, headers?: array<string, string>} $input */
+            $input = $this->serializer->encode($event->getEnvelope()->withoutAll(MonitorStamp::class));
+        }
+
+        $this->storage->save($event->getEnvelope(), $input, $this->createResults($event->getEnvelope()));
     }
 
     public function handleFailure(WorkerMessageFailedEvent $event): void
@@ -63,8 +72,15 @@ final class HandleMonitorStampListener
 
         $event->addStamps($stamp->markFinished());
 
+        $input = null;
+        if (!$this->isInputMonitoringDisabled($event->getEnvelope())) {
+            /** @var array{body: string, headers?: array<string, string>} $input */
+            $input = $this->serializer->encode($event->getEnvelope()->withoutAll(MonitorStamp::class));
+        }
+
         $this->storage->save(
             $event->getEnvelope(),
+            $input,
             $this->createResults($event->getEnvelope(), $throwable instanceof HandlerFailedException ? $throwable : null),
             $throwable,
         );
@@ -96,5 +112,22 @@ final class HandleMonitorStampListener
         }
 
         return new Results($results);
+    }
+
+    private function isInputMonitoringDisabled(Envelope $envelope): bool
+    {
+        if ($envelope->last(DisableInputStoreStamp::class)) {
+            return true;
+        }
+
+        $reflection = new \ReflectionClass($envelope->getMessage());
+        $attributes = [];
+
+        while (false !== $reflection && [] === $attributes) {
+            $attributes = $reflection->getAttributes(DisableInputStoreStamp::class);
+            $reflection = $reflection->getParentClass();
+        }
+
+        return [] !== $attributes;
     }
 }
