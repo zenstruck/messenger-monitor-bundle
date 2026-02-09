@@ -48,7 +48,7 @@ final class ProcessedMessageTest extends TestCase
         $stamp = $stamp->markFinished();
 
         $envelope = new Envelope(new \stdClass(), [$stamp]);
-        $message = new class($envelope, new Results([])) extends ProcessedMessage {
+        $message = new class($envelope, ['some encoded envelope'], new Results([])) extends ProcessedMessage {
             public function id(): string|int|\Stringable|null
             {
                 return null;
@@ -71,6 +71,7 @@ final class ProcessedMessageTest extends TestCase
         $this->assertFalse($message->isFailure());
         $this->assertNull($message->failure());
         $this->assertTrue($message->memoryUsage()->isGreaterThan(0));
+        $this->assertSame(['some encoded envelope'], $message->input());
     }
 
     /**
@@ -88,7 +89,7 @@ final class ProcessedMessageTest extends TestCase
             new TagStamp('qux'),
         ]);
 
-        $message = new class($envelope, new Results([['exception' => \RuntimeException::class, 'message' => 'failure', 'data' => []]]), new \RuntimeException('fail')) extends ProcessedMessage {
+        $message = new class($envelope, ['some encoded envelope'], new Results([['exception' => \RuntimeException::class, 'message' => 'failure', 'data' => []]]), new \RuntimeException('fail')) extends ProcessedMessage {
             public function id(): string|int|null
             {
                 return null;
@@ -103,6 +104,7 @@ final class ProcessedMessageTest extends TestCase
         $this->assertTrue($message->isFailure());
         $this->assertSame('RuntimeException', (string) $message->failure());
         $this->assertSame('fail', $message->failure()?->description());
+        $this->assertSame(['some encoded envelope'], $message->input());
     }
 
     /**
@@ -112,7 +114,7 @@ final class ProcessedMessageTest extends TestCase
     {
         $this->expectException(\LogicException::class);
 
-        new class(new Envelope(new \stdClass()), new Results([])) extends ProcessedMessage {
+        new class(new Envelope(new \stdClass()), [], new Results([])) extends ProcessedMessage {
             public function id(): string|int|null
             {
                 return null;
@@ -130,7 +132,7 @@ final class ProcessedMessageTest extends TestCase
             new DescriptionStamp('description value'),
         ]);
 
-        $message = new class($envelope, new Results([])) extends ProcessedMessage {
+        $message = new class($envelope, [], new Results([])) extends ProcessedMessage {
             public function id(): string|int|null
             {
                 return null;
@@ -159,7 +161,7 @@ final class ProcessedMessageTest extends TestCase
         $stamp = $stamp->markFinished();
 
         $envelope = new Envelope(new \stdClass(), [$stamp]);
-        $message = new class($envelope, new Results([])) extends ProcessedMessage {
+        $message = new class($envelope, [], new Results([])) extends ProcessedMessage {
             public function id(): string|int|\Stringable|null
             {
                 return null;

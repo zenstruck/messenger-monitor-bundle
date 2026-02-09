@@ -12,10 +12,14 @@
 namespace Zenstruck\Messenger\Monitor\Tests\Unit\EventListener;
 
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use stdClass;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
+use Symfony\Component\Messenger\Transport\Serialization\Serializer;
+use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Zenstruck\Messenger\Monitor\EventListener\HandleMonitorStampListener;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
@@ -32,17 +36,18 @@ final class HandleMonitorStampListenerTest extends TestCase
      */
     public function handles_success(): void
     {
-        $envelope = new Envelope(new \stdClass(), [
+        $envelope = new Envelope(new stdClass(), [
             (new MonitorStamp())->markReceived('foo'),
             new HandledStamp('handler', 'return'),
         ]);
         $storage = $this->createMock(Storage::class);
         $storage->expects($this->once())->method('save')->with(
             $this->isInstanceOf(Envelope::class),
+            $this->arrayHasKey('body'),
             $this->isInstanceOf(Results::class),
         );
 
-        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__));
+        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__), Serializer::create());
 
         $listener->handleSuccess($event = new WorkerMessageHandledEvent($envelope, 'foo'));
 
@@ -57,10 +62,10 @@ final class HandleMonitorStampListenerTest extends TestCase
         $storage = $this->createMock(Storage::class);
         $storage->expects($this->never())->method('save');
 
-        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__));
+        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__), Serializer::create());
 
-        $listener->handleSuccess(new WorkerMessageHandledEvent(new Envelope(new \stdClass()), 'foo'));
-        $listener->handleSuccess(new WorkerMessageHandledEvent(new Envelope(new \stdClass(), [new MonitorStamp()]), 'foo'));
+        $listener->handleSuccess(new WorkerMessageHandledEvent(new Envelope(new stdClass()), 'foo'));
+        $listener->handleSuccess(new WorkerMessageHandledEvent(new Envelope(new stdClass(), [new MonitorStamp()]), 'foo'));
     }
 
     /**
@@ -68,16 +73,17 @@ final class HandleMonitorStampListenerTest extends TestCase
      */
     public function handles_failure(): void
     {
-        $envelope = new Envelope(new \stdClass(), [(new MonitorStamp())->markReceived('foo')]);
-        $exception = new \RuntimeException();
+        $envelope = new Envelope(new stdClass(), [(new MonitorStamp())->markReceived('foo')]);
+        $exception = new RuntimeException();
         $storage = $this->createMock(Storage::class);
         $storage->expects($this->once())->method('save')->with(
             $this->isInstanceOf(Envelope::class),
+            $this->arrayHasKey('body'),
             $this->isInstanceOf(Results::class),
             $exception,
         );
 
-        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__));
+        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__), Serializer::create());
 
         $listener->handleFailure($event = new WorkerMessageFailedEvent($envelope, 'foo', $exception));
 
@@ -92,9 +98,9 @@ final class HandleMonitorStampListenerTest extends TestCase
         $storage = $this->createMock(Storage::class);
         $storage->expects($this->never())->method('save');
 
-        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__));
+        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__), Serializer::create());
 
-        $listener->handleFailure(new WorkerMessageFailedEvent(new Envelope(new \stdClass()), 'foo', new \RuntimeException()));
-        $listener->handleFailure(new WorkerMessageFailedEvent(new Envelope(new \stdClass(), [new MonitorStamp()]), 'foo', new \RuntimeException()));
+        $listener->handleFailure(new WorkerMessageFailedEvent(new Envelope(new stdClass()), 'foo', new RuntimeException()));
+        $listener->handleFailure(new WorkerMessageFailedEvent(new Envelope(new stdClass(), [new MonitorStamp()]), 'foo', new RuntimeException()));
     }
 }
