@@ -51,6 +51,7 @@
                         <th colspan="2" class="text-center">Trigger</th>
                         <th class="text-center"><abbr title="Number of runs stored in history">Runs</abbr></th>
                         <th>Last Run</th>
+                        <th>Next Run</th>
                         <th class="text-center">Last Duration</th>
                         <th class="text-center">Last Memory</th>
                         <th>&nbsp;</th>
@@ -127,6 +128,14 @@
                                     <abbr title="{{ message.finishedAt|date('c') }}">{{ helper.formatTime(message.finishedAt) }}</abbr>
                                 {% else %}
                                     <em class="text-secondary">Never</em>
+                                {% endif %}
+                            </td>
+                            {% set nextRun = trigger.nextRunDate %}
+                            <td>
+                                {% if nextRun %}
+                                    <abbr title="{{ nextRun|date('c') }}">{{ helper.formatTime(nextRun) }}</abbr>
+                                {% else %}
+                                    <em class="text-secondary">-</em>
                                 {% endif %}
                             </td>
                             <td class="text-center">
