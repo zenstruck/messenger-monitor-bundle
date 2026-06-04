@@ -68,7 +68,14 @@ historical snapshot whose period can be customized with the `--period` option.
                 entity_class: App\Entity\ProcessedMessage
     ```
     > [!NOTE]
-    > If you are using a different entity manager, you must also set the `zenstruck_messenger_monitor.history.orm_manager` parameter to the name of that manager.
+    > If you are using a different entity manager, set the `entity_manager` option:
+    > ```yaml
+    > zenstruck_messenger_monitor:
+    >     storage:
+    >         orm:
+    >             entity_class: App\Entity\ProcessedMessage
+    >             entity_manager: custom
+    > ```
 
 3. Clear Cache:
     ```bash
@@ -319,6 +326,9 @@ zenstruck_messenger_monitor:
 
             # Your Doctrine entity class that extends "Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage"
             entity_class:         ~
+
+            # Doctrine entity manager to use.
+            entity_manager:       default
     cache:
       pool: app.cache # If using workers in docker. You can use shared cache pool for all workers
       expired_worker_ttl:  3600

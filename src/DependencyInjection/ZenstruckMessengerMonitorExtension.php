@@ -53,6 +53,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
                                         ->thenInvalid(\sprintf('Your Doctrine entity class must extend "%s"', ProcessedMessage::class))
                                     ->end()
                                 ->end()
+                                ->scalarNode('entity_manager')
+                                    ->info('Doctrine entity manager to use.')
+                                    ->defaultValue('default')
+                                ->end()
                             ->end()
                         ->end()
                     ->end()
@@ -100,6 +104,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
 
         if ($entity = $mergedConfig['storage']['orm']['entity_class'] ?? null) {
             $loader->load('storage_orm.php');
+            $container->setParameter(
+                'zenstruck_messenger_monitor.history.orm_manager',
+                $mergedConfig['storage']['orm']['entity_manager']
+            );
             $container->getDefinition('zenstruck_messenger_monitor.history.storage')
                 ->setArgument(1, $entity)
             ;
