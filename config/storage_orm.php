@@ -18,7 +18,6 @@ use Zenstruck\Messenger\Monitor\History\Storage\ORMStorage;
 return static function (ContainerConfigurator $container): void {
     $container->parameters()
         ->set('zenstruck_messenger_monitor.history.orm_enabled', true)
-        ->set('zenstruck_messenger_monitor.history.orm_manager', 'default')
     ;
 
     $container->services()
