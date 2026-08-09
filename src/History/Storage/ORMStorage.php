@@ -83,10 +83,11 @@ final class ORMStorage implements Storage
         ;
     }
 
-    public function save(Envelope $envelope, Results $results, ?\Throwable $exception = null): void
+    /** @param array<string, string> $input */
+    public function save(Envelope $envelope, ?array $input, Results $results, ?\Throwable $exception = null): void
     {
         $om = $this->om();
-        $object = new $this->entityClass($envelope, $results, $exception);
+        $object = new $this->entityClass($envelope, $input, $results, $exception);
 
         $om->persist($object);
         $om->flush();

@@ -128,6 +128,28 @@ You may want to disable monitoring for certain messages. There are several ways 
                 - App\Message\MyMessage
     ```
 
+#### Disable Input Monitoring
+
+You may want to disable monitoring for certain messages (example: emails with attachments). There are two ways to do this:
+
+1. When dispatching the message, add the `DisableInputStoreStamp`:
+    ```php
+    use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
+
+    /** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
+
+    $bus->dispatch(new MyMessage(), [new DisableInputStoreStamp()])
+    ```
+2. Add the `DisableInputStoreStamp` as a class attribute to your message:
+    ```php
+    use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
+
+    #[DisableInputStoreStamp]
+    class MyMessage
+    {
+    }
+    ```
+
 #### Description
 
 The stored `ProcessedMessage` has a description property. This is helpful to differentiate between
