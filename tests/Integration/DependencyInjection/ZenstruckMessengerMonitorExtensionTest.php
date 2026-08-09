@@ -68,6 +68,26 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
     /**
      * @test
      */
+    public function orm_config_uses_default_entity_manager(): void
+    {
+        $this->load(['storage' => ['orm' => ['entity_class' => ProcessedMessageImpl::class]]]);
+
+        $this->assertContainerBuilderHasParameter('zenstruck_messenger_monitor.history.orm_manager', 'default');
+    }
+
+    /**
+     * @test
+     */
+    public function orm_config_with_custom_entity_manager(): void
+    {
+        $this->load(['storage' => ['orm' => ['entity_class' => ProcessedMessageImpl::class, 'entity_manager' => 'custom']]]);
+
+        $this->assertContainerBuilderHasParameter('zenstruck_messenger_monitor.history.orm_manager', 'custom');
+    }
+
+    /**
+     * @test
+     */
     public function storage_with_excluded_classes(): void
     {
         $this->load(['storage' => [
