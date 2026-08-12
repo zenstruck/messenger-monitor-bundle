@@ -75,4 +75,9 @@ final class TriggerInfo
     {
         return $this->inner() instanceof CronExpressionTrigger;
     }
+
+    public function nextRunDate(): ?\DateTimeImmutable
+    {
+        return $this->trigger->getNextRunDate(new \DateTimeImmutable());
+    }
 }
