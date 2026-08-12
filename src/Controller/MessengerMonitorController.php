@@ -17,6 +17,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\ErrorDetailsStamp;
+use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Symfony\Component\Messenger\Stamp\SentToFailureTransportStamp;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
 use Symfony\Component\Routing\Attribute\Route;
@@ -166,11 +168,17 @@ abstract class MessengerMonitorController extends AbstractController
         $message = $transport->find($id) ?? throw $this->createNotFoundException('Message not found.');
         $originalTransportName = $message->envelope()->last(SentToFailureTransportStamp::class)?->getOriginalReceiverName() ?? throw $this->createNotFoundException('Original transport not found.');
 
-        $bus->dispatch($message->envelope(), [
+        // Remove failure-related stamps to allow the message to be sent to the failure transport again if it fails
+        $envelope = $message->envelope()
+            ->withoutAll(SentToFailureTransportStamp::class)
+            ->withoutAll(RedeliveryStamp::class)
+            ->withoutAll(ErrorDetailsStamp::class);
+
+        $bus->dispatch($envelope, [
             new TagStamp('retry'),
             new TagStamp('manual'),
         ]);
-        $transport->get()->reject($message->envelope());
+        $transport->get()->reject($envelope);
 
         $this->addFlash('success', \sprintf('Retrying message "%s" on transport "%s".', $message->message()->shortName(), $originalTransportName));
 
