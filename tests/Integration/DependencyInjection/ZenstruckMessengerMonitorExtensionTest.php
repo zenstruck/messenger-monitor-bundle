@@ -68,6 +68,21 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
     /**
      * @test
      */
+    public function storage_without_auto_stamp(): void
+    {
+        $this->load(['storage' => [
+            'orm' => ['entity_class' => ProcessedMessageImpl::class],
+            'auto_stamp' => false,
+        ]]);
+
+        $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint('.zenstruck_messenger_monitor.listener.add_monitor_stamp')));
+        $this->assertContainerBuilderHasService('.zenstruck_messenger_monitor.listener.receive_monitor_stamp', ReceiveMonitorStampListener::class);
+        $this->assertContainerBuilderHasService('.zenstruck_messenger_monitor.listener.handle_monitor_stamp', HandleMonitorStampListener::class);
+    }
+
+    /**
+     * @test
+     */
     public function storage_with_excluded_classes(): void
     {
         $this->load(['storage' => [

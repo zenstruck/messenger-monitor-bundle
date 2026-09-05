@@ -127,6 +127,24 @@ You may want to disable monitoring for certain messages. There are several ways 
             exclude:
                 - App\Message\MyMessage
     ```
+4. Turn monitoring into an opt-in by disabling `auto_stamp`, then stamp the messages you do want
+   to monitor:
+    ```yaml
+    # config/packages/zenstruck_messenger_monitor.yaml
+
+    zenstruck_messenger_monitor:
+        storage:
+            auto_stamp: false
+    ```
+    ```php
+    use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
+
+    /** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
+
+    $bus->dispatch(new MyMessage(), [new MonitorStamp()])
+    ```
+    This is what you want when the messages are consumed by another application that does not have
+    this bundle installed: without the stamp, that application has nothing to decode.
 
 #### Description
 
@@ -313,6 +331,10 @@ when@dev:
 ```yaml
 zenstruck_messenger_monitor:
     storage:
+
+        # Whether to stamp every dispatched message. Disable to only monitor the messages you stamp yourself.
+        auto_stamp:           true
+
         # Message classes to disable monitoring for (can be abstract/interface)
         exclude:              []
         orm:
