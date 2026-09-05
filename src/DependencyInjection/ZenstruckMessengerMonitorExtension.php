@@ -35,6 +35,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
             ->children()
                 ->arrayNode('storage')
                     ->children()
+                        ->booleanNode('auto_stamp')
+                            ->info('Whether to stamp every dispatched message. Disable to only monitor the messages you stamp yourself.')
+                            ->defaultTrue()
+                        ->end()
                         ->arrayNode('exclude')
                             ->info('Message classes to disable monitoring for (can be abstract/interface)')
                             ->scalarPrototype()
@@ -106,6 +110,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
             $container->getDefinition('.zenstruck_messenger_monitor.listener.receive_monitor_stamp')
                 ->setArgument(0, $mergedConfig['storage']['exclude'])
             ;
+
+            if (!$mergedConfig['storage']['auto_stamp']) {
+                $container->removeDefinition('.zenstruck_messenger_monitor.listener.add_monitor_stamp');
+            }
 
             if (!\class_exists(Schedule::class)) {
                 $container->removeDefinition('.zenstruck_messenger_monitor.command.schedule_purge');

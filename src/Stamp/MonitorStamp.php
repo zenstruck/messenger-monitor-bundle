@@ -18,8 +18,6 @@ use function Symfony\Component\Clock\now;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
- * @internal
- *
  * @phpstan-type MonitorStampData array{
  *     runId: int,
  *     dispatchedAt: \DateTimeImmutable,
