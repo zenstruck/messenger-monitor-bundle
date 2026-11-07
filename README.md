@@ -134,8 +134,8 @@ You may want to disable monitoring for certain messages. There are several ways 
             exclude:
                 - App\Message\MyMessage
     ```
-4. Turn monitoring into an opt-in by disabling `auto_stamp`, then stamp the messages you do want
-   to monitor:
+4. Set `auto_stamp: false` to stop adding `MonitorStamp` when dispatching messages. This lets
+   applications without the bundle consume messages that would otherwise carry this stamp.
     ```yaml
     # config/packages/zenstruck_messenger_monitor.yaml
 
@@ -143,15 +143,15 @@ You may want to disable monitoring for certain messages. There are several ways 
         storage:
             auto_stamp: false
     ```
+    Add `MonitorStamp` when dispatching a message you want to monitor:
     ```php
     use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 
     /** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
 
-    $bus->dispatch(new MyMessage(), [new MonitorStamp()])
+    $bus->dispatch(new MyMessage(), [new MonitorStamp()]);
     ```
-    This is what you want when the messages are consumed by another application that does not have
-    this bundle installed: without the stamp, that application has nothing to decode.
+    Symfony Scheduler messages are still stamped when the worker receives them.
 
 #### Description
 
@@ -336,7 +336,7 @@ when@dev:
 zenstruck_messenger_monitor:
     storage:
 
-        # Whether to stamp every dispatched message. Disable to only monitor the messages you stamp yourself.
+        # Whether to add a MonitorStamp when dispatching messages to a transport.
         auto_stamp:           true
 
         # Message classes to disable monitoring for (can be abstract/interface)

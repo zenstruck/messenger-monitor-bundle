@@ -36,7 +36,7 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
                 ->arrayNode('storage')
                     ->children()
                         ->booleanNode('auto_stamp')
-                            ->info('Whether to stamp every dispatched message. Disable to only monitor the messages you stamp yourself.')
+                            ->info('Whether to add a MonitorStamp when dispatching messages to a transport.')
                             ->defaultTrue()
                         ->end()
                         ->arrayNode('exclude')
