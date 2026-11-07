@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\ErrorDetailsStamp;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Symfony\Component\Messenger\Stamp\SentToFailureTransportStamp;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
@@ -166,19 +167,23 @@ abstract class MessengerMonitorController extends AbstractController
 
         $transport = $helper->transports->get($name);
         $message = $transport->find($id) ?? throw $this->createNotFoundException('Message not found.');
-        $originalTransportName = $message->envelope()->last(SentToFailureTransportStamp::class)?->getOriginalReceiverName() ?? throw $this->createNotFoundException('Original transport not found.');
+        $failedEnvelope = $message->envelope();
+        $failureStamp = $failedEnvelope->last(SentToFailureTransportStamp::class);
+        $originalTransportName = $failureStamp?->getOriginalReceiverName() ?? throw $this->createNotFoundException('Original transport not found.');
 
-        // Remove failure-related stamps to allow the message to be sent to the failure transport again if it fails
-        $envelope = $message->envelope()
-            ->withoutAll(SentToFailureTransportStamp::class)
-            ->withoutAll(RedeliveryStamp::class)
-            ->withoutAll(ErrorDetailsStamp::class);
+        $retryEnvelope = $failedEnvelope->withoutAll(SentToFailureTransportStamp::class);
+        $retryEnvelope = $retryEnvelope->withoutAll(RedeliveryStamp::class);
+        $retryEnvelope = $retryEnvelope->withoutAll(ErrorDetailsStamp::class);
+        $retryEnvelope = $retryEnvelope->withoutAll(ReceivedStamp::class);
 
-        $bus->dispatch($envelope, [
+        $bus->dispatch($retryEnvelope, [
+            new TransportNamesStamp($originalTransportName),
             new TagStamp('retry'),
             new TagStamp('manual'),
         ]);
-        $transport->get()->reject($envelope);
+
+        $failureTransport = $transport->get();
+        $failureTransport->reject($failedEnvelope);
 
         $this->addFlash('success', \sprintf('Retrying message "%s" on transport "%s".', $message->message()->shortName(), $originalTransportName));
 
