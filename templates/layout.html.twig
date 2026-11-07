@@ -200,15 +200,18 @@
                 }
 
                 showFeedback(success) {
-                    const icon = this.buttonTarget.querySelector('use');
-                    const originalIcon = icon.getAttribute('xlink:href');
+                    const button = this.buttonTarget;
+                    const icon = button.querySelector('use');
+
+                    clearTimeout(this.feedbackTimeout);
 
                     icon.setAttribute('xlink:href', success ? '#check-circle-fill' : '#exclamation-triangle-fill');
-                    this.buttonTarget.classList.add(success ? 'text-success' : 'text-danger');
+                    button.classList.toggle('text-success', success);
+                    button.classList.toggle('text-danger', !success);
 
-                    setTimeout(() => {
-                        icon.setAttribute('xlink:href', originalIcon);
-                        this.buttonTarget.classList.remove('text-success', 'text-danger');
+                    this.feedbackTimeout = setTimeout(() => {
+                        icon.setAttribute('xlink:href', '#clipboard-icon');
+                        button.classList.remove('text-success', 'text-danger');
                     }, 1500);
                 }
             });
