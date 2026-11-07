@@ -38,51 +38,61 @@ final class WorkerCache implements \IteratorAggregate
 
     public function add(int $id, WorkerMetadata $metadata, int $messagesHandled, int $memoryUsage): void
     {
-        [$ids, $item] = $this->ids();
-
-        $ids[$id] = now()->getTimestamp();
-
-        $item->set($ids);
-
-        $this->cache->save($item);
-        $this->set($id, $metadata, WorkerInfo::IDLE, $messagesHandled, $memoryUsage);
+        $this->set($id, $metadata, WorkerInfo::IDLE, $messagesHandled, $memoryUsage, now()->getTimestamp());
     }
 
     public function remove(int $id): void
     {
+        $this->cache->deleteItem(self::WORKER_KEY_PREFIX.$id);
+
         [$ids, $item] = $this->ids();
 
         unset($ids[$id]);
 
-        $item->set($ids);
-
-        $this->cache->save($item);
+        $this->saveIds($item, $ids);
     }
 
     /**
      * @param WorkerInfo::* $status
      */
-    public function set(int $id, WorkerMetadata $metadata, string $status, int $messagesHandled, int $memoryUsage): void
-    {
-        $this->cache->get(
+    public function set(
+        int $id,
+        WorkerMetadata $metadata,
+        string $status,
+        int $messagesHandled,
+        int $memoryUsage,
+        ?int $startedAt = null,
+    ): void {
+        [$ids] = $this->ids();
+        $registeredAt = $ids[$id] ?? null;
+        $startedAt ??= $registeredAt;
+
+        $worker = $this->cache->get(
             self::WORKER_KEY_PREFIX.$id,
-            function(CacheItemInterface $item) use ($metadata, $status, $id, $messagesHandled, $memoryUsage) {
+            function(CacheItemInterface $item) use ($metadata, $status, $id, $messagesHandled, $memoryUsage, $startedAt) {
                 $item->expiresAfter($this->expiredWorkerTtl);
 
-                return [$metadata, $status, $id, $messagesHandled, $memoryUsage];
+                // Keep the start time when the shared index expires before the worker entry.
+                $startedAt ??= $item->get()['startedAt'] ?? now()->getTimestamp();
+
+                return [$metadata, $status, $id, $messagesHandled, $memoryUsage, 'startedAt' => $startedAt];
             },
             \INF, // force saving
         );
+
+        if ($registeredAt === $worker['startedAt']) {
+            return;
+        }
+
+        [$ids, $item] = $this->ids();
+        $ids[$id] = $worker['startedAt'];
+
+        $this->saveIds($item, $ids);
     }
 
     public function getIterator(): \Traversable
     {
-        /** @var array<int,int> $ids */
-        $ids = $this->cache->get(
-            self::ID_LIST_KEY,
-            static fn() => [],
-            0, // never perform early expiration
-        );
+        [$ids] = $this->ids();
 
         $keys = \array_map(
             static fn(int $id) => self::WORKER_KEY_PREFIX.$id,
@@ -90,11 +100,13 @@ final class WorkerCache implements \IteratorAggregate
         );
 
         foreach ($this->cache->getItems($keys) as $item) {
+            if (!$item->isHit()) {
+                continue;
+            }
+
             [$metadata, $status, $id, $messagesHandled, $memoryUsage] = $item->get();
 
-            if ($id) {
-                yield new WorkerInfo($metadata, $status, $ids[$id], $messagesHandled, $memoryUsage);
-            }
+            yield new WorkerInfo($metadata, $status, $ids[$id], $messagesHandled, $memoryUsage);
         }
     }
 
@@ -105,10 +117,17 @@ final class WorkerCache implements \IteratorAggregate
     {
         $item = $this->cache->getItem(self::ID_LIST_KEY);
 
-        if (!\is_array($ids = $item->get() ?? [])) {
-            $ids = [];
-        }
+        $ids = $item->get();
 
-        return [$ids, $item];
+        return [\is_array($ids) ? $ids : [], $item];
+    }
+
+    /** @param array<int,int> $ids */
+    private function saveIds(CacheItemInterface $item, array $ids): void
+    {
+        $item->set($ids);
+        $item->expiresAfter($this->expiredWorkerTtl);
+
+        $this->cache->save($item);
     }
 }
