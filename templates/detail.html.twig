@@ -142,7 +142,12 @@
                                     {% elseif value is iterable %}
                                         <pre class="mb-0" style="white-space: pre; max-height: 340px; overflow: auto;">{{ value|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
                                     {% elseif value matches "/\n/" %}
-                                        <pre class="mb-0" style="white-space: pre; max-height: 340px; overflow: auto;">{{ value }}</pre>
+                                        <div data-controller="clipboard" class="position-relative">
+                                            <button type="button" class="btn btn-sm btn-secondary position-absolute btn-clipboard" data-clipboard-target="button" data-action="clipboard#copy" title="Copy to clipboard">
+                                                <svg fill="currentcolor" height="1em" width="1em"><use xlink:href="#clipboard-icon"/></svg>
+                                            </button>
+                                            <pre class="mb-0" style="white-space: pre; max-height: 340px; overflow: auto;" data-clipboard-target="source">{{ value }}</pre>
+                                        </div>
                                     {% else %}
                                         <code>{{ value }}</code>
                                     {% endif %}
