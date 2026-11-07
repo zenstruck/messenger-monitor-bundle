@@ -39,6 +39,10 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
                             ->info('Whether to add a MonitorStamp when dispatching messages to a transport.')
                             ->defaultTrue()
                         ->end()
+                        ->booleanNode('store_input')
+                            ->info('Whether to store message input in history by default.')
+                            ->defaultFalse()
+                        ->end()
                         ->arrayNode('exclude')
                             ->info('Message classes to disable monitoring for (can be abstract/interface)')
                             ->scalarPrototype()
@@ -117,6 +121,7 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
             ;
             $container->getDefinition('.zenstruck_messenger_monitor.listener.receive_monitor_stamp')
                 ->setArgument(0, $mergedConfig['storage']['exclude'])
+                ->setArgument(2, $mergedConfig['storage']['store_input'])
             ;
 
             if (!$mergedConfig['storage']['auto_stamp']) {

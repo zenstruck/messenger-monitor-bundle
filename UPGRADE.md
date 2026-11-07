@@ -1,5 +1,10 @@
 # Upgrade Guide
 
+## Unreleased
+
+* `ProcessedMessage` has a new nullable JSON `input` column. Generate and run a Doctrine migration
+  before restarting your Messenger workers.
+
 ## 0.7.0
 
 * `ProcessedMessage::$description` changed from Doctrine `string` (`VARCHAR(255)`) to `text`.

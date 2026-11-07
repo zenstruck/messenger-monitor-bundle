@@ -155,27 +155,24 @@ You may want to disable monitoring for certain messages. There are several ways 
     ```
     Symfony Scheduler messages are still stamped when the worker receives them.
 
-#### Disable Input Monitoring
+#### Store Message Input
 
-You may want to disable monitoring for certain messages (example: emails with attachments). There are two ways to do this:
+Input capture is disabled by default. To store the input of a monitored message, dispatch it with
+`EnableInputStoreStamp`:
 
-1. When dispatching the message, add the `DisableInputStoreStamp`:
-    ```php
-    use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
+```php
+use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
 
-    /** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
+$bus->dispatch(new MyMessage(), [new EnableInputStoreStamp()]);
+```
 
-    $bus->dispatch(new MyMessage(), [new DisableInputStoreStamp()])
-    ```
-2. Add the `DisableInputStoreStamp` as a class attribute to your message:
-    ```php
-    use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
+You can also add `#[EnableInputStoreStamp]` to the message class, or set `storage.store_input: true`
+to capture input for all monitored messages.
 
-    #[DisableInputStoreStamp]
-    class MyMessage
-    {
-    }
-    ```
+Input may include sensitive fields or email content. Add `DisableInputStoreStamp` as a dispatch stamp
+or class attribute to exclude a message. It takes precedence over the configuration and enable stamp.
+The message details show input normalized by the app's Symfony Serializer. If you disabled
+`framework.serializer` or `framework.property_access`, enable them to capture ordinary message objects.
 
 #### Description
 
@@ -362,6 +359,9 @@ zenstruck_messenger_monitor:
 
         # Whether to add a MonitorStamp when dispatching messages to a transport.
         auto_stamp:           true
+
+        # Whether to store message input in history by default.
+        store_input:          false
 
         # Message classes to disable monitoring for (can be abstract/interface)
         exclude:              []

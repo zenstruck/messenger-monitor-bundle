@@ -17,6 +17,7 @@ use Symfony\Component\Messenger\Exception\NoHandlerForMessageException;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
+use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Factory\ProcessedMessageFactory;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Message\MessageA;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Message\MessageAHandler;
@@ -50,11 +51,28 @@ final class HistoryTest extends KernelTestCase
         $this->assertSame(MessageA::class, $message->type()->class());
         $this->assertSame('async', $message->transport());
         $this->assertFalse($message->isFailure());
+        $this->assertNull($message->input());
         $this->assertCount(1, $message->results());
         $this->assertSame(['data' => 'foo'], $message->results()->all()[0]->data());
         $this->assertFalse($message->results()->all()[0]->isFailure());
         $this->assertSame(MessageAHandler::class, $message->results()->all()[0]->handler()?->class());
         $this->assertNull($message->results()->all()[0]->handler()?->description());
+    }
+
+    /**
+     * @test
+     */
+    public function stores_input_for_an_enabled_message(): void
+    {
+        $bus = $this->bus();
+        $bus->dispatch(new MessageA(return: 'foo'), [new EnableInputStoreStamp()]);
+
+        $transport = $this->transport();
+        $transport->processOrFail(1);
+
+        $message = ProcessedMessageFactory::first();
+        $input = $message->input();
+        $this->assertSame(['return' => 'foo', 'throw' => false], $input);
     }
 
     /**

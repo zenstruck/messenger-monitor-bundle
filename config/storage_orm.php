@@ -36,7 +36,9 @@ return static function (ContainerConfigurator $container): void {
 
         ->set('.zenstruck_messenger_monitor.listener.receive_monitor_stamp', ReceiveMonitorStampListener::class)
             ->args([
-                abstract_arg('exclude_classes')
+                abstract_arg('exclude_classes'),
+                service('serializer')->nullOnInvalid(),
+                abstract_arg('store_input'),
             ])
             ->tag('kernel.event_listener', ['method' => '__invoke', 'event' => WorkerMessageReceivedEvent::class])
 
@@ -44,7 +46,6 @@ return static function (ContainerConfigurator $container): void {
             ->args([
                 service('zenstruck_messenger_monitor.history.storage'),
                 service('.zenstruck_messenger_monitor.history.result_normalizer'),
-                service('messenger.default_serializer'),
             ])
             ->tag('kernel.event_listener', ['method' => 'handleSuccess', 'event' => WorkerMessageHandledEvent::class, 'priority' => -100])
             ->tag('kernel.event_listener', ['method' => 'handleFailure', 'event' => WorkerMessageFailedEvent::class, 'priority' => -100])

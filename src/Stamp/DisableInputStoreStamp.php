@@ -11,9 +11,7 @@
 
 namespace Zenstruck\Messenger\Monitor\Stamp;
 
-use Symfony\Component\Messenger\Stamp\StampInterface;
-
 #[\Attribute(\Attribute::TARGET_CLASS)]
-final class DisableInputStoreStamp implements StampInterface
+final class DisableInputStoreStamp extends AttributeStamp
 {
 }

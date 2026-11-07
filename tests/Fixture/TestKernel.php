@@ -54,6 +54,7 @@ final class TestKernel extends Kernel
             'secret' => 'S3CRET',
             'router' => ['utf8' => true],
             'test' => true,
+            'property_access' => true,
             'serializer' => true,
             'messenger' => [
                 'transports' => [
