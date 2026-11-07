@@ -15,12 +15,17 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
+use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Scheduler\Generator\MessageContext;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Zenstruck\Messenger\Monitor\EventListener\ReceiveMonitorStampListener;
+use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
+use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
+use Zenstruck\Messenger\Monitor\Stamp\StoredInputStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
 /**
@@ -60,6 +65,66 @@ final class ReceiveMonitorStampListenerTest extends TestCase
         $this->assertTrue($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
         $this->assertSame('foo', $event->getEnvelope()->last(MonitorStamp::class)->transport());
         $this->assertEmpty($event->getEnvelope()->all(TagStamp::class));
+    }
+
+    /**
+     * @param list<StampInterface> $stamps
+     *
+     * @test
+     * @dataProvider inputCaptureModes
+     */
+    public function input_capture_respects_configuration_and_stamps(object $message, array $stamps, bool $storeInput, bool $expected): void
+    {
+        $normalizer = $this->createMock(NormalizerInterface::class);
+        $normalizer
+            ->expects($expected ? self::once() : self::never())
+            ->method('normalize')
+            ->with($message, 'json')
+            ->willReturn(['field' => 'input'])
+        ;
+        $listener = new ReceiveMonitorStampListener([], $normalizer, $storeInput);
+        $envelope = new Envelope($message, [new MonitorStamp(), ...$stamps]);
+        $event = new WorkerMessageReceivedEvent($envelope, 'foo');
+
+        $listener($event);
+
+        $envelope = $event->getEnvelope();
+        $input = $envelope->last(StoredInputStamp::class);
+        $this->assertSame($expected ? ['field' => 'input'] : null, $input?->input);
+    }
+
+    /** @return iterable<string, array{object, list<StampInterface>, bool, bool}> */
+    public static function inputCaptureModes(): iterable
+    {
+        yield 'disabled by default' => [new \stdClass(), [], false, false];
+        yield 'enabled globally' => [new \stdClass(), [], true, true];
+        yield 'enabled by stamp' => [new \stdClass(), [new EnableInputStoreStamp()], false, true];
+
+        $enabled = new #[EnableInputStoreStamp] class {};
+        yield 'enabled by attribute' => [$enabled, [], false, true];
+        yield 'disable stamp wins over enable attribute' => [$enabled, [new DisableInputStoreStamp()], true, false];
+
+        $disabled = new #[DisableInputStoreStamp] class {};
+        yield 'disable attribute wins over enable stamp' => [$disabled, [new EnableInputStoreStamp()], true, false];
+    }
+
+    /**
+     * @test
+     */
+    public function normalization_failure_does_not_prevent_monitoring(): void
+    {
+        $normalizer = $this->createMock(NormalizerInterface::class);
+        $normalizer->method('normalize')->willThrowException(new \RuntimeException('Cannot normalize input.'));
+        $listener = new ReceiveMonitorStampListener([], $normalizer, true);
+        $envelope = new Envelope(new \stdClass(), [new MonitorStamp()]);
+        $event = new WorkerMessageReceivedEvent($envelope, 'foo');
+
+        $listener($event);
+
+        $envelope = $event->getEnvelope();
+        $stamp = $envelope->last(MonitorStamp::class);
+        $this->assertTrue($stamp->isReceived());
+        $this->assertNull($envelope->last(StoredInputStamp::class));
     }
 
     /**

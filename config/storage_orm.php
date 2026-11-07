@@ -36,7 +36,9 @@ return static function (ContainerConfigurator $container): void {
 
         ->set('.zenstruck_messenger_monitor.listener.receive_monitor_stamp', ReceiveMonitorStampListener::class)
             ->args([
-                abstract_arg('exclude_classes')
+                abstract_arg('exclude_classes'),
+                service('serializer')->nullOnInvalid(),
+                abstract_arg('store_input'),
             ])
             ->tag('kernel.event_listener', ['method' => '__invoke', 'event' => WorkerMessageReceivedEvent::class])
 

@@ -16,6 +16,7 @@ use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Bytes;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
+use Zenstruck\Messenger\Monitor\Stamp\StoredInputStamp;
 use Zenstruck\Messenger\Monitor\Type;
 
 /**
@@ -30,6 +31,9 @@ abstract class ProcessedMessage
 
     /** @var class-string */
     private string $type;
+
+    /** @var array<array-key, mixed>|null */
+    private ?array $input = null;
     private ?string $description;
     private \DateTimeImmutable $dispatchedAt;
     private \DateTimeImmutable $receivedAt;
@@ -52,9 +56,11 @@ abstract class ProcessedMessage
         $monitorStamp = $envelope->last(MonitorStamp::class) ?? throw new \LogicException('Required stamp not available');
         $type = new Type($envelope->getMessage());
         $tags = new Tags($envelope);
+        $storedInput = $envelope->last(StoredInputStamp::class);
 
         $this->runId = $monitorStamp->runId();
         $this->type = $type->class();
+        $this->input = $storedInput?->input;
         $this->description = $envelope->last(DescriptionStamp::class)?->value ?? $type->description();
         $this->dispatchedAt = $monitorStamp->dispatchedAt();
         $this->receivedAt = $monitorStamp->receivedAt();
@@ -91,6 +97,12 @@ abstract class ProcessedMessage
     final public function type(): Type
     {
         return new Type($this->type);
+    }
+
+    /** @return array<array-key, mixed>|null */
+    final public function input(): ?array
+    {
+        return $this->input;
     }
 
     final public function description(): ?string
