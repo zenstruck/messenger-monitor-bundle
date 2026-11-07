@@ -1,5 +1,11 @@
 # Upgrade Guide
 
+## Unreleased
+
+* `ProcessedMessage::$description` changed from Doctrine `string` (`VARCHAR(255)`) to `text`.
+  Generate and run a Doctrine migration before restarting your Messenger workers.
+  If you override the field mapping in your entity, remove the override or change its type to `text`.
+
 ## 0.6.0
 
 * `ProcessedMessage::$memoryUsage` Doctrine type changed from `int` to `bigint`.
