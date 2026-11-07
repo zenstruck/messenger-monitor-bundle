@@ -87,7 +87,7 @@ jobs:
 
       - name: Set up MySQL
         if: contains(matrix.database, 'mysql')
-        run: sudo /etc/init.d/mysql start
+        run: sudo systemctl start mysql.service
 
       - name: Test
         run: vendor/bin/phpunit
