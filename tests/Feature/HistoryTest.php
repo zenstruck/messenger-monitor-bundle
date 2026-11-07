@@ -16,6 +16,7 @@ use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Exception\NoHandlerForMessageException;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
+use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Factory\ProcessedMessageFactory;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Message\MessageA;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Message\MessageAHandler;
@@ -54,6 +55,22 @@ final class HistoryTest extends KernelTestCase
         $this->assertFalse($message->results()->all()[0]->isFailure());
         $this->assertSame(MessageAHandler::class, $message->results()->all()[0]->handler()?->class());
         $this->assertNull($message->results()->all()[0]->handler()?->description());
+    }
+
+    /**
+     * @test
+     */
+    public function stores_long_descriptions(): void
+    {
+        $description = \str_repeat('a', 300);
+        $bus = $this->bus();
+        $bus->dispatch(new MessageA(), [new DescriptionStamp($description)]);
+
+        $transport = $this->transport();
+        $transport->processOrFail(1);
+
+        $message = ProcessedMessageFactory::first();
+        $this->assertSame($description, $message->description());
     }
 
     /**
