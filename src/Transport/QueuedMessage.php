@@ -75,4 +75,12 @@ final class QueuedMessage
 
         return null;
     }
+
+    public function exceptionTrace(): ?string
+    {
+        $stamp = $this->envelope->last(ErrorDetailsStamp::class);
+        $exception = $stamp?->getFlattenException();
+
+        return $exception?->getTraceAsString();
+    }
 }

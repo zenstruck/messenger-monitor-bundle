@@ -99,6 +99,13 @@
                                             {% if queued.exception %}
                                                 <strong class="text-danger"><abbr title="{{ queued.exception }}">{{ queued.exception.shortName }}</abbr></strong>
                                                 <br><small class="text-secondary">{{ queued.exception.description }}</small>
+                                                {% set trace = queued.exceptionTrace %}
+                                                {% if trace %}
+                                                    <details class="mt-1">
+                                                        <summary>Stack trace</summary>
+                                                        <pre class="mb-0 mt-2" style="white-space: pre; max-height: 340px; overflow: auto;">{{ trace }}</pre>
+                                                    </details>
+                                                {% endif %}
                                             {% else %}
                                                 <em class="text-secondary">n/a</em>
                                             {% endif %}
