@@ -25,10 +25,8 @@ historical snapshot whose period can be customized with the `--period` option.
 ## Storage
 
 > [!NOTE]
-> This step is required to use the [User Interface](#user-interface) and [History](#history).
-
-> [!NOTE]
-> Only Doctrine ORM is currently available as a storage engine.
+> The [User Interface](#user-interface) and [History](#history) require storage.
+> Doctrine ORM is the supported storage engine.
 
 ### Configuration
 
@@ -67,8 +65,9 @@ historical snapshot whose period can be customized with the `--period` option.
             orm:
                 entity_class: App\Entity\ProcessedMessage
     ```
-    > [!NOTE]
-    > If you are using a different entity manager, you must also set the `zenstruck_messenger_monitor.history.orm_manager` parameter to the name of that manager.
+
+    If you use a different entity manager, set the `zenstruck_messenger_monitor.history.orm_manager`
+    parameter to the name of that manager.
 
 3. Clear Cache:
     ```bash
@@ -80,6 +79,14 @@ historical snapshot whose period can be customized with the `--period` option.
     bin/console doctrine:migrations:diff
     bin/console doctrine:migrations:migrate
     ```
+
+> [!TIP]
+> For large message histories, index `finished_at` to speed up pagination. Add this
+> attribute to your `ProcessedMessage` entity, then generate and run a migration.
+>
+> ```php
+> #[ORM\Index(name: 'idx_processed_messages_finished_at', fields: ['finishedAt'])]
+> ```
 
 ### Usage
 
@@ -166,8 +173,8 @@ add your own in one of two ways:
     {
     }
     ```
-    > [!TIP]
-    > You can also add the `TagStamp` attribute to parent classes/interfaces.
+
+    You can also add the `TagStamp` attribute to parent classes and interfaces.
 
 #### `messenger:monitor:purge` Command
 
@@ -209,7 +216,7 @@ bin/console messenger:monitor:schedule:purge --remove-orphans
 ```
 
 > [!NOTE]
-> Schedule this command to run daily with `symfony/schedule` and
+> Schedule this command to run daily with `symfony/scheduler` and
 > [`RunCommandMessage`](https://symfony.com/doc/6.4/messenger.html#trigger-a-command).
 
 ## User Interface
@@ -245,13 +252,10 @@ You can now access the dashboard at: `/admin/messenger` or with the route `zenst
 > behind an [access-controlled firewall](https://symfony.com/doc/current/security.html#securing-url-patterns-access-control)
 > that only allows site administrators.
 
-> [!NOTE]
-> Install `knplabs/knp-time-bundle` (`composer require knplabs/knp-time-bundle`) to display
-> friendlier times and durations in the UI.
-
-> [!NOTE]
-> Install `lorisleiva/cron-translator` (`composer require lorisleiva/cron-translator`) to display
-> friendlier CRON values for your scheduled tasks.
+Install `knplabs/knp-time-bundle` (`composer require knplabs/knp-time-bundle`) to display
+friendlier times and durations in the UI. Install `lorisleiva/cron-translator`
+(`composer require lorisleiva/cron-translator`) to display friendlier cron expressions
+for your scheduled tasks.
 
 ## Advanced Usage
 

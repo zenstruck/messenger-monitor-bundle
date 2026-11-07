@@ -50,7 +50,18 @@ final class ORMStorage implements Storage
 
     public function filter(Specification $specification): Collection
     {
-        return new EntityResult($this->queryBuilderFor($specification));
+        $queryBuilder = $this->queryBuilderFor($specification);
+        $result = new EntityResult($queryBuilder);
+        $manager = $queryBuilder->getEntityManager();
+        $metadata = $manager->getClassMetadata($this->entityClass);
+        $identifiers = $metadata->getIdentifierFieldNames();
+
+        // Doctrine's pagination tree walkers require a single field as the identifier.
+        if (1 !== \count($identifiers) || $metadata->hasAssociation($identifiers[0])) {
+            return $result;
+        }
+
+        return $result->disableOutputWalkers();
     }
 
     public function purge(Specification $specification): int
