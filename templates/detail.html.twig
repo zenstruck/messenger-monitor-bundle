@@ -168,6 +168,7 @@
                     <tr>
                         <th class="text-center">#</th>
                         <th>Status</th>
+                        <th>Received At</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -191,6 +192,9 @@
                                             {% endif %}
                                         </div>
                                     </div>
+                                </td>
+                                <td>
+                                    <abbr title="{{ other.receivedAt|date('c') }}">{{ helper.formatTime(other.receivedAt) }}</abbr>
                                 </td>
                             </tr>
                         {% endif %}
