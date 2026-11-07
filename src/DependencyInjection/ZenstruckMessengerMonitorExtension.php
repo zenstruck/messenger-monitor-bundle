@@ -110,7 +110,7 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
             $loader->load('storage_orm.php');
             $container->setParameter(
                 'zenstruck_messenger_monitor.history.orm_manager',
-                $mergedConfig['storage']['orm']['entity_manager']
+                $mergedConfig['storage']['orm']['entity_manager'],
             );
             $container->getDefinition('zenstruck_messenger_monitor.history.storage')
                 ->setArgument(1, $entity)

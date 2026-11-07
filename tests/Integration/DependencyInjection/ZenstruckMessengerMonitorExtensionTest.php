@@ -16,6 +16,7 @@ use Matthias\SymfonyDependencyInjectionTest\PhpUnit\ContainerBuilderHasAliasCons
 use Matthias\SymfonyDependencyInjectionTest\PhpUnit\ContainerBuilderHasServiceDefinitionConstraint;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
 use Zenstruck\Messenger\Monitor\DependencyInjection\ZenstruckMessengerMonitorExtension;
 use Zenstruck\Messenger\Monitor\EventListener\AddMonitorStampListener;
 use Zenstruck\Messenger\Monitor\EventListener\HandleMonitorStampListener;
@@ -98,6 +99,22 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         $this->load(['storage' => ['orm' => ['entity_class' => ProcessedMessageImpl::class, 'entity_manager' => 'custom']]]);
 
         $this->assertContainerBuilderHasParameter('zenstruck_messenger_monitor.history.orm_manager', 'custom');
+    }
+
+    /**
+     * @test
+     */
+    public function flat_orm_manager_parameter_takes_precedence(): void
+    {
+        $this->container->setParameter('zenstruck_messenger_monitor.history.orm_manager', 'legacy');
+        $this->container->loadFromExtension('zenstruck_messenger_monitor', [
+            'storage' => ['orm' => ['entity_class' => ProcessedMessageImpl::class, 'entity_manager' => 'custom']],
+        ]);
+
+        $mergePass = new MergeExtensionConfigurationPass();
+        $mergePass->process($this->container);
+
+        $this->assertContainerBuilderHasParameter('zenstruck_messenger_monitor.history.orm_manager', 'legacy');
     }
 
     /**
