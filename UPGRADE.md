@@ -7,6 +7,8 @@
 
 ## 0.5.0
 
+* If custom code accesses `ViewHelper::$storage` directly, call `ViewHelper::storage()` instead.
+  The method throws a `\LogicException` when history storage is disabled.
 * The Live Components were removed. If you enabled them in your config,
   you will need to remove the `zenstruck_messenger_monitor.live_components`
   entry.
