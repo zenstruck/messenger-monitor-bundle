@@ -30,9 +30,14 @@ abstract class Metric
      */
     final public function handledPer(int $divisor): float
     {
+        // nothing handled yet, so there is no period to divide by
+        if (0 === $totalCount = $this->totalCount()) {
+            return 0.0;
+        }
+
         $interval = $this->totalSeconds() / $divisor;
 
-        return $this->totalCount() / $interval;
+        return $totalCount / $interval;
     }
 
     final public function handledPerMinute(): float

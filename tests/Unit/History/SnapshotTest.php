@@ -56,11 +56,31 @@ final class SnapshotTest extends TestCase
      */
     public function cannot_calculate_handled_per_without_from(): void
     {
-        $snapshot = new Snapshot($this->createMock(Storage::class), Specification::new());
+        // messages were handled, but none of them tells when the period started
+        $storage = $this->createMock(Storage::class);
+        $storage->method('count')->willReturn(1, 0);
+
+        $snapshot = new Snapshot($storage, Specification::new());
 
         $this->expectException(\LogicException::class);
 
         $snapshot->handledPer(60);
+    }
+
+    /**
+     * @test
+     */
+    public function handled_per_is_zero_when_no_message_was_handled(): void
+    {
+        // freshly installed: the history is empty, so there is no "from" date to find
+        $storage = $this->createMock(Storage::class);
+        $storage->method('count')->willReturn(0);
+
+        $snapshot = new Snapshot($storage, Specification::new());
+
+        $this->assertSame(0.0, $snapshot->handledPerMinute());
+        $this->assertSame(0.0, $snapshot->handledPerHour());
+        $this->assertSame(0.0, $snapshot->handledPerDay());
     }
 
     /**

@@ -33,4 +33,15 @@ final class MonitorCommandTest extends KernelTestCase
             ->assertOutputContains('async   0                 0')
         ;
     }
+
+    /**
+     * @test
+     */
+    public function run_messenger_monitor_command_for_all_time_with_an_empty_history(): void
+    {
+        $this->executeConsoleCommand('messenger:monitor --period=all')
+            ->assertSuccessful()
+            ->assertOutputContains('Handled Per Minute')
+        ;
+    }
 }
