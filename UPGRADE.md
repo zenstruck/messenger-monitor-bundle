@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-## Unreleased
+## 0.7.0
 
 * `ProcessedMessage::$description` changed from Doctrine `string` (`VARCHAR(255)`) to `text`.
   Generate and run a Doctrine migration before restarting your Messenger workers.
