@@ -269,6 +269,7 @@ abstract class MessengerMonitorController extends AbstractController
         ViewHelper $helper,
     ): Response {
         return $this->render('@ZenstruckMessengerMonitor/components/workers.html.twig', [
+            'helper' => $helper,
             'workers' => $helper->workers,
         ]);
     }

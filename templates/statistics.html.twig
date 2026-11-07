@@ -64,7 +64,9 @@
                 <tbody>
                     {% for metric in metrics %}
                         <tr>
-                            <td class="text-start"><abbr title="{{ metric.type }}">{{ metric.type.shortName }}</abbr></td>
+                            <td class="text-start">
+                                <a class="text-body" href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({type: metric.type})) }}" title="{{ metric.type }}">{{ metric.type.shortName }}</a>
+                            </td>
                             <td class="text-start">
                                 {{ metric.totalCount }}
                                 {% if metric.failureCount %}

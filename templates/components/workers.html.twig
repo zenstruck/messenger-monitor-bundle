@@ -20,6 +20,7 @@
                 <tr>
                     <th>&nbsp;</th>
                     <th class="text-center">Status</th>
+                    <th class="text-center">Up Time</th>
                     <th>Transports</th>
                     <th class="text-center"># Handled</th>
                     <th class="text-center">Memory</th>
@@ -33,6 +34,9 @@
                             <span class="badge align-text-top text-bg-{{ worker.isIdle ? 'success' : 'primary' }}">
                                 {{ worker.status }}
                             </span>
+                        </td>
+                        <td class="text-center">
+                            <abbr title="{{ worker.runningFor }}s">{{ helper.formatDuration(worker.runningFor * 1000) }}</abbr>
                         </td>
                         <td>
                             {% for transport in worker.transports %}
