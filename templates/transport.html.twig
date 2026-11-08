@@ -1,48 +1,42 @@
 {% extends '@ZenstruckMessengerMonitor/layout.html.twig' %}
 
-{% block title %}Transport "{{ transport.name }}"{% endblock %}
+{% block title %}Transports{% endblock %}
 
 {% block breadcrumb_items %}
     {{ parent() }}
     <li class="breadcrumb-item active" aria-current="page">Transports</li>
 {% endblock %}
 
+{% block page_intro %}<p>Inspect queued and failed messages across your transports.</p>{% endblock %}
+
 {% block content %}
     <div class="card mb-3">
-        <div class="card-header position-relative">
-            {% embed '@ZenstruckMessengerMonitor/_refresh_button.html.twig' %}
-                {% block class %}{{ parent() }} btn-outline-secondary position-absolute translate-middle end-0 top-50{% endblock %}
-            {% endembed %}
-            <ul class="nav nav-tabs card-header-tabs">
+        <div class="card-header monitor-tab-header">
+            <ul class="nav nav-pills monitor-tabs" aria-label="Transports">
                 {% for item in transports %}
-                    <li class="nav-item position-relative mx-2" role="presentation">
-                        {% if item|length %}
-                            <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill {{ item.isFailure ? 'bg-danger' : 'bg-primary' }}">
+                    {% set active = item.name == transport.name %}
+                    <li class="nav-item">
+                        <a href="{{ path('zenstruck_messenger_monitor_transport', {name: item.name}) }}" class="nav-link{{ active ? ' active' }}"{% if active %} aria-current="page"{% endif %}>
+                            {{ item.name }}
+                            <span class="badge text-bg-{{ item|length ? (item.isFailure ? 'danger' : 'primary') : 'secondary' }}">
                                 {{ item|length }} <span class="visually-hidden">queued messages</span>
                             </span>
-                        {% else %}
-                            <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary">
-                                0 <span class="visually-hidden">queued messages</span>
-                            </span>
-                        {% endif %}
-
-                        <a href="{{ path('zenstruck_messenger_monitor_transport', {name: item.name}) }}" class="nav-link{{ item.name == transport.name ? ' active' }}">
-                            {{ item.name }}
                         </a>
                     </li>
                 {% endfor %}
             </ul>
+            {{ include('@ZenstruckMessengerMonitor/_refresh_button.html.twig') }}
         </div>
         <div class="tab-content">
             {% if not transport|length %}
-                <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+                <div class="card-alert card-text alert alert-light d-flex align-items-center" role="alert">
                     <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
                     <div>
-                        No Queued Messages.
+                        No messages in this queue.
                     </div>
                 </div>
             {% elseif not transport.isListable %}
-                <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+                <div class="card-alert card-text alert alert-light d-flex align-items-center" role="alert">
                     <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
                     <div>
                         This transport is not listable.
@@ -113,12 +107,12 @@
                                     {% endif %}
                                     <td class="text-end">
                                         <a href="{{ path('zenstruck_messenger_monitor_transport_remove', {name: transport.name, id: queued.id}) }}" data-controller="post-link" data-action="post-link#click" class="btn btn-sm btn-outline-danger" data-confirm="Are you sure?" data-token="{{ helper.generateCsrfToken('remove', queued.id, transport.name) }}">
-                                            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#trash-icon"/></svg>
+                                            <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" aria-hidden="true"><use xlink:href="#trash-icon"/></svg>
                                             Remove
                                         </a>
                                         {% if transport.isFailure %}
                                             <a href="{{ path('zenstruck_messenger_monitor_transport_retry', {name: transport.name, id: queued.id}) }}" data-controller="post-link" data-action="post-link#click" class="btn btn-sm btn-outline-secondary" data-token="{{ helper.generateCsrfToken('retry', queued.id, transport.name) }}">
-                                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#refresh-icon"/></svg>
+                                                <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" aria-hidden="true"><use xlink:href="#refresh-icon"/></svg>
                                                 Retry
                                             </a>
                                         {% endif %}

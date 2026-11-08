@@ -1,16 +1,7 @@
 <div class="card position-relative"{{ attributes|default('') }}>
-    {% if workers.running %}
-        <span class="position-absolute z-3 top-0 start-100 translate-middle badge rounded-pill bg-success">
-            {{ workers.count }} <span class="visually-hidden">workers running</span>
-        </span>
-    {% else %}
-        <span class="position-absolute z-3 top-0 start-100 translate-middle badge rounded-pill bg-danger">
-            0 <span class="visually-hidden">workers running</span>
-        </span>
-    {% endif %}
-
-    <div class="card-header d-flex align-items-center justify-content-between">
-        Worker Status
+    <div class="card-header">
+        <h2 class="monitor-section-title">Workers</h2>
+        <span class="badge text-bg-{{ workers.running ? 'success' : 'danger' }}">{{ workers.count }} running</span>
     </div>
 
     {% if workers.running %}
@@ -18,11 +9,11 @@
             <table class="table card-table table-striped align-text-top">
                 <thead>
                 <tr>
-                    <th>&nbsp;</th>
+                    <th>#</th>
                     <th class="text-center">Status</th>
-                    <th class="text-center">Up Time</th>
+                    <th class="text-center">Uptime</th>
                     <th>Transports</th>
-                    <th class="text-center"># Handled</th>
+                    <th class="text-center">Handled</th>
                     <th class="text-center">Memory</th>
                 </tr>
                 </thead>
@@ -58,7 +49,7 @@
         <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
             <svg fill="currentcolor" height="1em" width="1em" class="me-2 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
             <div>
-                There are no workers running.
+                No workers are running.
             </div>
         </div>
     {% endif %}

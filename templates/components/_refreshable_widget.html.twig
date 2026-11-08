@@ -1,17 +1,15 @@
-<div data-controller="refreshable" class="position-relative" data-refreshable-url-value="{{ url }}">
-    <div class="position-absolute top-0 end-0 z-2 d-flex align-items-center" style="margin-top: 8px; min-height: 26px;">
-        <div class="d-none spinner-border spinner-border-sm spinner-border-slow text-secondary opacity-50 me-2" data-refreshable-target="indicator" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+<div data-controller="refreshable" class="monitor-widget" data-refreshable-url-value="{{ url }}">
+    <div class="monitor-widget-controls">
+        <span class="monitor-live d-none" data-refreshable-target="indicator">Live</span>
         {% block buttons %}
-            <button title="Refresh" data-action="refreshable#refresh" data-refreshable-target="refresh" class="d-none btn btn-light btn-outline-secondary btn-sm d-flex align-items-center me-2">
-                <svg width="16" height="16" fill="currentColor"><use xlink:href="#refresh-icon"/></svg>
+            <button type="button" title="Refresh" aria-label="Refresh" data-action="refreshable#refresh" data-refreshable-target="refresh" class="d-none btn btn-light btn-sm monitor-icon-button">
+                <svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="#refresh-icon"/></svg>
             </button>
-            <button title="Pause Polling" data-action="refreshable#pause" data-refreshable-target="pause" class="btn btn-light btn-outline-secondary btn-sm d-flex align-items-center me-2">
-                <svg width="16" height="16" fill="currentColor"><use xlink:href="#pause-icon"/></svg>
+            <button type="button" title="Pause automatic refresh" aria-label="Pause automatic refresh" data-action="refreshable#pause" data-refreshable-target="pause" class="d-none btn btn-light btn-sm monitor-icon-button">
+                <svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="#pause-icon"/></svg>
             </button>
-            <button title="Start Polling" data-action="refreshable#start" data-refreshable-target="start" class="d-none btn btn-light btn-outline-secondary btn-sm d-flex align-items-center me-2">
-                <svg width="16" height="16" fill="currentColor"><use xlink:href="#play-icon"/></svg>
+            <button type="button" title="Resume automatic refresh" aria-label="Resume automatic refresh" data-action="refreshable#start" data-refreshable-target="start" class="d-none btn btn-light btn-sm monitor-icon-button">
+                <svg width="16" height="16" fill="currentColor" aria-hidden="true"><use href="#play-icon"/></svg>
             </button>
         {% endblock %}
     </div>

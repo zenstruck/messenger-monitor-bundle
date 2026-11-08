@@ -1,50 +1,48 @@
-<div class="card position-relative mb-3">
+<section class="card">
     <div class="card-header">
-        {% block card_header %}Messages{% endblock %}
+        {% block card_header %}<h2 class="monitor-section-title">Messages</h2>{% endblock %}
     </div>
 
     {% if not messages|length %}
-        <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+        <div class="card-alert card-text alert alert-light d-flex align-items-center" role="alert">
             <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
             <div>
-                No messages.
+                No processed messages to show.
             </div>
         </div>
     {% else %}
         <div class="table-responsive">
-            <table class="table card-table table-striped align-text-top text-nowrap">
+            <table class="table card-table align-middle text-nowrap monitor-messages-table">
                 <thead>
                 <tr>
-                    <th>Type</th>
+                    <th>Message</th>
                     <th>Transport</th>
                     <th class="text-center">Duration</th>
                     <th class="text-center">Memory</th>
                     <th>Tags</th>
                     <th>Handled At</th>
-                    <td>&nbsp;</td>
+                    <th aria-label="Actions"></th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for message in messages %}
                     <tr>
-                        <td class="{{ message.isFailure ? 'text-danger' : 'text-success'}}">
-                            <div class="d-flex align-items-center">
-                                {% if message.isFailure %}
-                                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
-                                {% else %}
-                                    <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
-                                {% endif %}
-
-                                <div class="ms-2">
-                                    <a class="text-body" href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({type: message.type})) }}" title="{{ message.type }}">{{ message.type.shortName }}</a>
+                        <td>
+                            <div class="monitor-message">
+                                <span class="monitor-message-status text-{{ message.isFailure ? 'danger' : 'success' }}-emphasis bg-{{ message.isFailure ? 'danger' : 'success' }}-subtle" title="{{ message.isFailure ? 'Failed' : 'Successful' }}">
+                                    <svg width="15" height="15" fill="currentColor" aria-hidden="true"><use href="#{{ message.isFailure ? 'exclamation-triangle-fill' : 'check-circle-fill' }}"/></svg>
+                                    <span class="visually-hidden">{{ message.isFailure ? 'Failed' : 'Successful' }}</span>
+                                </span>
+                                <div class="monitor-message-copy">
+                                    <a class="monitor-message-name" href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({type: message.type})) }}" title="{{ message.type }}">{{ message.type.shortName }}</a>
                                     {% if message.description %}
-                                        <br><small class="text-secondary">{{ message.description }}</small>
+                                        <small>{{ message.description }}</small>
                                     {% endif %}
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge align-text-top text-bg-secondary">{{ message.transport }}</a>
+                            <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({transport: message.transport})) }}" class="badge monitor-transport">{{ message.transport }}</a>
                         </td>
                         <td class="text-center">
                             <abbr title="{{ (message.timeToHandle / 1000)|round(3) }}s">{{ helper.formatDuration(message.timeToHandle) }}</abbr>
@@ -54,7 +52,7 @@
                         </td>
                         <td>
                             {% for tag in message.tags %}
-                                <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({tag: tag})) }}" class="badge align-text-top text-bg-secondary">{{ tag }}</a>
+                                <a href="{{ path('zenstruck_messenger_monitor_history', app.request.query.all|merge({tag: tag})) }}" class="badge text-bg-secondary">{{ tag }}</a>
                             {% else %}
                                 <span class="text-secondary">-</span>
                             {% endfor %}
@@ -62,10 +60,10 @@
                         <td>
                             <abbr title="{{ message.finishedAt|date('c') }}">{{ helper.formatTime(message.finishedAt) }}</abbr>
                         </td>
-                        <td>
-                            <a href="{{ path('zenstruck_messenger_monitor_detail', {id: message.id}) }}" class="btn btn-sm btn-secondary d-inline-flex align-items-center" data-controller="message-details" data-action="message-details#click">
-                                <svg fill="currentcolor" height="1em" width="1em" class="me-2"><use xlink:href="#search-icon"/></svg>
-                                Details...
+                        <td class="text-end">
+                            <a href="{{ path('zenstruck_messenger_monitor_detail', {id: message.id}) }}" class="btn btn-sm btn-light d-inline-flex align-items-center gap-2" data-controller="message-details" data-action="message-details#click">
+                                Details
+                                <svg width="14" height="14" aria-hidden="true"><use href="#monitor-arrow-right"/></svg>
                             </a>
                         </td>
                     </tr>
@@ -74,4 +72,5 @@
             </table>
         </div>
     {% endif %}
-</div>
+    {% block card_footer %}{% endblock %}
+</section>

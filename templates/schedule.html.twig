@@ -7,31 +7,25 @@
     <li class="breadcrumb-item active" aria-current="page">Schedule</li>
 {% endblock %}
 
+{% block page_intro %}<p>Inspect scheduled tasks, recent runs, and upcoming triggers.</p>{% endblock %}
+
 {% block content %}
     <div class="card position-relative mb-3">
-        <div class="card-header position-relative">
-            {% embed '@ZenstruckMessengerMonitor/_refresh_button.html.twig' %}
-                {% block class %}{{ parent() }} btn-outline-secondary position-absolute translate-middle end-0 top-50{% endblock %}
-            {% endembed %}
-            <ul class="nav nav-tabs card-header-tabs">
+        <div class="card-header monitor-tab-header">
+            <ul class="nav nav-pills monitor-tabs" aria-label="Schedules">
                 {% for item in schedules %}
-                    <li class="nav-item position-relative mx-2" role="presentation">
-                        {% if item.running %}
-                            <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                    {% set active = item.name == schedule.name %}
+                    <li class="nav-item">
+                        <a href="{{ path('zenstruck_messenger_monitor_schedule', {name: item.name}) }}" class="nav-link{{ active ? ' active' }}"{% if active %} aria-current="page"{% endif %}>
+                            {{ item.name|replace({'-': ' ', '_': ' '})|title }}
+                            <span class="badge text-bg-{{ item.running ? 'success' : 'danger' }}">
                                 {{ item.workers|length }} <span class="visually-hidden">workers running this schedule</span>
                             </span>
-                        {% else %}
-                            <span class="z-2 position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                0 <span class="visually-hidden">workers running this schedule</span>
-                            </span>
-                        {% endif %}
-
-                        <a href="{{ path('zenstruck_messenger_monitor_schedule', {name: item.name}) }}" class="nav-link{{ item.name == schedule.name ? ' active' }}">
-                            {{ item.name|replace({'-' : ' ', '_': ' '})|title }} Schedule
                         </a>
                     </li>
                 {% endfor %}
             </ul>
+            {{ include('@ZenstruckMessengerMonitor/_refresh_button.html.twig') }}
         </div>
         <div class="tab-content">
             {% if not schedule.running %}
