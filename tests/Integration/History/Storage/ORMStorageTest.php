@@ -132,11 +132,11 @@ final class ORMStorageTest extends KernelTestCase
 
         foreach (['app:import', 'batch_100%', 'timed out', 'invoice-42', 'imported 42', 'retrying import'] as $search) {
             $specification = Specification::create(['message_type' => MessageA::class, 'search' => $search]);
-            $this->assertSame(1, $storage->count($specification), $search);
+            $this->assertCount(1, $storage->filter($specification), $search);
         }
 
-        $this->assertSame(0, $storage->count(Specification::create(['search' => 'internal-only'])));
-        $this->assertSame(3, $storage->count(Specification::create(['search' => '  '])));
+        $this->assertCount(0, $storage->filter(Specification::create(['search' => 'internal-only'])));
+        $this->assertCount(3, $storage->filter(Specification::create(['search' => '  '])));
     }
 
     /**
