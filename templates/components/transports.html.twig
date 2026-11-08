@@ -11,11 +11,13 @@
             </div>
         </div>
     {% else %}
-        {% if transports.failure and transports.failure|length %}
+        {% set failure = transports.failure %}
+        {% set failure_count = failure|length %}
+        {% if failure_count %}
             <div class="card-alert card-text alert alert-danger d-flex align-items-center" role="alert">
                 <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Error:"><use xlink:href="#exclamation-triangle-fill"/></svg>
                 <div>
-                    The <a class="text-danger-emphasis" href="{{ path('zenstruck_messenger_monitor_transport', {name: transports.failure.name}) }}">failure transport</a> has <strong>{{ transports.failure|length }}</strong> messages.
+                    The <a class="text-danger-emphasis" href="{{ path('zenstruck_messenger_monitor_transport', {name: failure.name}) }}">failure transport</a> has <strong>{{ failure_count }}</strong> messages.
                 </div>
             </div>
         {% endif %}
