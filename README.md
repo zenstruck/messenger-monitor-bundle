@@ -87,11 +87,13 @@ historical snapshot whose period can be customized with the `--period` option.
     ```
 
 > [!TIP]
-> For large message histories, index `finished_at` to speed up pagination. Add this
-> attribute to your `ProcessedMessage` entity, then generate and run a migration.
+> For large message histories, index `finished_at` for pagination and time-based snapshots.
+> Index `run_id` to speed up retry lookups on the message details page. Add the relevant
+> attributes to your `ProcessedMessage` entity, then generate and run a migration.
 >
 > ```php
 > #[ORM\Index(name: 'idx_processed_messages_finished_at', fields: ['finishedAt'])]
+> #[ORM\Index(name: 'idx_processed_messages_run_id', fields: ['runId'])]
 > ```
 
 ### Usage
