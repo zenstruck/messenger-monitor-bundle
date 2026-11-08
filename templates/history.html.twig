@@ -36,7 +36,7 @@
                     {% endif %}
                     {% for t in helper.transports.filter.excludeSync.names %}
                         {% if t != current_transport %}
-                            <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({transport: t})) }}">{{ t }}</a></li>
+                            <li><a class="dropdown-item" title="{{ t }}" href="{{ path(app.current_route, app.request.query.all|merge({transport: t})) }}">{{ t }}</a></li>
                         {% endif %}
                     {% endfor %}
                 </ul>
@@ -65,9 +65,10 @@
                     <ul class="dropdown-menu">
                         {% for s in schedule_options %}
                             {% if s != current_schedule %}
+                                {% set label = s|replace({'_include': '(include)', '_exclude': '(exclude)'}) %}
                                 <li>
-                                    <a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({schedule: s})) }}">
-                                        {{ s|replace({'_include': '(include)', '_exclude': '(exclude)'}) }}
+                                    <a class="dropdown-item" title="{{ label }}" href="{{ path(app.current_route, app.request.query.all|merge({schedule: s})) }}">
+                                        {{ label }}
                                     </a>
                                 </li>
                             {% endif %}
@@ -88,7 +89,7 @@
 
                     {% for type in filters.availableMessageTypes %}
                         {% if type.class != current_type %}
-                            <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({type: type.class})) }}">
+                            <li><a class="dropdown-item" title="{{ type }}" href="{{ path(app.current_route, app.request.query.all|merge({type: type.class})) }}">
                                     {{ type.shortName }} <br>
                                     <small class="text-secondary">{{ type }}</small>
                                 </a>

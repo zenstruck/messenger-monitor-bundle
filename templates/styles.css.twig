@@ -803,12 +803,13 @@ a.badge:hover {
 }
 
 .monitor-toolbar .dropdown-menu {
-    max-width: min(24rem, calc(100vw - 2rem));
+    max-width: calc(100vw - 2rem);
 }
 
 .monitor-toolbar .dropdown-item {
-    white-space: normal;
-    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .monitor-tab-header {
