@@ -112,6 +112,36 @@ final class ORMStorageTest extends KernelTestCase
     /**
      * @test
      */
+    public function searches_message_history_only_for_non_blank_queries(): void
+    {
+        ProcessedMessageFactory::createOne([
+            'type' => MessageA::class,
+            'description' => 'Run APP:IMPORT',
+            'tags' => 'batch_100%,orders',
+            'failureMessage' => 'Connection timed out',
+            'input' => ['reference' => 'invoice-42'],
+            'results' => [
+                ['data' => ['output' => 'Imported 42 orders']],
+                ['data' => ['error_output' => 'Retrying import', 'stack_trace' => 'internal-only']],
+            ],
+        ]);
+        ProcessedMessageFactory::createOne(['type' => MessageA::class, 'tags' => 'batchX1000', 'results' => null]);
+        ProcessedMessageFactory::createOne(['type' => MessageB::class, 'description' => 'Run app:import']);
+
+        $storage = $this->storage();
+
+        foreach (['app:import', 'batch_100%', 'timed out', 'invoice-42', 'imported 42', 'retrying import'] as $search) {
+            $specification = Specification::create(['message_type' => MessageA::class, 'search' => $search]);
+            $this->assertCount(1, $storage->filter($specification), $search);
+        }
+
+        $this->assertCount(0, $storage->filter(Specification::create(['search' => 'internal-only'])));
+        $this->assertCount(3, $storage->filter(Specification::create(['search' => '  '])));
+    }
+
+    /**
+     * @test
+     */
     public function per_message_type_metrics(): void
     {
         $start = self::mockTime()->now()->modify('-1 hour');

@@ -793,6 +793,32 @@ a.badge:hover {
     overflow-wrap: anywhere;
 }
 
+.monitor-history-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .75rem;
+}
+
+.monitor-history-search {
+    flex: 1 1 17rem;
+    max-width: 30rem;
+}
+
+.monitor-history-search .form-control {
+    background: var(--monitor-panel);
+    border-color: var(--monitor-control-border);
+    font-size: .8125rem;
+}
+
+.monitor-history-search .input-group > .btn:hover:not(:focus) {
+    z-index: 3;
+}
+
+.monitor-history-filters {
+    padding-top: .75rem;
+    border-top: 1px solid var(--monitor-line);
+}
+
 .dropdown-menu {
     --bs-dropdown-bg: var(--monitor-panel);
     --bs-dropdown-link-hover-bg: var(--monitor-wash);
@@ -803,12 +829,13 @@ a.badge:hover {
 }
 
 .monitor-toolbar .dropdown-menu {
-    max-width: min(24rem, calc(100vw - 2rem));
+    max-width: calc(100vw - 2rem);
 }
 
 .monitor-toolbar .dropdown-item {
-    white-space: normal;
-    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .monitor-tab-header {

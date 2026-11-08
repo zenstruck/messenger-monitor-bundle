@@ -95,6 +95,7 @@ abstract class MessengerMonitorController extends AbstractController
             'tags' => \array_filter($tags),
             'not_tags' => $notTags,
             'message_type' => $request->query->get('type'),
+            'search' => $request->query->getString('search'),
         ]);
 
         return $this->render('@ZenstruckMessengerMonitor/history.html.twig', [

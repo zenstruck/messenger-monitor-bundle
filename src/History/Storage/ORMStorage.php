@@ -179,7 +179,7 @@ final class ORMStorage implements Storage
 
     private function queryBuilderFor(Specification $specification, bool $order = true, bool $filterStatus = true): QueryBuilder
     {
-        [$from, $to, $status, $messageType, $transport, $tags, $notTags, $sort, $runId] = \array_values($specification->toArray());
+        [$from, $to, $status, $messageType, $transport, $tags, $notTags, $sort, $runId, $search] = \array_values($specification->toArray());
 
         $qb = $this->repository()->createQueryBuilder('m');
 
@@ -201,6 +201,10 @@ final class ORMStorage implements Storage
 
         if ($runId) {
             $qb->andWhere('m.runId = :run_id')->setParameter('run_id', $runId);
+        }
+
+        if ('' !== $search) {
+            $this->applySearch($qb, $search);
         }
 
         if ($filterStatus && null !== ($condition = self::statusCondition($status))) {
@@ -247,5 +251,22 @@ final class ORMStorage implements Storage
 
         // DQL requires an expression for ELSE and rejects a bare NULL.
         return "AVG(CASE WHEN {$condition} THEN {$field} ELSE NULLIF(1, 1) END)";
+    }
+
+    private function applySearch(QueryBuilder $qb, string $search): void
+    {
+        $matches = $qb->expr()->orX();
+
+        foreach (['m.description', 'm.tags', 'm.failureMessage', "CONCAT('', m.input)"] as $field) {
+            $matches->add("LOWER({$field}) LIKE LOWER(:search) ESCAPE '!'");
+        }
+
+        $configuration = $qb->getEntityManager()->getConfiguration();
+        $configuration->addCustomNumericFunction('MESSENGER_MONITOR_MATCH_OUTPUT', MatchOutput::class);
+        $matches->add('MESSENGER_MONITOR_MATCH_OUTPUT(m.results, :search) = 1');
+
+        $pattern = '%'.\strtr($search, ['!' => '!!', '%' => '!%', '_' => '!_']).'%';
+        $qb->andWhere($matches);
+        $qb->setParameter('search', $pattern);
     }
 }
