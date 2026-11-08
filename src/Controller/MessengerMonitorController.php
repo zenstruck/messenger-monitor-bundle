@@ -56,12 +56,20 @@ abstract class MessengerMonitorController extends AbstractController
         $specification = Specification::create([ // @phpstan-ignore-line
             'period' => $period,
         ]);
+        $storage = $helper->storage();
+
+        // Twig's empty-state check would count a lazy Doctrine result in SQL.
+        $metrics = $specification
+            ->snapshot($storage)
+            ->perMessageTypeMetrics()
+            ->eager()
+        ;
 
         return $this->render('@ZenstruckMessengerMonitor/statistics.html.twig', [
             'helper' => $helper,
             'periods' => [...Period::inLastCases(), ...Period::absoluteCases()],
             'period' => $period,
-            'metrics' => $specification->snapshot($helper->storage())->perMessageTypeMetrics(),
+            'metrics' => $metrics,
         ]);
     }
 
