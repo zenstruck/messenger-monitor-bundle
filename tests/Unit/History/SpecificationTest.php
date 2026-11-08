@@ -42,6 +42,7 @@ final class SpecificationTest extends TestCase
                 'not_tags' => [],
                 'sort' => 'desc',
                 'run_id' => null,
+                'search' => '',
             ],
             $spec->toArray(),
         );
@@ -57,6 +58,7 @@ final class SpecificationTest extends TestCase
             'not_tags' => 'qux',
             'sort' => 'asc',
             'run_id' => 123,
+            'search' => ' foo ',
         ]);
 
         $this->assertEquals(
@@ -70,6 +72,7 @@ final class SpecificationTest extends TestCase
                 'not_tags' => ['qux'],
                 'sort' => 'asc',
                 'run_id' => 123,
+                'search' => 'foo',
             ],
             $spec->toArray(),
         );

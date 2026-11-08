@@ -27,6 +27,7 @@ namespace Zenstruck\Messenger\Monitor\History;
  *     not_tags?: string[]|string|null,
  *     sort?: self::ASC|self::DESC,
  *     run_id?: int|null,
+ *     search?: ?string,
  * }
  */
 final class Specification
@@ -44,6 +45,7 @@ final class Specification
     private ?string $messageType = null;
     private ?string $transport = null;
     private ?int $runId = null;
+    private string $search = '';
 
     /** @var self::ASC|self::DESC */
     private string $sort = self::DESC;
@@ -87,6 +89,7 @@ final class Specification
         $specification->messageType = $values['message_type'] ?? null;
         $specification->transport = $values['transport'] ?? null;
         $specification->runId = isset($values['run_id']) ? (int) $values['run_id'] : null;
+        $specification->search = \trim($values['search'] ?? '');
         $specification->status = match ($values['status'] ?? null) {
             self::SUCCESS => self::SUCCESS,
             self::FAILED => self::FAILED,
@@ -207,6 +210,7 @@ final class Specification
      *     not_tags: string[],
      *     sort: self::ASC|self::DESC,
      *     run_id: int|null,
+     *     search: string,
      * }
      */
     public function toArray(): array
@@ -221,6 +225,7 @@ final class Specification
             'not_tags' => $this->notTags,
             'sort' => $this->sort,
             'run_id' => $this->runId,
+            'search' => $this->search,
         ];
     }
 

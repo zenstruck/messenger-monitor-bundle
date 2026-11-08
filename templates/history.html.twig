@@ -10,122 +10,143 @@
 {% block page_intro %}<p>Browse processed messages, filter by status, and inspect individual attempts.</p>{% endblock %}
 
 {% block content %}
-    <div class="monitor-toolbar">
-        <div class="monitor-filters">
-            <strong class="monitor-filter-label">Filters</strong>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <small class="text-body-secondary">Period:</small> {{ period.humanize }}
-                </button>
-                <ul class="dropdown-menu">
-                    {% for p in periods %}
-                        {% if p != period %}
-                            <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({period: p.value})) }}">{{ p.humanize }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="btn-group" role="group">
-                {% set current_transport = app.request.query.get('transport', 'All') %}
-                <button type="button" class="btn {{ current_transport != 'All' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <small class="text-body-secondary">Transport:</small> {{ current_transport }}
-                </button>
-                <ul class="dropdown-menu">
-                    {% if 'All' != current_transport %}
-                        <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({transport: null})) }}">All</a></li>
-                    {% endif %}
-                    {% for t in helper.transports.filter.excludeSync.names %}
-                        {% if t != current_transport %}
-                            <li><a class="dropdown-item" title="{{ t }}" href="{{ path(app.current_route, app.request.query.all|merge({transport: t})) }}">{{ t }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="btn-group" role="group">
-                {% set current_status = app.request.query.get('status', 'All') %}
-                <button type="button" class="btn {{ current_status != 'All' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <small class="text-body-secondary">Status:</small> {{ current_status|title }}
-                </button>
-                <ul class="dropdown-menu">
-                    {% for status in ['All', 'Success', 'Failed'] %}
-                        {% if status != current_status %}
-                            <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({status: status|lower})) }}">{{ status }}</a></li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </div>
+    {% set search = app.request.query.getString('search')|trim %}
+    {% set filter_defaults = {period: 'in-last-day', transport: null, status: 'all', schedule: '_include', type: null, tag: null} %}
+    {% set current_filters = app.request.query.all|filter((value, name) => name in filter_defaults|keys) %}
+    {% set active_filters = current_filters|filter((value, name) => name != 'period' and value is not empty and value != filter_defaults[name]) %}
+    {% set filter_query = app.request.query.all|merge({page: null}) %}
 
-            {% if helper.schedules %}
+    <div class="monitor-toolbar monitor-history-toolbar">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <form class="monitor-history-search" action="{{ path(app.current_route) }}" method="get" role="search">
+                {% for name, value in current_filters %}
+                    <input type="hidden" name="{{ name }}" value="{{ value }}">
+                {% endfor %}
+                <div class="input-group">
+                    <input type="search" class="form-control" name="search" value="{{ search }}" placeholder="Search message history" aria-label="Search message history">
+                    {% if search is not empty %}
+                        <a class="btn btn-light" href="{{ path(app.current_route, filter_query|merge({search: null})) }}" aria-label="Clear search">Clear</a>
+                    {% endif %}
+                    <button class="btn btn-light" type="submit" aria-label="Search">
+                        <svg width="14" height="14" fill="currentColor" class="align-text-bottom" aria-hidden="true"><use href="#search-icon"/></svg>
+                    </button>
+                </div>
+            </form>
+            <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 ms-auto">
                 <div class="btn-group" role="group">
-                    {% set current_schedule = app.request.query.get('schedule', '_include') %}
-                    {% set schedule_options = ['_include', '_exclude']|merge(helper.schedules.names) %}
-                    <button type="button" class="btn {{ current_schedule != '_include' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        <small class="text-body-secondary">Schedule:</small> {{ current_schedule|replace({'_include': '(include)', '_exclude': '(exclude)'}) }}
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <small class="text-body-secondary">Period:</small> {{ period.humanize }}
                     </button>
                     <ul class="dropdown-menu">
-                        {% for s in schedule_options %}
-                            {% if s != current_schedule %}
-                                {% set label = s|replace({'_include': '(include)', '_exclude': '(exclude)'}) %}
-                                <li>
-                                    <a class="dropdown-item" title="{{ label }}" href="{{ path(app.current_route, app.request.query.all|merge({schedule: s})) }}">
-                                        {{ label }}
+                        {% for p in periods %}
+                            {% if p != period %}
+                                <li><a class="dropdown-item" href="{{ path(app.current_route, filter_query|merge({period: p.value})) }}">{{ p.humanize }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                <button type="button" class="btn {{ active_filters ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="collapse" data-bs-target="#history-filters" aria-controls="history-filters" aria-expanded="{{ active_filters ? 'true' : 'false' }}">
+                    Filters{% if active_filters %} <span class="badge text-bg-secondary">{{ active_filters|length }}</span>{% endif %}
+                </button>
+                {% embed '@ZenstruckMessengerMonitor/_refresh_button.html.twig' %}
+                    {% block content %}
+                        {{ parent() }}
+                        <span class="ms-2 d-none d-sm-inline">Refresh</span>
+                    {% endblock %}
+                {% endembed %}
+            </div>
+        </div>
+        <div class="collapse{{ active_filters ? ' show' }}" id="history-filters">
+            <div class="monitor-filters monitor-history-filters">
+                <div class="btn-group" role="group">
+                    {% set current_transport = app.request.query.get('transport', 'All') %}
+                    <button type="button" class="btn {{ current_transport != 'All' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <small class="text-body-secondary">Transport:</small> {{ current_transport }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% if 'All' != current_transport %}
+                            <li><a class="dropdown-item" href="{{ path(app.current_route, filter_query|merge({transport: null})) }}">All</a></li>
+                        {% endif %}
+                        {% for t in helper.transports.filter.excludeSync.names %}
+                            {% if t != current_transport %}
+                                <li><a class="dropdown-item" title="{{ t }}" href="{{ path(app.current_route, filter_query|merge({transport: t})) }}">{{ t }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="btn-group" role="group">
+                    {% set current_status = app.request.query.get('status', 'All')|title %}
+                    <button type="button" class="btn {{ current_status != 'All' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <small class="text-body-secondary">Status:</small> {{ current_status }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% for status in ['All', 'Success', 'Failed'] %}
+                            {% if status != current_status %}
+                                <li><a class="dropdown-item" href="{{ path(app.current_route, filter_query|merge({status: status == 'All' ? null : status|lower})) }}">{{ status }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {% if helper.schedules %}
+                    <div class="btn-group" role="group">
+                        {% set current_schedule = app.request.query.get('schedule', '_include') %}
+                        {% set schedule_options = ['_include', '_exclude']|merge(helper.schedules.names) %}
+                        <button type="button" class="btn {{ current_schedule != '_include' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <small class="text-body-secondary">Schedule:</small> {{ current_schedule|replace({'_include': '(include)', '_exclude': '(exclude)'}) }}
+                        </button>
+                        <ul class="dropdown-menu">
+                            {% for s in schedule_options %}
+                                {% if s != current_schedule %}
+                                    {% set label = s|replace({'_include': '(include)', '_exclude': '(exclude)'}) %}
+                                    <li>
+                                        <a class="dropdown-item" title="{{ label }}" href="{{ path(app.current_route, filter_query|merge({schedule: s})) }}">
+                                            {{ label }}
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="btn-group" role="group">
+                    {% set current_type = app.request.query.get('type', 'All') %}
+                    <button type="button" class="btn {{ current_type != 'All' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"{% if current_type != 'All' %} title="{{ current_type }}"{% elseif not filters.availableMessageTypes|length %} disabled{% endif %}>
+                        <small class="text-body-secondary">Message type:</small> {{ current_type|split('\\')|last }}
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% if 'All' != current_type %}
+                            <li><a class="dropdown-item" href="{{ path(app.current_route, filter_query|merge({type: null})) }}">All</a></li>
+                        {% endif %}
+
+                        {% for type in filters.availableMessageTypes %}
+                            {% if type.class != current_type %}
+                                <li><a class="dropdown-item" title="{{ type }}" href="{{ path(app.current_route, filter_query|merge({type: type.class})) }}">
+                                        {{ type.shortName }} <br>
+                                        <small class="text-secondary">{{ type }}</small>
                                     </a>
                                 </li>
                             {% endif %}
                         {% endfor %}
                     </ul>
                 </div>
-            {% endif %}
 
-            <div class="btn-group" role="group">
-                {% set current_type = app.request.query.get('type', 'All') %}
-                <button type="button" class="btn {{ current_type != 'All' ? 'btn-outline-primary' : 'btn-light' }} dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" {% if current_type == 'All' and not filters.availableMessageTypes|length %}disabled{% endif %}>
-                    <small class="text-body-secondary">Message type:</small> {{ current_type }}
-                </button>
-                <ul class="dropdown-menu">
-                    {% if 'All' != current_type %}
-                        <li><a class="dropdown-item" href="{{ path(app.current_route, app.request.query.all|merge({type: null})) }}">All</a></li>
-                    {% endif %}
-
-                    {% for type in filters.availableMessageTypes %}
-                        {% if type.class != current_type %}
-                            <li><a class="dropdown-item" title="{{ type }}" href="{{ path(app.current_route, app.request.query.all|merge({type: type.class})) }}">
-                                    {{ type.shortName }} <br>
-                                    <small class="text-secondary">{{ type }}</small>
-                                </a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
+                {% if app.request.query.get('tag') %}
+                    <div class="btn-group" role="group">
+                        <a href="{{ path(app.current_route, filter_query|merge({tag: null})) }}" class="btn btn-outline-primary">
+                            <small class="text-body-secondary">Tag:</small>
+                            <span class="me-2">{{ app.request.query.get('tag') }}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="align-text-bottom" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                            </svg>
+                        </a>
+                    </div>
+                {% endif %}
+                {% if active_filters %}
+                    <a href="{{ path(app.current_route, {period: current_filters.period ?? null, search: search is not empty ? search : null}) }}" class="btn btn-light">Clear filters</a>
+                {% endif %}
             </div>
-
-            {% if app.request.query.get('tag') %}
-                <div class="btn-group" role="group">
-                    <a href="{{ path(app.current_route, app.request.query.all|merge({tag: null})) }}" class="btn btn-outline-primary">
-                        <small class="text-body-secondary">Tag:</small>
-                        <span class="me-2">{{ app.request.query.get('tag') }}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="align-text-bottom" viewBox="0 0 16 16">
-                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                        </svg>
-                    </a>
-                </div>
-            {% endif %}
-            <div class="btn-group" role="group">
-                <a href="{{ path(app.current_route) }}" class="btn {{ app.request.query.all|length ? 'btn-outline-primary' : 'btn-light' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-1 align-text-bottom" viewBox="0 0 16 16">
-                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                    </svg>
-                    Reset
-                </a>
-            </div>
-        </div>
-        <div class="btn-group" role="group">
-            {% embed '@ZenstruckMessengerMonitor/_refresh_button.html.twig' %}
-                {% block content %}
-                    {{ parent() }}
-                    <span class="ms-2">Refresh</span>
-                {% endblock %}
-            {% endembed %}
         </div>
     </div>
 
