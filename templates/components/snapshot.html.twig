@@ -1,68 +1,43 @@
-<div class="card">
-    <div class="card-header card-header d-flex align-items-center justify-content-between">
-        <div>
-            Snapshot
-            {% if subtitle is defined %}
-                <small><em class="text-secondary">{{ subtitle }}</em></small>
-            {% endif %}
-        </div>
+{% set fail_rate = (snapshot.failRate * 100)|round(2) %}
+{% set wait_time = snapshot.averageWaitTime %}
+{% set handling_time = snapshot.averageHandlingTime %}
+{% set metrics = [
+    {label: 'Processed', value: snapshot.totalCount|number_format, icon: 'monitor-transports', tone: 'primary'},
+    {label: 'Failure rate', value: fail_rate ~ '%', icon: 'monitor-activity', tone: fail_rate >= 10 ? 'danger' : (fail_rate >= 5 ? 'warning' : 'success')},
+    {label: 'Avg. wait time', value: helper.formatDuration(wait_time), title: (wait_time / 1000)|round(3) ~ 's', icon: 'monitor-timer', tone: 'primary'},
+    {label: 'Avg. handling time', value: helper.formatDuration(handling_time), title: (handling_time / 1000)|round(3) ~ 's', icon: 'monitor-bolt', tone: 'primary'},
+] %}
+
+<section class="card monitor-snapshot">
+    <div class="card-header">
+        <h2 class="monitor-section-title">Processing snapshot</h2>
+        {% if subtitle is defined %}
+            <span class="monitor-meta">{{ subtitle }}</span>
+        {% endif %}
     </div>
-    <div class="table-responsive">
-        <table class="table card-table table-striped align-text-top text-nowrap">
-            <tbody>
-            <tr>
-                <th class="text-end w-50">Messages Processed</th>
-                <td>
-                    {{ snapshot.totalCount }}
-                    {% if snapshot.failureCount %}
-                        <em>(<strong class="text-danger">{{ snapshot.failureCount }}</strong> failures)</em>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Fail Rate</th>
-                <td>
-                    {% set failRate = (snapshot.failRate * 100)|round %}
-                    {% if failRate < 5 %}
-                        <span class="text-success">{{ failRate }}%</span>
-                    {% elseif failRate < 10 %}
-                        <span class="text-warning">{{ failRate }}%</span>
+    <dl class="monitor-metrics">
+        {% for metric in metrics %}
+            <div class="monitor-metric">
+                <dt>
+                    <span class="monitor-metric-icon text-{{ metric.tone }}-emphasis bg-{{ metric.tone }}-subtle">
+                        <svg width="17" height="17" aria-hidden="true"><use href="#{{ metric.icon }}"/></svg>
+                    </span>
+                    {{ metric.label }}
+                </dt>
+                <dd class="monitor-metric-value{% if metric.icon == 'monitor-activity' %} text-{{ metric.tone }}-emphasis{% endif %}">
+                    {% if metric.title is defined %}
+                        <abbr title="{{ metric.title }}">{{ metric.value }}</abbr>
                     {% else %}
-                        <strong class="text-danger">{{ failRate }}%</strong>
+                        {{ metric.value }}
                     {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Average Wait Time</th>
-                <td>
-                    <abbr title="{{ (snapshot.averageWaitTime / 1000)|round(3) }}s">{{ helper.formatDuration(snapshot.averageWaitTime) }}</abbr>
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Average Handling Time</th>
-                <td>
-                    <abbr title="{{ (snapshot.averageHandlingTime / 1000)|round(3) }}s">{{ helper.formatDuration(snapshot.averageHandlingTime) }}</abbr>
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Handled Per Minute</th>
-                <td>
-                    {{ snapshot.handledPerMinute|round(2) }}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Handled Per Hour</th>
-                <td>
-                    {{ snapshot.handledPerHour|round(2) }}
-                </td>
-            </tr>
-            <tr>
-                <th class="text-end">Handled Per Day</th>
-                <td>
-                    {{ snapshot.handledPerDay|round(2) }}
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                </dd>
+            </div>
+        {% endfor %}
+    </dl>
+    <div class="monitor-throughput">
+        <span><strong>{{ snapshot.failureCount|number_format }}</strong> failed</span>
+        <span><strong>{{ snapshot.handledPerMinute|round(2) }}</strong> / min</span>
+        <span><strong>{{ snapshot.handledPerHour|round(2) }}</strong> / hr</span>
+        <span><strong>{{ snapshot.handledPerDay|round(2) }}</strong> / day</span>
     </div>
-</div>
+</section>

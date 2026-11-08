@@ -1,40 +1,52 @@
 {% extends '@ZenstruckMessengerMonitor/layout.html.twig' %}
 
 {% block title %}Dashboard{% endblock %}
-
 {% block breadcrumbs %}{% endblock %}
+{% block page_header %}
+    <header class="monitor-dashboard-header">
+        <h1>{{ block('title') }}</h1>
+        <div class="monitor-dashboard-actions">
+            {% set failure = helper.transports.failure %}
+            {% if failure and failure.countable %}
+                <a class="btn btn-light btn-sm" href="{{ path('zenstruck_messenger_monitor_transport', {name: failure.name}) }}">
+                    <svg width="14" height="14" fill="currentColor" aria-hidden="true"><use href="#exclamation-triangle-fill"/></svg>
+                    Failed queue
+                </a>
+            {% endif %}
+            <a class="btn btn-light btn-sm" href="{{ path('zenstruck_messenger_monitor_history') }}">
+                <svg width="14" height="14" fill="currentColor" aria-hidden="true"><use href="#history-icon"/></svg>
+                Message history
+            </a>
+        </div>
+    </header>
+{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-4 col-lg-3">
-            <div class="mb-3">
-                {% embed '@ZenstruckMessengerMonitor/components/_refreshable_widget.html.twig' with {url: path('zenstruck_messenger_monitor_workers_widget')} %}
-                    {% block content %}
-                        {{ include('@ZenstruckMessengerMonitor/components/workers.html.twig', {workers: helper.workers}) }}
-                    {% endblock %}
-                {% endembed %}
-            </div>
-            <div class="mb-3">
-                {% embed '@ZenstruckMessengerMonitor/components/_refreshable_widget.html.twig' with {url: path('zenstruck_messenger_monitor_transports_widget')} %}
-                    {% block content %}
-                        {{ include('@ZenstruckMessengerMonitor/components/transports.html.twig', {transports: helper.transports}) }}
-                    {% endblock %}
-                {% endembed %}
-            </div>
-            <div class="mb-3">
-                {% embed '@ZenstruckMessengerMonitor/components/_refreshable_widget.html.twig' with {url: path('zenstruck_messenger_monitor_snapshot_widget')} %}
-                    {% block content %}
-                        {{ include('@ZenstruckMessengerMonitor/components/snapshot.html.twig', {subtitle: 'Last 24 Hours'}) }}
-                    {% endblock %}
-                {% endembed %}
-            </div>
-        </div>
-        <div class="col-md-8 col-lg-9">
-            {% embed '@ZenstruckMessengerMonitor/components/_refreshable_widget.html.twig' with {url: path('zenstruck_messenger_monitor_recent_messages_widget')} %}
+    <div class="monitor-dashboard">
+        <div class="monitor-infrastructure">
+            {% embed '@ZenstruckMessengerMonitor/components/_refreshable_widget.html.twig' with {url: path('zenstruck_messenger_monitor_workers_widget')} %}
                 {% block content %}
-                    {{ include('@ZenstruckMessengerMonitor/components/recent_messages.html.twig', {messages: messages, helper: helper}) }}
+                    {{ include('@ZenstruckMessengerMonitor/components/workers.html.twig', {workers: helper.workers}) }}
+                {% endblock %}
+            {% endembed %}
+
+            {% embed '@ZenstruckMessengerMonitor/components/_refreshable_widget.html.twig' with {url: path('zenstruck_messenger_monitor_transports_widget')} %}
+                {% block content %}
+                    {{ include('@ZenstruckMessengerMonitor/components/transports.html.twig', {transports: helper.transports}) }}
                 {% endblock %}
             {% endembed %}
         </div>
+
+        {% embed '@ZenstruckMessengerMonitor/components/_refreshable_widget.html.twig' with {url: path('zenstruck_messenger_monitor_snapshot_widget')} %}
+            {% block content %}
+                {{ include('@ZenstruckMessengerMonitor/components/snapshot.html.twig', {subtitle: 'Last 24 Hours'}) }}
+            {% endblock %}
+        {% endembed %}
+
+        {% embed '@ZenstruckMessengerMonitor/components/_refreshable_widget.html.twig' with {url: path('zenstruck_messenger_monitor_recent_messages_widget')} %}
+            {% block content %}
+                {{ include('@ZenstruckMessengerMonitor/components/recent_messages.html.twig', {messages: messages, helper: helper}) }}
+            {% endblock %}
+        {% endembed %}
     </div>
 {% endblock %}

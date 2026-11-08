@@ -1,17 +1,19 @@
 {% extends '@ZenstruckMessengerMonitor/layout.html.twig' %}
 
-{% block title %}History{% endblock %}
+{% block title %}Statistics{% endblock %}
 
 {% block breadcrumb_items %}
     {{ parent() }}
     <li class="breadcrumb-item active" aria-current="page">Statistics</li>
 {% endblock %}
 
+{% block page_intro %}<p>Compare throughput, failure rates, and processing times by message type.</p>{% endblock %}
+
 {% block content %}
-    <div class="btn-toolbar mb-3 d-flex justify-content-between">
-        <div class="d-flex align-items-center">
-            <strong class="me-3">Filters:</strong>
-            <div class="btn-group me-2" role="group">
+    <div class="monitor-toolbar">
+        <div class="monitor-filters">
+            <strong class="monitor-filter-label">Filters</strong>
+            <div class="btn-group" role="group">
                 <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <small class="text-body-secondary">Period:</small> {{ period.humanize }}
                 </button>
@@ -24,7 +26,7 @@
                 </ul>
             </div>
         </div>
-        <div class="btn-group me-2" role="group">
+        <div class="btn-group" role="group">
             {% embed '@ZenstruckMessengerMonitor/_refresh_button.html.twig' %}
                 {% block content %}
                     {{ parent() }}
@@ -34,16 +36,16 @@
         </div>
     </div>
 
-    <div class="card position-relative mb-3">
+    <section class="card">
         <div class="card-header">
-            Per-Message Statistics
+            <h2 class="monitor-section-title">Per-message statistics</h2>
         </div>
 
         {% if not metrics|length %}
-            <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="alert">
+            <div class="card-alert card-text alert alert-light d-flex align-items-center" role="alert">
                 <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
                 <div>
-                    No messages.
+                    No processed messages to show.
                 </div>
             </div>
         {% else %}
@@ -104,5 +106,5 @@
             </table>
         </div>
         {% endif %}
-    </div>
+    </section>
 {% endblock %}

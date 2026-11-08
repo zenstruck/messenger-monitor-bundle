@@ -1,7 +1,16 @@
-{% embed '@ZenstruckMessengerMonitor/components/messages.html.twig' with {messages: messages.take(number|default(15))} %}
+{% set number = number|default(6) %}
+
+{% embed '@ZenstruckMessengerMonitor/components/messages.html.twig' with {messages: messages.take(number)} %}
     {% block card_header %}
-        <div class="d-flex justify-content-between align-items-center">
-            <span>Recently Processed Messages <small><em class="text-secondary">Last {{ number|default(15) }}</em></small></span>
+        <h2 class="monitor-section-title">Recent messages</h2>
+        <span class="monitor-meta">Last {{ number }}</span>
+    {% endblock %}
+    {% block card_footer %}
+        <div class="card-footer">
+            <a class="monitor-text-link" href="{{ path('zenstruck_messenger_monitor_history') }}">
+                View message history
+                <svg width="16" height="16" aria-hidden="true"><use href="#monitor-arrow-right"/></svg>
+            </a>
         </div>
     {% endblock %}
 {% endembed %}

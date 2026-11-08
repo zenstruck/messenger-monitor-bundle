@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,42 +11,7 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
 
         <style>
-            abbr[title] {
-                text-decoration: none;
-                border-bottom: 1px dotted;
-            }
-
-            .card-alert {
-                border: 0;
-                border-radius: 0;
-            }
-            .card .card-alert:last-child {
-                border-bottom-left-radius: var(--bs-card-border-radius);
-                border-bottom-right-radius: var(--bs-card-border-radius);
-            }
-
-            .card-table {
-                margin-bottom: 0;
-            }
-            .card-table tbody tr:last-child td, .card-table tbody tr:last-child th {
-                border-bottom: 0;
-            }
-            .card-table tbody tr:last-child td:first-child, .card-table tbody tr:last-child th:first-child {
-                border-bottom-left-radius: var(--bs-card-border-radius);
-            }
-            .card-table tbody tr:last-child td:last-child {
-                border-bottom-right-radius: var(--bs-card-border-radius);
-            }
-
-            .spinner-border-slow {
-                animation-duration: 1.5s;
-            }
-
-            .btn-clipboard {
-                top: 0.5rem;
-                right: 1.25rem;
-                z-index: 1;
-            }
+            {{ include('@ZenstruckMessengerMonitor/styles.css.twig') }}
         </style>
     {% endblock %}
 
@@ -219,47 +184,41 @@
     {% endblock %}
 </head>
 <body>
-{% block navbar %}
-    <nav class="navbar sticky-top navbar-expand-lg bg-body-tertiary">
-        <div class="container-fluid">
-            <a href="{{ path('zenstruck_messenger_monitor_dashboard') }}" class="navbar-brand">
-                {{ include('@ZenstruckMessengerMonitor/icon.svg.twig', {size: 24, class: 'd-inline-block align-text-top '~(helper.workers.isRunning ? 'text-success' : 'text-danger')}) }}
-                Messenger Monitor <div class="badge bg-secondary environment-info">{{ app.environment }}</div>
+<a class="visually-hidden-focusable monitor-skip-link" href="#monitor-content">Skip to content</a>
+<div class="monitor-shell">
+    {% block navbar %}
+        <nav class="navbar navbar-expand-lg monitor-sidebar" aria-label="Main navigation">
+            <a href="{{ path('zenstruck_messenger_monitor_dashboard') }}" class="navbar-brand monitor-brand">
+                <span class="monitor-brand-mark">
+                    {{ include('@ZenstruckMessengerMonitor/icon.svg.twig', {size: 23}) }}
+                </span>
+                <span>Messenger <small>MONITOR</small></span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 {% block navbar_menu %}
+                    {% from _self import nav_link %}
                     {% set route = app.current_route %}
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="d-flex align-items-center nav-link{{ route == 'zenstruck_messenger_monitor_dashboard' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_dashboard' %} aria-current="page"{% endif %} href="{{ path('zenstruck_messenger_monitor_dashboard') }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-2" viewBox="0 0 16 16">
-                                    <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4zM3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10zm9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5zm.754-4.246a.389.389 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.389.389 0 0 0-.029-.518z"/>
-                                    <path fill-rule="evenodd" d="M0 10a8 8 0 1 1 15.547 2.661c-.442 1.253-1.845 1.602-2.932 1.25C11.309 13.488 9.475 13 8 13c-1.474 0-3.31.488-4.615.911-1.087.352-2.49.003-2.932-1.25A7.988 7.988 0 0 1 0 10zm8-7a7 7 0 0 0-6.603 9.329c.203.575.923.876 1.68.63C4.397 12.533 6.358 12 8 12s3.604.532 4.923.96c.757.245 1.477-.056 1.68-.631A7 7 0 0 0 8 3z"/>
-                                </svg>
-                                Dashboard
-                            </a>
-                        </li>
-
-                        {% set countable_transports = helper.transports.filter.countable %}
+                    {% set countable_transports = helper.transports.filter.countable %}
+                    <div class="monitor-nav-label">Workspace</div>
+                    <ul class="navbar-nav">
+                        {{ nav_link('dashboard', route, 'monitor-dashboard', 'Dashboard') }}
 
                         {% if countable_transports|length %}
+                            {% set active = route == 'zenstruck_messenger_monitor_transport' %}
                             <li class="nav-item dropdown">
-                                <a class="nav-link d-flex align-items-center dropdown-toggle{{ route == 'zenstruck_messenger_monitor_transport' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_transport' %} aria-current="page"{% endif %} href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-2" viewBox="0 0 16 16">
-                                        <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h13zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"/>
-                                        <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8zm0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zM4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0zm0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
-                                    </svg>
+                                <button class="nav-link dropdown-toggle{{ active ? ' active' }}" type="button" data-bs-toggle="dropdown" aria-expanded="false"{% if active %} aria-current="page"{% endif %}>
+                                    <svg width="18" height="18" aria-hidden="true"><use href="#monitor-transports"/></svg>
                                     Transports
-                                </a>
+                                </button>
                                 <ul class="dropdown-menu">
                                     {% for item in countable_transports %}
                                         <li>
-                                            <a class="dropdown-item d-flex justify-content-between align-items-center" href="{{ path('zenstruck_messenger_monitor_transport', {name: item.name}) }}">
+                                            <a class="dropdown-item d-flex justify-content-between align-items-center gap-3" href="{{ path('zenstruck_messenger_monitor_transport', {name: item.name}) }}">
                                                 {{ item.name }}
-                                                <span class="badge rounded-pill text-bg-{{ item|length > 0 ? (item.isFailure ? 'danger' : 'primary') : (item.isFailure ? 'success' : 'secondary') }}">{{ item|length }}</span>
+                                                <span class="badge text-bg-{{ item|length > 0 ? (item.isFailure ? 'danger' : 'primary') : 'secondary' }}">{{ item|length }}</span>
                                             </a>
                                         </li>
                                     {% endfor %}
@@ -267,71 +226,121 @@
                             </li>
                         {% endif %}
 
-                        <li class="nav-item">
-                            <a class="d-flex align-items-center nav-link{{ route == 'zenstruck_messenger_monitor_history' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_history' %} aria-current="page"{% endif %} href="{{ path('zenstruck_messenger_monitor_history') }}">
-                                <svg fill="currentcolor" height="1em" width="1em" class="me-2"><use xlink:href="#history-icon"/></svg>
-                                History
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="d-flex align-items-center nav-link{{ route == 'zenstruck_messenger_monitor_statistics' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_statistics' %} aria-current="page"{% endif %} href="{{ path('zenstruck_messenger_monitor_statistics') }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="me-2" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M0 0h1v15h15v1H0zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07"/>
-                                </svg>
-                                Statistics
-                            </a>
-                        </li>
+                        {{ nav_link('history', route, 'monitor-history', 'History') }}
+                        {{ nav_link('statistics', route, 'monitor-statistics', 'Statistics') }}
 
                         {% if helper.schedules and helper.schedules|length %}
-                            {% set isRunning = true %}
+                            {% set schedule_health = 'success' %}
                             {% for item in helper.schedules %}
                                 {% if not item.isRunning %}
-                                    {% set isRunning = false %}
+                                    {% set schedule_health = 'danger' %}
                                 {% endif %}
                             {% endfor %}
 
-                            <li class="nav-item">
-                                <a class="d-flex align-items-center nav-link{{ route == 'zenstruck_messenger_monitor_schedule' ? ' active' }}"{% if route == 'zenstruck_messenger_monitor_schedule' %} aria-current="page"{% endif %} href="{{ path('zenstruck_messenger_monitor_schedule') }}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="text-{{ isRunning ? 'success' : 'danger'}} me-2" viewBox="0 0 16 16">
-                                        <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
-                                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                                    </svg>
-                                    Schedule{% if helper.schedules|length > 1 %}s{% endif %}
-                                </a>
-                            </li>
+                            {{ nav_link('schedule', route, 'monitor-schedule', helper.schedules|length > 1 ? 'Schedules' : 'Schedule', schedule_health) }}
                         {% endif %}
                     </ul>
                 {% endblock %}
-            </div>
-        </div>
-    </nav>
-{% endblock %}
 
-{% block body %}
-    <div class="container-fluid mt-3">
-        {% block breadcrumbs %}
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    {% block breadcrumb_items %}
-                        <li class="breadcrumb-item"><a href="{{ path('zenstruck_messenger_monitor_dashboard') }}">Dashboard</a></li>
-                    {% endblock %}
-                </ol>
-            </nav>
+                <div class="monitor-environment">
+                    <span>Environment</span>
+                    <span class="environment-info">{{ app.environment }}</span>
+                </div>
+
+                {% set custom_menu %}
+                    {% block navbar_custom_menu %}{% endblock %}
+                {% endset %}
+
+                {% if custom_menu|trim is not empty %}
+                    <div class="monitor-custom-menu">
+                        <div class="monitor-nav-label" id="monitor-custom-menu-label">Application</div>
+                        <ul class="navbar-nav" aria-labelledby="monitor-custom-menu-label">
+                            {{ custom_menu }}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </nav>
+    {% endblock %}
+
+    <div class="monitor-workspace">
+        {% block body %}
+            <main class="monitor-content" id="monitor-content" tabindex="-1">
+                {% block breadcrumbs %}
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb">
+                            {% block breadcrumb_items %}
+                                <li class="breadcrumb-item"><a href="{{ path('zenstruck_messenger_monitor_dashboard') }}">Dashboard</a></li>
+                            {% endblock %}
+                        </ol>
+                    </nav>
+                {% endblock %}
+                {% block page_header %}
+                    <header class="monitor-page-header">
+                        <h1>{{ block('title') }}</h1>
+                        {% block page_intro %}{% endblock %}
+                    </header>
+                {% endblock %}
+                {% block content %}{% endblock %}
+            </main>
         {% endblock %}
-        {% block content %}{% endblock %}
+        {% block footer %}
+            <footer class="monitor-footer">
+                <span>Zenstruck Messenger Monitor</span>
+                <a href="https://github.com/sponsors/kbond" target="_blank" rel="noopener">Sponsor Kevin Bond <span aria-hidden="true">↗</span></a>
+            </footer>
+        {% endblock %}
     </div>
-{% endblock %}
-{% block footer %}
-    <footer class="p-5 bg-body-secondary text-center small">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-1 text-danger" viewBox="0 0 16 16">
-            <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
-        </svg>
-        Enjoying this tool? Consider <a href="https://github.com/sponsors/kbond" target="_blank">sponsoring me (Kevin Bond) on GitHub</a>!
-    </footer>
-{% endblock %}
+</div>
+
+{% macro nav_link(page, current_route, icon, label, health = null) %}
+    {% set route = 'zenstruck_messenger_monitor_' ~ page %}
+    <li class="nav-item">
+        <a class="nav-link{{ route == current_route ? ' active' }}"{% if route == current_route %} aria-current="page"{% endif %} href="{{ path(route) }}">
+            <svg width="18" height="18" aria-hidden="true"><use href="#{{ icon }}"/></svg>
+            {{ label }}
+            {% if health %}
+                <span class="monitor-nav-status bg-{{ health }}">
+                    <span class="visually-hidden">{{ health == 'success' ? 'All schedules running' : 'Schedule worker missing' }}</span>
+                </span>
+            {% endif %}
+        </a>
+    </li>
+{% endmacro %}
+
 {% block svg_icons %}
     <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+        <symbol id="monitor-dashboard" viewBox="0 0 24 24">
+            <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
+        </symbol>
+        <symbol id="monitor-transports" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="7" rx="2"/>
+            <rect x="3" y="13" width="18" height="7" rx="2"/>
+            <path d="M7 7.5h.01M7 16.5h.01M11 7.5h6m-6 9h6"/>
+        </symbol>
+        <symbol id="monitor-history" viewBox="0 0 24 24">
+            <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8m0-5v5h5m4-1v5l3 2"/>
+        </symbol>
+        <symbol id="monitor-statistics" viewBox="0 0 24 24">
+            <path d="M3 4v16h18M7 14l4-4 4 2 5-6"/>
+        </symbol>
+        <symbol id="monitor-schedule" viewBox="0 0 24 24">
+            <rect x="3" y="5" width="18" height="16" rx="2"/>
+            <path d="M7 3v4m10-4v4M3 10h18m-13 5h.01m4 0h.01m4 0h.01"/>
+        </symbol>
+        <symbol id="monitor-arrow-right" viewBox="0 0 24 24">
+            <path d="M5 12h14m-6-6 6 6-6 6"/>
+        </symbol>
+        <symbol id="monitor-activity" viewBox="0 0 24 24">
+            <path d="M2 12h5l3-7 4 14 3-7h5"/>
+        </symbol>
+        <symbol id="monitor-timer" viewBox="0 0 24 24">
+            <circle cx="12" cy="13" r="8"/>
+            <path d="M10 2h4m-2 7v4l2 2"/>
+        </symbol>
+        <symbol id="monitor-bolt" viewBox="0 0 24 24">
+            <path d="M13 2 4 14h7l-1 8 10-12h-7z"/>
+        </symbol>
         <symbol id="check-circle-fill" viewBox="0 0 16 16">
             <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
         </symbol>
@@ -371,7 +380,7 @@
 {% endblock %}
 {% block message_details_modal %}
     <div class="modal fade" id="message-details-modal" tabindex="-1" aria-labelledby="message-details-modal-label" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content"></div>
         </div>
     </div>

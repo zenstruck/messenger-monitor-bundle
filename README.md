@@ -5,7 +5,11 @@
 
 Batteries included UI to monitor your Messenger workers, transports, schedules, and messages.
 
-![Screenshot](screenshot.png)
+| Dashboard | Message details |
+| :---: | :---: |
+| [![Processing metrics, recent messages, workers, and transports](docs/images/dashboard.png)](docs/images/dashboard.png) | [![Failed message details with input data and other attempts](docs/images/message-details.png)](docs/images/message-details.png) |
+| **Failed transport** | **Schedules** |
+| [![Failed messages with retry and remove actions](docs/images/failed-transport.png)](docs/images/failed-transport.png) | [![Scheduled tasks with recent and upcoming runs](docs/images/schedules.png)](docs/images/schedules.png) |
 
 If the packaged UI is not to your liking, you can easily build your own with the
 [provided tools](#advanced-usage).
@@ -295,6 +299,19 @@ Install `knplabs/knp-time-bundle` (`composer require knplabs/knp-time-bundle`) t
 friendlier times and durations in the UI. Install `lorisleiva/cron-translator`
 (`composer require lorisleiva/cron-translator`) to display friendlier cron expressions
 for your scheduled tasks.
+
+### Custom navigation links
+
+To add links under **Application** in the sidebar, override `navbar_custom_menu` in
+`templates/bundles/ZenstruckMessengerMonitorBundle/layout.html.twig`.
+
+```twig
+{% extends '@!ZenstruckMessengerMonitor/layout.html.twig' %}
+
+{% block navbar_custom_menu %}
+    <li class="nav-item"><a href="{{ path('app_homepage') }}" class="nav-link">Home</a></li>
+{% endblock %}
+```
 
 ## Advanced Usage
 
