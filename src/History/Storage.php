@@ -19,6 +19,8 @@ use Zenstruck\Messenger\Monitor\History\Model\Results;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @phpstan-type Metrics array{success_count: int, failure_count: int, average_wait_time: int, average_handling_time: int}
  */
 interface Storage
 {
@@ -36,16 +38,11 @@ interface Storage
     public function delete(mixed $id): void;
 
     /**
-     * @return int|null milliseconds
+     * Counts include both statuses. Averages use the requested status and are in milliseconds, or zero when empty.
+     *
+     * @return Metrics
      */
-    public function averageWaitTime(Specification $specification): ?int;
-
-    /**
-     * @return int|null milliseconds
-     */
-    public function averageHandlingTime(Specification $specification): ?int;
-
-    public function count(Specification $specification): int;
+    public function metrics(Specification $specification): array;
 
     /**
      * @return Collection<MessageTypeMetric, int>

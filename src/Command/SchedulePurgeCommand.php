@@ -71,13 +71,14 @@ final class SchedulePurgeCommand extends Command
             foreach ($io->progressIterate($schedule) as $task) {
                 /** @var TaskInfo $task */
                 $spec = Specification::new()->with(TagStamp::forSchedule($task)->value);
+                $messages = $this->storage->filter($spec);
 
-                if ($this->storage->count($spec) <= $keep) {
+                if ($messages->count() <= $keep) {
                     continue; // not enough to purge
                 }
 
                 /** @var ProcessedMessage $oldest */
-                $oldest = $spec->snapshot($this->storage)->messages()->take($keep)->eager()->reverse()->first();
+                $oldest = $messages->take($keep)->eager()->reverse()->first();
                 $spec = $spec->to($oldest->finishedAt()->modify('-1 second')); // ensure we don't remove the oldest
 
                 $count += $this->storage->purge($spec);

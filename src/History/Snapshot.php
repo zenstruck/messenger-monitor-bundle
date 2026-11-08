@@ -19,13 +19,13 @@ use function Symfony\Component\Clock\now;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
+ *
+ * @phpstan-import-type Metrics from Storage
  */
 final class Snapshot extends Metric
 {
-    private int $successCount;
-    private int $failureCount;
-    private int $averageWaitTime;
-    private int $averageHandlingTime;
+    /** @var Metrics */
+    private array $metrics;
     private int $totalSeconds;
 
     public function __construct(private Storage $storage, private Specification $specification)
@@ -60,22 +60,22 @@ final class Snapshot extends Metric
 
     public function successCount(): int
     {
-        return $this->successCount ??= $this->storage->count($this->specification->successes());
+        return $this->metrics()['success_count'];
     }
 
     public function failureCount(): int
     {
-        return $this->failureCount ??= $this->storage->count($this->specification->failures());
+        return $this->metrics()['failure_count'];
     }
 
     public function averageWaitTime(): int
     {
-        return $this->averageWaitTime ??= $this->storage->averageWaitTime($this->specification) ?? 0;
+        return $this->metrics()['average_wait_time'];
     }
 
     public function averageHandlingTime(): int
     {
-        return $this->averageHandlingTime ??= $this->storage->averageHandlingTime($this->specification) ?? 0;
+        return $this->metrics()['average_handling_time'];
     }
 
     public function totalSeconds(): int
@@ -95,5 +95,11 @@ final class Snapshot extends Metric
         }
 
         return $this->totalSeconds = \abs(($to ?? now())->getTimestamp() - $from->getTimestamp());
+    }
+
+    /** @return Metrics */
+    private function metrics(): array
+    {
+        return $this->metrics ??= $this->storage->metrics($this->specification);
     }
 }

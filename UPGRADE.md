@@ -4,6 +4,10 @@
 
 * `ProcessedMessage` has a new nullable JSON `input` column. Generate and run a Doctrine migration
   before restarting your Messenger workers.
+* `Storage::metrics()` replaces `Storage::averageWaitTime()` and `Storage::averageHandlingTime()`.
+  Custom storage implementations must return both status counts and both average durations in milliseconds.
+  Apply the specification's status filter to the averages and return zero when no attempts match.
+* Replace `$storage->count($specification)` with `$storage->filter($specification)->count()`.
 
 ## 0.7.0
 

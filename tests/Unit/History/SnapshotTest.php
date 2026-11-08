@@ -23,6 +23,13 @@ use function Zenstruck\collect;
  */
 final class SnapshotTest extends TestCase
 {
+    private const EMPTY_METRICS = [
+        'success_count' => 0,
+        'failure_count' => 0,
+        'average_wait_time' => 0,
+        'average_handling_time' => 0,
+    ];
+
     /**
      * @test
      */
@@ -31,9 +38,12 @@ final class SnapshotTest extends TestCase
         $spec = Specification::create(['from' => '2023-01-01', 'to' => '2023-01-02']);
         $storage = $this->createMock(Storage::class);
         $storage->expects($this->once())->method('filter')->with($spec)->willReturn(collect(['foo', 'bar']));
-        $storage->expects($this->exactly(2))->method('count')->with($this->isInstanceOf(Specification::class))->willReturn(60, 40);
-        $storage->expects($this->once())->method('averageWaitTime')->with($spec)->willReturn(2000);
-        $storage->expects($this->once())->method('averageHandlingTime')->with($spec)->willReturn(1000);
+        $storage->expects($this->once())->method('metrics')->with($spec)->willReturn([
+            'success_count' => 60,
+            'failure_count' => 40,
+            'average_wait_time' => 2000,
+            'average_handling_time' => 1000,
+        ]);
 
         $snapshot = new Snapshot($storage, $spec);
 
@@ -58,7 +68,7 @@ final class SnapshotTest extends TestCase
     {
         // messages were handled, but none of them tells when the period started
         $storage = $this->createMock(Storage::class);
-        $storage->method('count')->willReturn(1, 0);
+        $storage->method('metrics')->willReturn(\array_replace(self::EMPTY_METRICS, ['success_count' => 1]));
 
         $snapshot = new Snapshot($storage, Specification::new());
 
@@ -74,7 +84,7 @@ final class SnapshotTest extends TestCase
     {
         // freshly installed: the history is empty, so there is no "from" date to find
         $storage = $this->createMock(Storage::class);
-        $storage->method('count')->willReturn(0);
+        $storage->method('metrics')->willReturn(self::EMPTY_METRICS);
 
         $snapshot = new Snapshot($storage, Specification::new());
 
@@ -89,7 +99,7 @@ final class SnapshotTest extends TestCase
     public function divide_by_zero_fail_rate(): void
     {
         $storage = $this->createMock(Storage::class);
-        $storage->expects($this->exactly(2))->method('count')->with($this->isInstanceOf(Specification::class))->willReturn(0, 0);
+        $storage->expects($this->once())->method('metrics')->willReturn(self::EMPTY_METRICS);
 
         $snapshot = new Snapshot($storage, Specification::new());
 
@@ -99,17 +109,15 @@ final class SnapshotTest extends TestCase
     /**
      * @test
      */
-    public function invalid_wait_times(): void
+    public function listing_messages_does_not_load_metrics(): void
     {
         $spec = Specification::create(['from' => '2023-01-01', 'to' => '2023-01-02']);
         $storage = $this->createMock(Storage::class);
-        $storage->expects($this->once())->method('averageWaitTime')->with($spec)->willReturn(null);
-        $storage->expects($this->once())->method('averageHandlingTime')->with($spec)->willReturn(null);
+        $storage->expects($this->once())->method('filter')->with($spec)->willReturn(collect(['foo', 'bar']));
+        $storage->expects($this->never())->method('metrics');
 
         $snapshot = new Snapshot($storage, $spec);
 
-        $this->assertSame(0, $snapshot->averageWaitTime());
-        $this->assertSame(0, $snapshot->averageHandlingTime());
-        $this->assertSame(0, $snapshot->averageProcessingTime());
+        $this->assertCount(2, $snapshot->messages());
     }
 }
