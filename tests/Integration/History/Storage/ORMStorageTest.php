@@ -46,7 +46,7 @@ final class ORMStorageTest extends KernelTestCase
             'receivedAt' => $start->modify('+10 seconds'),
         ]);
 
-        $this->assertSame(15000, $this->storage()->averageWaitTime(Specification::new()));
+        $this->assertSame(15000, $this->storage()->metrics(Specification::new())['average_wait_time']);
     }
 
     /**
@@ -65,7 +65,48 @@ final class ORMStorageTest extends KernelTestCase
             'finishedAt' => $start->modify('+20 seconds'),
         ]);
 
-        $this->assertSame(30000, (int) $this->storage()->averageHandlingTime(Specification::new()));
+        $this->assertSame(30000, $this->storage()->metrics(Specification::new())['average_handling_time']);
+    }
+
+    /**
+     * @test
+     */
+    public function snapshot_counts_both_statuses_and_averages_the_selected_status(): void
+    {
+        $dispatchedAt = self::mockTime()->now()->modify('-1 minute');
+
+        ProcessedMessageFactory::createOne([
+            'dispatchedAt' => $dispatchedAt,
+            'receivedAt' => $dispatchedAt->modify('+4 seconds'),
+            'finishedAt' => $dispatchedAt->modify('+10 seconds'),
+        ]);
+        ProcessedMessageFactory::createOne([
+            'dispatchedAt' => $dispatchedAt,
+            'receivedAt' => $dispatchedAt->modify('+8 seconds'),
+            'finishedAt' => $dispatchedAt->modify('+18 seconds'),
+            'failureType' => \RuntimeException::class,
+        ]);
+        ProcessedMessageFactory::createOne(['transport' => 'other']);
+
+        $specification = Specification::new()->on('default');
+        $storage = $this->storage();
+
+        foreach ([
+            [$specification, [1, 1, 6000, 8000]],
+            [$specification->successes(), [1, 1, 4000, 6000]],
+            [$specification->failures(), [1, 1, 8000, 10000]],
+            [$specification->on('other')->failures(), [1, 0, 0, 0]],
+            [$specification->on('empty'), [0, 0, 0, 0]],
+        ] as [$filter, $expected]) {
+            $snapshot = $filter->snapshot($storage);
+
+            $this->assertSame($expected, [
+                $snapshot->successCount(),
+                $snapshot->failureCount(),
+                $snapshot->averageWaitTime(),
+                $snapshot->averageHandlingTime(),
+            ]);
+        }
     }
 
     /**

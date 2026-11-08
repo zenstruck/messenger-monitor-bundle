@@ -125,34 +125,33 @@ final class ORMStorage implements Storage
         return (new EntityResult($qb))->asString(); // @phpstan-ignore-line
     }
 
-    public function averageWaitTime(Specification $specification): ?int
+    public function metrics(Specification $specification): array
     {
-        $qb = $this
-            ->queryBuilderFor($specification, false)
-            ->select('AVG(m.waitTime)')
-        ;
+        $condition = self::statusCondition($specification->toArray()['status']);
+        $queryBuilder = $this->queryBuilderFor($specification, order: false, filterStatus: false);
+        $queryBuilder->select(
+            'COUNT(m.finishedAt) - COUNT(m.failureType) AS success_count',
+            'COUNT(m.failureType) AS failure_count',
+            self::averageExpression('m.waitTime', $condition).' AS average_wait_time',
+            self::averageExpression('m.handleTime', $condition).' AS average_handling_time',
+        );
+        $query = $queryBuilder->getQuery();
+        /**
+         * @var array{
+         *     success_count: int|numeric-string,
+         *     failure_count: int|numeric-string,
+         *     average_wait_time: int|float|numeric-string|null,
+         *     average_handling_time: int|float|numeric-string|null,
+         * } $row
+         */
+        $row = $query->getSingleResult();
 
-        return (new EntityResult($qb))->asInt()->first();
-    }
-
-    public function averageHandlingTime(Specification $specification): ?int
-    {
-        $qb = $this
-            ->queryBuilderFor($specification, false)
-            ->select('AVG(m.handleTime)')
-        ;
-
-        return (new EntityResult($qb))->asInt()->first();
-    }
-
-    public function count(Specification $specification): int
-    {
-        $qb = $this
-            ->queryBuilderFor($specification, false)
-            ->select('COUNT(m.finishedAt)')
-        ;
-
-        return (new EntityResult($qb))->asInt()->first(0);
+        return [
+            'success_count' => (int) $row['success_count'],
+            'failure_count' => (int) $row['failure_count'],
+            'average_wait_time' => (int) $row['average_wait_time'],
+            'average_handling_time' => (int) $row['average_handling_time'],
+        ];
     }
 
     private function om(): ObjectManager
@@ -178,7 +177,7 @@ final class ORMStorage implements Storage
         return $this->repository = $repository;
     }
 
-    private function queryBuilderFor(Specification $specification, bool $order = true): QueryBuilder
+    private function queryBuilderFor(Specification $specification, bool $order = true, bool $filterStatus = true): QueryBuilder
     {
         [$from, $to, $status, $messageType, $transport, $tags, $notTags, $sort, $runId] = \array_values($specification->toArray());
 
@@ -204,11 +203,9 @@ final class ORMStorage implements Storage
             $qb->andWhere('m.runId = :run_id')->setParameter('run_id', $runId);
         }
 
-        match ($status) {
-            Specification::SUCCESS => $qb->andWhere('m.failureType IS NULL'),
-            Specification::FAILED => $qb->andWhere('m.failureType IS NOT NULL'),
-            null => null,
-        };
+        if ($filterStatus && null !== ($condition = self::statusCondition($status))) {
+            $qb->andWhere($condition);
+        }
 
         foreach ($tags as $i => $tag) {
             $qb->andWhere('m.tags LIKE :tag'.$i)->setParameter('tag'.$i, '%'.$tag.'%');
@@ -230,5 +227,25 @@ final class ORMStorage implements Storage
         }
 
         return $qb;
+    }
+
+    /** @param Specification::SUCCESS|Specification::FAILED|null $status */
+    private static function statusCondition(?string $status): ?string
+    {
+        return match ($status) {
+            Specification::SUCCESS => 'm.failureType IS NULL',
+            Specification::FAILED => 'm.failureType IS NOT NULL',
+            null => null,
+        };
+    }
+
+    private static function averageExpression(string $field, ?string $condition): string
+    {
+        if (null === $condition) {
+            return "AVG({$field})";
+        }
+
+        // DQL requires an expression for ELSE and rejects a bare NULL.
+        return "AVG(CASE WHEN {$condition} THEN {$field} ELSE NULLIF(1, 1) END)";
     }
 }

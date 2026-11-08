@@ -10,16 +10,18 @@
 {% block page_intro %}<p>Inspect queued and failed messages across your transports.</p>{% endblock %}
 
 {% block content %}
+    {% set selected_queue_count = transport|length %}
     <div class="card mb-3">
         <div class="card-header monitor-tab-header">
             <ul class="nav nav-pills monitor-tabs" aria-label="Transports">
                 {% for item in transports %}
                     {% set active = item.name == transport.name %}
+                    {% set queue_count = active ? selected_queue_count : item|length %}
                     <li class="nav-item">
                         <a href="{{ path('zenstruck_messenger_monitor_transport', {name: item.name}) }}" class="nav-link{{ active ? ' active' }}"{% if active %} aria-current="page"{% endif %}>
                             {{ item.name }}
-                            <span class="badge text-bg-{{ item|length ? (item.isFailure ? 'danger' : 'primary') : 'secondary' }}">
-                                {{ item|length }} <span class="visually-hidden">queued messages</span>
+                            <span class="badge text-bg-{{ queue_count ? (item.isFailure ? 'danger' : 'primary') : 'secondary' }}">
+                                {{ queue_count }} <span class="visually-hidden">queued messages</span>
                             </span>
                         </a>
                     </li>
@@ -28,7 +30,7 @@
             {{ include('@ZenstruckMessengerMonitor/_refresh_button.html.twig') }}
         </div>
         <div class="tab-content">
-            {% if not transport|length %}
+            {% if not selected_queue_count %}
                 <div class="card-alert card-text alert alert-light d-flex align-items-center" role="alert">
                     <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>
                     <div>

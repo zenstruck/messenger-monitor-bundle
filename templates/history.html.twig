@@ -135,17 +135,18 @@
         {% embed '@ZenstruckMessengerMonitor/components/messages.html.twig' with {messages: paginator} %}
             {% block card_header %}
                 <h2 class="monitor-section-title">Messages</h2>
-                <span class="monitor-meta">Page {{ paginator.currentPage }} of {{ paginator.pageCount }} · {{ paginator.totalCount }} total</span>
+                <span class="monitor-meta">Page {{ paginator.currentPage }}</span>
             {% endblock %}
         {% endembed %}
         {% if paginator.haveToPaginate %}
+            {% set next_page = paginator.nextPage %}
             <nav aria-label="Message pagination" class="d-flex justify-content-center">
                 <ul class="pagination">
                     <li class="page-item{{ 1 == paginator.currentPage ? ' disabled' }}">
                         <a href="{{ path(app.current_route, app.request.query.all|merge({page: paginator.previousPage|default(1)})) }}" class="page-link">Previous</a>
                     </li>
-                    <li class="page-item{{ paginator.lastPage == paginator.currentPage ? ' disabled' }}">
-                        <a class="page-link" href="{{ path(app.current_route, app.request.query.all|merge({page: paginator.nextPage|default(paginator.lastPage)})) }}">Next</a>
+                    <li class="page-item{{ next_page is null ? ' disabled' }}">
+                        <a class="page-link" href="{{ path(app.current_route, app.request.query.all|merge({page: next_page|default(paginator.currentPage)})) }}">Next</a>
                     </li>
                 </ul>
             </nav>
