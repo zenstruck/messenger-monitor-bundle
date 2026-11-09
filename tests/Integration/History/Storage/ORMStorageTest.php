@@ -141,6 +141,71 @@ final class ORMStorageTest extends KernelTestCase
 
     /**
      * @test
+     * @dataProvider tagFilters
+     *
+     * @param list<string|null> $storedTags
+     * @param list<string>      $tags
+     * @param list<string>      $notTags
+     * @param list<int>         $expectedMatches
+     */
+    public function filters_and_purges_complete_tags(array $storedTags, array $tags, array $notTags, array $expectedMatches): void
+    {
+        foreach ($storedTags as $index => $value) {
+            ProcessedMessageFactory::createOne(['tags' => $value, 'description' => (string) $index]);
+        }
+
+        $specification = Specification::create(['tags' => $tags, 'not_tags' => $notTags]);
+        $storage = $this->storage();
+        $matches = [];
+
+        foreach ($storage->filter($specification) as $message) {
+            $matches[] = (int) $message->description();
+        }
+
+        $this->assertEqualsCanonicalizing($expectedMatches, $matches);
+        $this->assertSame(\count($expectedMatches), $storage->purge($specification));
+        ProcessedMessageFactory::assert()->count(\count($storedTags) - \count($expectedMatches));
+    }
+
+    /** @return iterable<string, array{list<string|null>, list<string>, list<string>, list<int>}> */
+    public static function tagFilters(): iterable
+    {
+        yield 'complete tags and descendants' => [
+            ['schedule', 'schedule:default:task', 'first,schedule:default:task,last', 'unscheduled', 'reschedule', 'other:schedule', 'schedule-extra', null, ''],
+            ['schedule'], [], [0, 1, 2],
+        ];
+        yield 'nested tags respect boundaries' => [
+            ['schedule:default:task', 'schedule:default:task:child', 'schedule:default:task-extra', 'schedule:default:other', 'first,schedule:default:task,last'],
+            ['schedule:default:task'], [], [0, 1, 4],
+        ];
+        yield 'excluded tags include untagged history' => [
+            ['schedule', 'schedule:default:task', 'first,schedule,last', 'unscheduled', 'schedule-extra', null, ''],
+            [], ['schedule'], [3, 4, 5, 6],
+        ];
+        yield 'percent underscore and escape characters are literal' => [
+            ['batch_100%!', 'first,batch_100%!:child,last', 'batchX1000!', 'batch_100%other', 'batch_100%!extra', null],
+            ['batch_100%!'], [], [0, 1],
+        ];
+        yield 'excluded wildcard characters are literal' => [
+            ['batch_100%!', 'first,batch_100%!:child,last', 'batchX1000!', 'batch_100%other', 'batch_100%!extra', null],
+            [], ['batch_100%!'], [2, 3, 4, 5],
+        ];
+        yield 'backslashes are literal' => [
+            ['batch\\name', 'first,batch\\name:child,last', 'batchname', 'batch\\name-extra'],
+            ['batch\\name'], [], [0, 1],
+        ];
+        yield 'include and exclude together' => [
+            ['manual,schedule:default:task', 'manual,schedule:other:task', 'manual,unscheduled', 'schedule:default:task', null],
+            ['manual', 'schedule'], ['schedule:default'], [1],
+        ];
+        yield 'multiple excluded tags' => [
+            ['schedule:default:task', 'schedule:other:task', 'manual', 'unscheduled', null],
+            [], ['schedule:default', 'manual'], [1, 3, 4],
+        ];
+    }
+
+    /**
+     * @test
      */
     public function per_message_type_metrics(): void
     {
