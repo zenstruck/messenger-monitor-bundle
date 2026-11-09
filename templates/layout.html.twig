@@ -140,15 +140,29 @@
                     form.action = this.element.getAttribute('href');
 
                     if (this.element.dataset.token) {
-                        const token = document.createElement('input');
-                        token.type = 'hidden';
-                        token.name = '_token';
-                        token.value = this.element.dataset.token;
-                        form.appendChild(token);
+                        form.appendChild(this.csrfToken(this.element.dataset.token));
                     }
 
                     document.body.appendChild(form);
-                    form.submit();
+                    form.requestSubmit();
+                }
+
+                csrfToken(value) {
+                    const token = document.createElement('input');
+                    token.type = 'hidden';
+                    token.name = '_token';
+                    token.value = value;
+                    token.dataset.controller = 'csrf-protection';
+
+                    // Symfony's stateless marker becomes a matching form token and cookie.
+                    if (/^[-_a-zA-Z0-9]+$/.test(value)) {
+                        token.dataset.csrfProtectionCookieValue = value;
+                        token.value = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(18))));
+                        const cookie = `${value}_${token.value}=${value}; path=/; samesite=strict`;
+                        document.cookie = location.protocol === 'https:' ? `__Host-${cookie}; secure` : cookie;
+                    }
+
+                    return token;
                 }
             });
 

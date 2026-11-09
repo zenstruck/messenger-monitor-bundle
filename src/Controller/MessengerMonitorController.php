@@ -152,14 +152,16 @@ abstract class MessengerMonitorController extends AbstractController
         Request $request,
         ViewHelper $helper,
     ): Response {
-        $helper->validateCsrfToken($request->request->getString('_token'), 'remove', $id, $name);
+        $helper->validateCsrfToken($request->request->getString('_token'), 'remove');
 
         $transport = $helper->transports->get($name);
         $message = $transport->find($id) ?? throw $this->createNotFoundException('Message not found.');
 
         $transport->get()->reject($message->envelope());
 
-        $this->addFlash('success', \sprintf('Message "%s" removed from transport "%s".', $message->message()->shortName(), $name));
+        if ($request->hasSession()) {
+            $this->addFlash('success', \sprintf('Message "%s" removed from transport "%s".', $message->message()->shortName(), $name));
+        }
 
         return $this->redirectToRoute('zenstruck_messenger_monitor_transport', ['name' => $name]);
     }
@@ -172,7 +174,7 @@ abstract class MessengerMonitorController extends AbstractController
         ViewHelper $helper,
         MessageBusInterface $bus,
     ): Response {
-        $helper->validateCsrfToken($request->request->getString('_token'), 'retry', $id, $name);
+        $helper->validateCsrfToken($request->request->getString('_token'), 'retry');
 
         $transport = $helper->transports->get($name);
         $message = $transport->find($id) ?? throw $this->createNotFoundException('Message not found.');
@@ -194,7 +196,9 @@ abstract class MessengerMonitorController extends AbstractController
         $failureTransport = $transport->get();
         $failureTransport->reject($failedEnvelope);
 
-        $this->addFlash('success', \sprintf('Retrying message "%s" on transport "%s".', $message->message()->shortName(), $originalTransportName));
+        if ($request->hasSession()) {
+            $this->addFlash('success', \sprintf('Retrying message "%s" on transport "%s".', $message->message()->shortName(), $originalTransportName));
+        }
 
         return $this->redirectToRoute('zenstruck_messenger_monitor_transport', ['name' => $name]);
     }
@@ -245,7 +249,7 @@ abstract class MessengerMonitorController extends AbstractController
         MessageBusInterface $bus,
         ViewHelper $helper,
     ): Response {
-        $helper->validateCsrfToken($request->request->getString('_token'), 'trigger', $id, $transport);
+        $helper->validateCsrfToken($request->request->getString('_token'), 'trigger');
 
         $task = $schedules->get($name)->task($id);
 
@@ -268,7 +272,9 @@ abstract class MessengerMonitorController extends AbstractController
             ]);
         }
 
-        $this->addFlash('success', \sprintf('Task "%s" triggered on "%s" transport.', $task->id(), $transport));
+        if ($request->hasSession()) {
+            $this->addFlash('success', \sprintf('Task "%s" triggered on "%s" transport.', $task->id(), $transport));
+        }
 
         return $this->redirectToRoute('zenstruck_messenger_monitor_schedule', ['name' => $name]);
     }

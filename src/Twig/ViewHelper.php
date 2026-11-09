@@ -68,28 +68,28 @@ final class ViewHelper
         return \sprintf('%.3f s', $seconds);
     }
 
-    public function generateCsrfToken(string ...$parts): string
+    public function generateCsrfToken(string $action): string
     {
         if (!$this->csrfTokenManager) {
             return '';
         }
 
-        return $this->csrfTokenManager->getToken(self::csrfTokenId(...$parts));
+        return $this->csrfTokenManager->getToken(self::csrfTokenId($action));
     }
 
-    public function validateCsrfToken(string $token, string ...$parts): void
+    public function validateCsrfToken(string $token, string $action): void
     {
         if (!$this->csrfTokenManager) {
-            return;
+            throw new \LogicException('CSRF protection is not enabled. Install "symfony/security-csrf" and enable "framework.csrf_protection" to use Messenger Monitor actions.');
         }
 
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken(self::csrfTokenId(...$parts), $token))) {
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken(self::csrfTokenId($action), $token))) {
             throw new HttpException(419, 'Invalid CSRF token.');
         }
     }
 
-    private static function csrfTokenId(string ...$parts): string
+    private static function csrfTokenId(string $action): string
     {
-        return \implode('-', $parts);
+        return 'zenstruck_messenger_monitor_'.$action;
     }
 }

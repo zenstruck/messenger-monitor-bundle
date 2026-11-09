@@ -108,12 +108,12 @@
                                         </td>
                                     {% endif %}
                                     <td class="text-end">
-                                        <a href="{{ path('zenstruck_messenger_monitor_transport_remove', {name: transport.name, id: queued.id}) }}" data-controller="post-link" data-action="post-link#click" class="btn btn-sm btn-outline-danger" data-confirm="Are you sure?" data-token="{{ helper.generateCsrfToken('remove', queued.id, transport.name) }}">
+                                        <a href="{{ path('zenstruck_messenger_monitor_transport_remove', {name: transport.name, id: queued.id}) }}" data-controller="post-link" data-action="post-link#click" class="btn btn-sm btn-outline-danger" data-confirm="Are you sure?" data-token="{{ helper.generateCsrfToken('remove') }}">
                                             <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" aria-hidden="true"><use xlink:href="#trash-icon"/></svg>
                                             Remove
                                         </a>
                                         {% if transport.isFailure %}
-                                            <a href="{{ path('zenstruck_messenger_monitor_transport_retry', {name: transport.name, id: queued.id}) }}" data-controller="post-link" data-action="post-link#click" class="btn btn-sm btn-outline-secondary" data-token="{{ helper.generateCsrfToken('retry', queued.id, transport.name) }}">
+                                            <a href="{{ path('zenstruck_messenger_monitor_transport_retry', {name: transport.name, id: queued.id}) }}" data-controller="post-link" data-action="post-link#click" class="btn btn-sm btn-outline-secondary" data-token="{{ helper.generateCsrfToken('retry') }}">
                                                 <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" aria-hidden="true"><use xlink:href="#refresh-icon"/></svg>
                                                 Retry
                                             </a>

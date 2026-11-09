@@ -309,6 +309,40 @@ You can now access the dashboard at: `/admin/messenger` or with the route `zenst
 > behind an [access-controlled firewall](https://symfony.com/doc/current/security.html#securing-url-patterns-access-control)
 > that only allows site administrators.
 
+Retrying or removing queued messages and manually triggering scheduled tasks require Symfony's
+CSRF protection. Install the component and enable it in your app. Stateful protection requires
+sessions and works on all supported Symfony versions.
+
+```bash
+composer require symfony/security-csrf
+```
+
+```yaml
+# config/packages/framework.yaml
+framework:
+    csrf_protection: true
+    session: true
+```
+
+On Symfony 7.2+, you can use [stateless CSRF protection](https://symfony.com/doc/current/security/csrf.html#stateless-csrf-tokens)
+by adding these action IDs to your app's existing list:
+
+```yaml
+framework:
+    csrf_protection:
+        enabled: true
+        stateless_token_ids:
+            - zenstruck_messenger_monitor_remove
+            - zenstruck_messenger_monitor_retry
+            - zenstruck_messenger_monitor_trigger
+```
+
+Stateless protection does not require sessions. Success notifications appear when sessions
+are enabled. The UI supports Symfony's double-submit cookie checks.
+
+The dashboard and other read-only views remain available without CSRF protection. Mutation
+requests throw a configuration error until it is enabled.
+
 Install `knplabs/knp-time-bundle` (`composer require knplabs/knp-time-bundle`) to display
 friendlier times and durations in the UI. Install `lorisleiva/cron-translator`
 (`composer require lorisleiva/cron-translator`) to display friendlier cron expressions
