@@ -18,7 +18,7 @@
         "symfony/property-access": "^6.4|^7.0|^8.0",
         "symfony/serializer": "^6.4|^7.0|^8.0",
         "zenstruck/bytes": "^1.0",
-        "zenstruck/collection": "^0.9"
+        "zenstruck/collection": "^0.10"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^2.10|^3.0",
