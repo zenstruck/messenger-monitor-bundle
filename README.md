@@ -102,6 +102,10 @@ Once configured, consumed messages are tracked and saved. These _processed messa
 contain a lot of useful information and can be viewed in the [user interface](#user-interface)
 or the [provided tools](#history).
 
+If result normalization or history storage fails, the history entry is skipped and an error is logged
+when a logger is available. Messenger continues acknowledging or retrying the message according to
+its handler outcome.
+
 #### Disable Monitoring
 
 You may want to disable monitoring for certain messages. There are several ways to do this:

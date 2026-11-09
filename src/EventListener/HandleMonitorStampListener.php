@@ -11,6 +11,7 @@
 
 namespace Zenstruck\Messenger\Monitor\EventListener;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -31,6 +32,7 @@ final class HandleMonitorStampListener
     public function __construct(
         private Storage $storage,
         private ResultNormalizer $normalizer,
+        private ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -46,7 +48,7 @@ final class HandleMonitorStampListener
 
         $event->addStamps($stamp->markFinished());
 
-        $this->storage->save($event->getEnvelope(), $this->createResults($event->getEnvelope()));
+        $this->save($event->getEnvelope());
     }
 
     public function handleFailure(WorkerMessageFailedEvent $event): void
@@ -59,15 +61,23 @@ final class HandleMonitorStampListener
             return;
         }
 
-        $throwable = $event->getThrowable();
-
         $event->addStamps($stamp->markFinished());
 
-        $this->storage->save(
-            $event->getEnvelope(),
-            $this->createResults($event->getEnvelope(), $throwable instanceof HandlerFailedException ? $throwable : null),
-            $throwable,
-        );
+        $this->save($event->getEnvelope(), $event->getThrowable());
+    }
+
+    private function save(Envelope $envelope, ?\Throwable $exception = null): void
+    {
+        try {
+            $results = $this->createResults($envelope, $exception instanceof HandlerFailedException ? $exception : null);
+
+            $this->storage->save($envelope, $results, $exception);
+        } catch (\Throwable $error) {
+            $this->logger?->error('Failed to save Messenger Monitor history for message "{class}".', [
+                'class' => $envelope->getMessage()::class,
+                'exception' => $error,
+            ]);
+        }
     }
 
     private function createResults(Envelope $envelope, ?HandlerFailedException $exception = null): Results

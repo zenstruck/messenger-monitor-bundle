@@ -12,6 +12,7 @@
 namespace Zenstruck\Messenger\Monitor\Tests\Unit\EventListener;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -96,5 +97,73 @@ final class HandleMonitorStampListenerTest extends TestCase
 
         $listener->handleFailure(new WorkerMessageFailedEvent(new Envelope(new \stdClass()), 'foo', new \RuntimeException()));
         $listener->handleFailure(new WorkerMessageFailedEvent(new Envelope(new \stdClass(), [new MonitorStamp()]), 'foo', new \RuntimeException()));
+    }
+
+    /**
+     * @test
+     * @dataProvider handlerOutcomes
+     */
+    public function logs_history_storage_errors(bool $handlerFails): void
+    {
+        $envelope = new Envelope(new \stdClass(), [(new MonitorStamp())->markReceived('foo')]);
+        $handlerError = $handlerFails ? new \RuntimeException('Handler failed.') : null;
+        $storageError = new \RuntimeException('History database unavailable.');
+        $storage = $this->createMock(Storage::class);
+        $storage->expects($this->once())->method('save')->with(
+            $this->isInstanceOf(Envelope::class),
+            $this->isInstanceOf(Results::class),
+            $handlerError,
+        )->willThrowException($storageError);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error')->with(
+            'Failed to save Messenger Monitor history for message "{class}".',
+            ['class' => \stdClass::class, 'exception' => $storageError],
+        );
+        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__), $logger);
+
+        if ($handlerError) {
+            $listener->handleFailure(new WorkerMessageFailedEvent($envelope, 'foo', $handlerError));
+
+            return;
+        }
+
+        $listener->handleSuccess(new WorkerMessageHandledEvent($envelope, 'foo'));
+    }
+
+    /** @return iterable<string, array{bool}> */
+    public static function handlerOutcomes(): iterable
+    {
+        yield 'successful handler' => [false];
+        yield 'failed handler' => [true];
+    }
+
+    /** @test */
+    public function logs_result_normalization_errors(): void
+    {
+        $normalizationError = new \Error('Result cannot be converted to a string.');
+        $result = new class($normalizationError) implements \Stringable {
+            public function __construct(private \Error $error)
+            {
+            }
+
+            public function __toString(): string
+            {
+                throw $this->error;
+            }
+        };
+        $envelope = new Envelope(new \stdClass(), [
+            (new MonitorStamp())->markReceived('foo'),
+            new HandledStamp($result, 'handler'),
+        ]);
+        $storage = $this->createMock(Storage::class);
+        $storage->expects($this->never())->method('save');
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error')->with(
+            'Failed to save Messenger Monitor history for message "{class}".',
+            ['class' => \stdClass::class, 'exception' => $normalizationError],
+        );
+        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__), $logger);
+
+        $listener->handleSuccess(new WorkerMessageHandledEvent($envelope, 'foo'));
     }
 }
