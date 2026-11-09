@@ -16,6 +16,7 @@ use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Exception\NoHandlerForMessageException;
 use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
+use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Factory\ProcessedMessageFactory;
@@ -89,6 +90,48 @@ final class HistoryTest extends KernelTestCase
 
         $message = ProcessedMessageFactory::first();
         $this->assertSame($description, $message->description());
+    }
+
+    /**
+     * @test
+     * @dataProvider handlerOutcomes
+     */
+    public function continues_processing_when_history_storage_fails(bool $handlerFails): void
+    {
+        $storage = $this->createMock(Storage::class);
+        $storage->expects($this->exactly(2))->method('save')->willThrowException(new \RuntimeException('History database unavailable.'));
+        $container = self::getContainer();
+        $container->set('zenstruck_messenger_monitor.history.storage', $storage);
+
+        $bus = $this->bus();
+        $bus->dispatch(new MessageA(throw: $handlerFails));
+        $bus->dispatch(new MessageA());
+
+        $transport = $this->transport();
+        $transport->processOrFail(2);
+
+        $this->assertCount($handlerFails ? 1 : 2, $transport->acknowledged());
+        $this->assertCount($handlerFails ? 1 : 0, $transport->rejected());
+    }
+
+    /** @return iterable<string, array{bool}> */
+    public static function handlerOutcomes(): iterable
+    {
+        yield 'successful handler' => [false];
+        yield 'failed handler' => [true];
+    }
+
+    /** @test */
+    public function acknowledges_message_when_history_result_cannot_be_serialized(): void
+    {
+        $bus = $this->bus();
+        $bus->dispatch(new MessageA(return: \NAN));
+
+        $transport = $this->transport();
+        $transport->processOrFail(1);
+
+        $this->assertCount(1, $transport->acknowledged());
+        $this->assertCount(0, $transport->rejected());
     }
 
     /**
