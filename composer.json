@@ -37,7 +37,7 @@
         "symfony/scheduler": "^6.4|^7.0|^8.0",
         "symfony/security-bundle": "^6.4|^7.0|^8.0",
         "symfony/var-dumper": "^6.4|^7.0|^8.0",
-        "zenstruck/console-test": "^1.5",
+        "zenstruck/console-test": "^1.6.1",
         "zenstruck/foundry": "^2.2",
         "zenstruck/messenger-test": "^1.11"
     },

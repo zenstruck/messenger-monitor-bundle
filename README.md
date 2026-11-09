@@ -225,6 +225,9 @@ add your own in one of two ways:
 
     You can also add the `TagStamp` attribute to parent classes and interfaces.
 
+Tag filters match a complete tag and its colon-separated descendants. For example, `schedule`
+matches `schedule:default:task`. Characters such as `%` and `_` are matched literally.
+
 #### `messenger:monitor:purge` Command
 
 If your app handles a lot of messages, the processed message database table will get very large.
@@ -238,8 +241,13 @@ bin/console messenger:monitor:purge --older-than all
 bin/console messenger:monitor:purge --older-than 1-day
 bin/console messenger:monitor:purge --older-than 1-week
 
+bin/console messenger:monitor:purge --status failed # purge only failed messages
+
 bin/console messenger:monitor:purge --exclude-schedules # ignore messages tagged with "schedule"
 ```
+
+The `--status` option accepts `success` or `failed`. Invalid values stop the command before
+any history is deleted. Omit the option to purge both statuses.
 
 > [!NOTE]
 > Schedule this command to run daily with `symfony/scheduler` and

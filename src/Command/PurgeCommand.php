@@ -49,6 +49,14 @@ final class PurgeCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $status = $input->getOption('status');
+
+        if (!\in_array($status, [null, Specification::SUCCESS, Specification::FAILED], true)) {
+            $io->error(\sprintf('Invalid status "%s". Expected "success" or "failed".', $status));
+
+            return self::INVALID;
+        }
+
         $notTags = $input->getOption('not-tag');
         $period = Period::parseOrFail($input->getOption('older-than'));
 
@@ -58,7 +66,7 @@ final class PurgeCommand extends Command
 
         $specification = Specification::create([
             'period' => $period,
-            'status' => $input->getOption('status'),
+            'status' => $status,
             'message_type' => $input->getOption('type'),
             'transport' => $input->getOption('transport'),
             'tags' => $input->getOption('tag'),

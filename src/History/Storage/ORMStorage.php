@@ -211,26 +211,30 @@ final class ORMStorage implements Storage
             $qb->andWhere($condition);
         }
 
-        foreach ($tags as $i => $tag) {
-            $qb->andWhere('m.tags LIKE :tag'.$i)->setParameter('tag'.$i, '%'.$tag.'%');
-        }
-
-        foreach ($notTags as $i => $notTag) {
-            $expr = [] === $tags
-                ? $qb->expr()->orX(
-                    $qb->expr()->isNull('m.tags'),
-                    $qb->expr()->notLike('m.tags', ':not_tag'.$i),
-                )
-                : 'm.tags NOT LIKE :not_tag'.$i;
-
-            $qb->andWhere($expr)->setParameter('not_tag'.$i, '%'.$notTag.'%');
-        }
+        $this->applyTags($qb, $tags);
+        $this->applyTags($qb, $notTags, exclude: true);
 
         if ($order) {
             $qb->orderBy('m.finishedAt', \mb_strtoupper($sort));
         }
 
         return $qb;
+    }
+
+    /** @param string[] $tags */
+    private function applyTags(QueryBuilder $queryBuilder, array $tags, bool $exclude = false): void
+    {
+        $field = "CONCAT(',', COALESCE(m.tags, ''), ',')";
+
+        foreach (\array_values($tags) as $index => $tag) {
+            $parameter = ($exclude ? 'not_tag' : 'tag').$index;
+            $condition = "{$field} LIKE :{$parameter} ESCAPE '!' OR {$field} LIKE :{$parameter}_children ESCAPE '!'";
+            $pattern = \strtr($tag, ['!' => '!!', '%' => '!%', '_' => '!_']);
+
+            $queryBuilder->andWhere($exclude ? "NOT ({$condition})" : "({$condition})");
+            $queryBuilder->setParameter($parameter, '%,'.$pattern.',%');
+            $queryBuilder->setParameter($parameter.'_children', '%,'.$pattern.':%');
+        }
     }
 
     /** @param Specification::SUCCESS|Specification::FAILED|null $status */
