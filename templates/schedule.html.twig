@@ -165,7 +165,7 @@
                                         </button>
                                         <ul class="dropdown-menu" data-boundary="viewport">
                                             {% for t in transports.names %}
-                                                <li><a class="dropdown-item" data-controller="post-link" data-action="post-link#click" data-token="{{ helper.generateCsrfToken('trigger', task.id, t) }}" href="{{ path('zenstruck_messenger_monitor_schedule_trigger', {name: schedule.name, id: task.id, transport: t}) }}">{{ t }}</a></li>
+                                                <li><a class="dropdown-item" data-controller="post-link" data-action="post-link#click" data-token="{{ helper.generateCsrfToken('trigger') }}" href="{{ path('zenstruck_messenger_monitor_schedule_trigger', {name: schedule.name, id: task.id, transport: t}) }}">{{ t }}</a></li>
                                             {% endfor %}
                                         </ul>
                                     </div>

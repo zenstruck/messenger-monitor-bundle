@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* UI actions for removing or retrying messages and triggering tasks now require Symfony's CSRF protection.
+  Install `symfony/security-csrf` and enable `framework.csrf_protection` in your app. Enable sessions for
+  stateful protection, or configure stateless action IDs on Symfony 7.2+ as shown in the README.
+* CSRF token IDs are now `zenstruck_messenger_monitor_remove`, `zenstruck_messenger_monitor_retry`,
+  and `zenstruck_messenger_monitor_trigger`. Overridden templates should call `helper.generateCsrfToken()`
+  with only the action (`remove`, `retry`, or `trigger`). Reload open pages before submitting actions.
 * `ProcessedMessage` has a new nullable JSON `input` column. Generate and run a Doctrine migration
   before restarting your Messenger workers.
 * `Storage::metrics()` replaces `Storage::averageWaitTime()` and `Storage::averageHandlingTime()`.
