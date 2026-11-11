@@ -34,6 +34,9 @@ final class WorkerCache implements \IteratorAggregate
     /** @var array<int,int> Per worker id, when its heartbeat next compares itself with the shared index */
     private array $nextIndexCheckAt = [];
 
+    /** @var array<int,int> Start time of the workers this process reported, kept when the cache loses it */
+    private array $startedAt = [];
+
     public function __construct(
         private CacheItemPoolInterface&CacheInterface $cache,
         private int $expiredWorkerTtl = 3600,
@@ -47,7 +50,7 @@ final class WorkerCache implements \IteratorAggregate
 
     public function remove(int $id): void
     {
-        unset($this->nextIndexCheckAt[$id]);
+        unset($this->nextIndexCheckAt[$id], $this->startedAt[$id]);
 
         $this->cache->deleteItem(self::WORKER_KEY_PREFIX.$id);
 
@@ -70,6 +73,7 @@ final class WorkerCache implements \IteratorAggregate
         ?int $startedAt = null,
     ): void {
         $entryWasMissing = false;
+        $startedAt ??= $this->startedAt[$id] ?? null;
 
         $worker = $this->cache->get(
             self::WORKER_KEY_PREFIX.$id,
@@ -78,14 +82,19 @@ final class WorkerCache implements \IteratorAggregate
 
                 $entryWasMissing = !$item->isHit();
 
-                // Keep the start time across heartbeats. When the worker entry expired (a message that ran
-                // longer than the ttl), fall back to the time the shared index still holds for this worker.
+                // A worker reported from another process (or before this one knew it): take the start time
+                // from its entry, or from the shared index when the entry expired.
                 $startedAt ??= $item->get()['startedAt'] ?? $this->ids()[0][$id] ?? now()->getTimestamp();
 
                 return [$metadata, $status, $id, $messagesHandled, $memoryUsage, 'startedAt' => $startedAt];
             },
             \INF, // force saving
         );
+
+        // Remember the start time in this process. When a message runs longer than the ttl, the worker entry
+        // expires and another worker's registration prunes this one from the index, so the cache no longer
+        // holds it and the next heartbeat would restart the uptime.
+        $this->startedAt[$id] = $worker['startedAt'];
 
         // The shared index holds every worker and is only needed to register this one. Reading it on each
         // heartbeat makes every worker fetch the whole index on every loop, so only compare when the worker

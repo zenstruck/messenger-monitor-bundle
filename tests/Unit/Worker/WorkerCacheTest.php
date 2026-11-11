@@ -234,7 +234,6 @@ final class WorkerCacheTest extends TestCase
     public function a_worker_whose_entry_expired_registers_again_on_its_next_heartbeat(): void
     {
         $clock = self::mockTime();
-        $startedAt = $clock->now()->getTimestamp();
         $metadata = new WorkerMetadata(['transportNames' => ['async']]);
 
         $this->workerCache->add(123, $metadata, 0, 1000);
@@ -251,6 +250,57 @@ final class WorkerCacheTest extends TestCase
 
         $this->assertSame([123, 456], $this->indexedIds());
         $this->assertCount(2, \iterator_to_array($this->workerCache));
+    }
+
+    /**
+     * @test
+     */
+    public function a_worker_pruned_from_the_index_keeps_its_start_time(): void
+    {
+        $clock = self::mockTime();
+        $startedAt = $clock->now()->getTimestamp();
+        $metadata = new WorkerMetadata(['transportNames' => ['async']]);
+
+        $this->workerCache->add(123, $metadata, 0, 1000);
+
+        // 123 handles a message that runs longer than the ttl: its entry expires
+        // and another worker starting meanwhile prunes it from the index.
+        $clock->sleep(3601);
+        $this->cache->deleteItem('zenstruck_messenger_monitor.worker.123');
+        $this->workerCache->add(456, $metadata, 0, 1000);
+        $this->assertSame([456], $this->indexedIds());
+
+        $clock->sleep(1);
+        $this->workerCache->set(123, $metadata, WorkerInfo::PROCESSING, 1, 1000);
+
+        $workers = [];
+
+        foreach ($this->workerCache as $worker) {
+            $workers[$worker->startTime()->getTimestamp()] = $worker;
+        }
+
+        $this->assertArrayHasKey($startedAt, $workers);
+        $this->assertSame(3602, $workers[$startedAt]->runningFor());
+    }
+
+    /**
+     * @test
+     */
+    public function a_removed_worker_id_starts_fresh_when_it_is_used_again(): void
+    {
+        $clock = self::mockTime();
+        $metadata = new WorkerMetadata(['transportNames' => ['async']]);
+
+        $this->workerCache->add(123, $metadata, 0, 1000);
+        $this->workerCache->remove(123);
+
+        $clock->sleep(100);
+        $restartedAt = $clock->now()->getTimestamp();
+        $this->workerCache->set(123, $metadata, WorkerInfo::IDLE, 0, 1000);
+
+        $workers = \iterator_to_array($this->workerCache);
+        $this->assertCount(1, $workers);
+        $this->assertSame($restartedAt, $workers[0]->startTime()->getTimestamp());
     }
 
     /**
