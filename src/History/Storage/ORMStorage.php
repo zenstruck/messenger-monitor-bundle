@@ -119,7 +119,7 @@ final class ORMStorage implements Storage
     {
         $qb = $this->queryBuilderFor($specification->ignoreMessageType(), false)
             ->select('DISTINCT m.type')
-            ->orderBy('m.type', 'ASC')
+            ->add('orderBy', 'm.type ASC')
         ;
 
         return (new EntityResult($qb))->asString(); // @phpstan-ignore-line
@@ -215,7 +215,7 @@ final class ORMStorage implements Storage
         $this->applyTags($qb, $notTags, exclude: true);
 
         if ($order) {
-            $qb->orderBy('m.finishedAt', \mb_strtoupper($sort));
+            $qb->add('orderBy', 'm.finishedAt '.\mb_strtoupper($sort));
         }
 
         return $qb;
