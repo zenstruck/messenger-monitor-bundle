@@ -12,20 +12,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        php: [8.2, 8.3, 8.4, 8.5, 8.6]
+        deps: [highest]
+        symfony: [6.4.*, 7.4.*, 8.1.*, 8.2.*]
+        database: [sqlite]
         include:
           - { php: '8.1', symfony: '6.4.*', database: sqlite, deps: highest }
-          - { php: '8.2', symfony: '7.4.*', database: sqlite, deps: highest }
-          - { php: '8.3', symfony: '7.4.*', database: sqlite, deps: highest }
-          - { php: '8.4', symfony: '8.1.*', database: sqlite, deps: highest }
-          - { php: '8.5', symfony: '8.1.*', database: sqlite, deps: highest }
-          - { php: '8.6', symfony: '8.2.*', database: sqlite, deps: highest }
 
           # Run all database engines on the same PHP and Symfony versions.
-          - { php: '8.5', symfony: '8.1.*', database: mysql, deps: highest }
-          - { php: '8.5', symfony: '8.1.*', database: pgsql, deps: highest }
-          - { php: '8.5', symfony: '8.1.*', database: mariadb, deps: highest }
+          - { php: '8.6', symfony: '8.2.*', database: mysql, deps: highest }
+          - { php: '8.6', symfony: '8.2.*', database: pgsql, deps: highest }
+          - { php: '8.6', symfony: '8.2.*', database: mariadb, deps: highest }
 
           - { php: '8.1', symfony: '*', database: mysql, deps: lowest }
+        exclude:
+          - php: 8.2
+            symfony: 8.1.*
+          - php: 8.3
+            symfony: 8.1.*
+          - php: 8.2
+            symfony: 8.2.*
+          - php: 8.3
+            symfony: 8.2.*
 
     services:
       mariadb:
