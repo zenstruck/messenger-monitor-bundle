@@ -67,7 +67,7 @@ final class ScheduleInfo implements \IteratorAggregate, \Countable
     public function history(Specification|array|null $specification = null): Snapshot
     {
         return Specification::create($specification)
-            ->with('schedule'.$this->name)
+            ->with('schedule:'.$this->name)
             ->snapshot($this->storage ?? throw new \LogicException('No history storage configured.'))
         ;
     }
