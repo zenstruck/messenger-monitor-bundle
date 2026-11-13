@@ -28,6 +28,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Scheduler\Generator\MessageContext;
 use Symfony\Component\Scheduler\Trigger\CronExpressionTrigger;
 use Symfony\Component\Scheduler\Trigger\TriggerInterface;
+use Zenstruck\Messenger\Monitor\History\Model\Flow;
 use Zenstruck\Messenger\Monitor\History\Period;
 use Zenstruck\Messenger\Monitor\History\Specification;
 use Zenstruck\Messenger\Monitor\Schedules;
@@ -112,13 +113,22 @@ abstract class MessengerMonitorController extends AbstractController
     #[Route('/history/{id}', name: 'zenstruck_messenger_monitor_detail')]
     public function detail(string $id, ViewHelper $helper): Response
     {
-        if (!$message = $helper->storage()->find($id)) {
+        $storage = $helper->storage();
+
+        if (!$message = $storage->find($id)) {
             throw $this->createNotFoundException('Message not found.');
+        }
+
+        $flow = new Flow();
+
+        if (null !== $message->messageId() && null !== $message->correlationId()) {
+            $flow = $storage->flow($message->correlationId());
         }
 
         return $this->render('@ZenstruckMessengerMonitor/detail.html.twig', [
             'helper' => $helper,
             'message' => $message,
+            'flow' => $flow,
             'other_attempts' => $helper->storage()->filter(Specification::create(['run_id' => $message->runId()])),
         ]);
     }

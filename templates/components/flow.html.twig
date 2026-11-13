@@ -1,0 +1,65 @@
+<section class="card mb-3 monitor-flow" aria-label="Message flow">
+    <div class="card-header">
+        {% block flow_header %}<h2 class="monitor-section-title">Flow</h2>{% endblock %}
+    </div>
+    <div class="table-responsive">
+        <table class="table card-table mb-0 align-middle">
+            <thead>
+            <tr>
+                <th class="text-center">#</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Transport</th>
+                <th class="text-end">Duration</th>
+                <th>Received At</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% block flow_rows %}
+                {% for row in flow %}
+                    {% set node = row.message %}
+                    {% set latest = node.latest %}
+                    {% set current = node.messageId == message.messageId %}
+                    <tr{% if current %} class="table-active" aria-current="true"{% endif %}>
+                        <td class="text-center text-body-secondary">{{ loop.index }}</td>
+                        <td>
+                            <div style="padding-inline-start: {{ min(row.depth, 8) * 16 }}px">
+                                {% if row.depth %}<span class="text-body-secondary" aria-label="Branch">&#8627;</span>{% endif %}
+                                {% if current %}
+                                    <strong title="{{ node.type }}">{{ node.type.shortName }}</strong>
+                                    <small class="text-body-secondary">(current)</small>
+                                {% else %}
+                                    <a href="{{ path('zenstruck_messenger_monitor_detail', {id: latest.id}) }}" title="{{ node.type }}" data-controller="message-details" data-action="message-details#click">{{ node.type.shortName }}</a>
+                                {% endif %}
+                                {% if latest.description %}<small class="d-block text-body-secondary">{{ latest.description }}</small>{% endif %}
+                                {% if node|length > 1 %}
+                                    <details class="mt-1"{% if current %} open{% endif %}>
+                                        <summary class="small text-body-secondary">{{ node|length }} attempts</summary>
+                                        <ul class="list-unstyled small mb-0 mt-1">
+                                            {% for attempt in node %}
+                                                <li>
+                                                    {% if attempt.id == message.id %}
+                                                        <strong>Attempt {{ attempt.attempt }} (viewing)</strong>
+                                                    {% else %}
+                                                        <a href="{{ path('zenstruck_messenger_monitor_detail', {id: attempt.id}) }}" data-controller="message-details" data-action="message-details#click">Attempt {{ attempt.attempt }}</a>
+                                                    {% endif %}
+                                                    <span class="text-{{ attempt.failureType ? 'danger' : 'success' }}">{{ attempt.failureType ? 'Failed' : 'Successful' }}</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </details>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="text-{{ latest.failureType ? 'danger' : 'success' }}">{{ latest.failureType ? 'Failed' : 'Successful' }}</td>
+                        <td>{{ latest.transport }}</td>
+                        <td class="text-end text-nowrap">{{ helper.formatDuration(latest.handleTime) }}</td>
+                        <td class="text-nowrap"><abbr title="{{ latest.receivedAt|date('c') }}">{{ helper.formatTime(latest.receivedAt) }}</abbr></td>
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+            </tbody>
+        </table>
+    </div>
+    {% block flow_footer %}<div class="card-footer small text-body-secondary">Recorded messages in parent-to-child order. Parallel work is shown as branches.</div>{% endblock %}
+</section>

@@ -13,6 +13,7 @@ namespace Zenstruck\Messenger\Monitor\History;
 
 use Symfony\Component\Messenger\Envelope;
 use Zenstruck\Collection;
+use Zenstruck\Messenger\Monitor\History\Model\Flow;
 use Zenstruck\Messenger\Monitor\History\Model\MessageTypeMetric;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
@@ -25,6 +26,8 @@ use Zenstruck\Messenger\Monitor\History\Model\Results;
 interface Storage
 {
     public function find(mixed $id): ?ProcessedMessage;
+
+    public function flow(string $correlationId): Flow;
 
     /**
      * @return Collection<ProcessedMessage, int>

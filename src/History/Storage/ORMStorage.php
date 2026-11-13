@@ -18,6 +18,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Messenger\Envelope;
 use Zenstruck\Collection;
 use Zenstruck\Collection\Doctrine\ORM\EntityResult;
+use Zenstruck\Messenger\Monitor\History\Model\Flow;
 use Zenstruck\Messenger\Monitor\History\Model\MessageTypeMetric;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
@@ -30,6 +31,7 @@ use Zenstruck\Messenger\Monitor\History\Storage;
  * @internal
  *
  * @template T of ProcessedMessage
+ * @phpstan-import-type Attempt from \Zenstruck\Messenger\Monitor\History\Model\FlowMessage
  */
 final class ORMStorage implements Storage
 {
@@ -46,6 +48,34 @@ final class ORMStorage implements Storage
     public function find(mixed $id): ?ProcessedMessage
     {
         return $this->repository()->find($id);
+    }
+
+    public function flow(string $correlationId): Flow
+    {
+        $manager = $this->om();
+        $metadata = $manager->getClassMetadata($this->entityClass);
+        $identifiers = $metadata->getIdentifierFieldNames();
+
+        if (1 !== \count($identifiers) || $metadata->hasAssociation($identifiers[0])) {
+            return new Flow();
+        }
+
+        $repository = $this->repository();
+        $queryBuilder = $repository->createQueryBuilder('m');
+        $queryBuilder->select('m.'.$identifiers[0].' AS id', 'm.messageId', 'm.causationId', 'm.type', 'm.description', 'm.transport', 'm.attempt', 'm.failureType', 'm.dispatchedAt', 'm.receivedAt', 'm.finishedAt', 'm.handleTime');
+        $queryBuilder->where('m.correlationId = :correlation');
+        $queryBuilder->andWhere('m.messageId IS NOT NULL');
+        $queryBuilder->setParameter('correlation', $correlationId);
+        $queryBuilder->orderBy('m.dispatchedAt', 'ASC');
+        $queryBuilder->addOrderBy('m.receivedAt', 'ASC');
+        $queryBuilder->addOrderBy('m.finishedAt', 'ASC');
+        $queryBuilder->addOrderBy('m.'.$identifiers[0], 'ASC');
+        $query = $queryBuilder->getQuery();
+
+        /** @var list<Attempt> $attempts */
+        $attempts = $query->getArrayResult();
+
+        return new Flow($attempts);
     }
 
     public function filter(Specification $specification): Collection
