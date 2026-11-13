@@ -23,23 +23,31 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\EventListener\SendFailedMessageToFailureTransportListener;
+use Symfony\Component\Messenger\Exception\InvalidMessageSignatureException;
+use Symfony\Component\Messenger\Exception\MessageDecodingFailedException;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Middleware\DecodeFailedMessageMiddleware;
 use Symfony\Component\Messenger\Middleware\SendMessageMiddleware;
 use Symfony\Component\Messenger\Stamp\ErrorDetailsStamp;
 use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Symfony\Component\Messenger\Stamp\SentToFailureTransportStamp;
 use Symfony\Component\Messenger\Stamp\TransportNamesStamp;
+use Symfony\Component\Messenger\Stamp\TrustStamp;
+use Symfony\Component\Messenger\Stamp\UnverifiedDecodingFailureStamp;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Messenger\Transport\Receiver\ListableReceiverInterface;
 use Symfony\Component\Messenger\Transport\Sender\SendersLocator;
+use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
+use Symfony\Component\Messenger\Transport\Serialization\SigningSerializer;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Zenstruck\Messenger\Monitor\Controller\MessengerMonitorController;
 use Zenstruck\Messenger\Monitor\Schedules;
+use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Message\MessageA;
 use Zenstruck\Messenger\Monitor\Transports;
 use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
@@ -138,6 +146,88 @@ final class MessengerMonitorControllerTest extends TestCase
 
     /**
      * @test
+     * @dataProvider signatureTrust
+     */
+    public function a_manually_retried_message_preserves_its_signature_trust(string $trust): void
+    {
+        if (!\class_exists(TrustStamp::class)) {
+            $this->markTestSkipped('Requires Symfony 8.2 message signing.');
+        }
+
+        $serializer = new SigningSerializer(new PhpSerializer(), 'signing-secret');
+        $original = new InMemoryTransport($serializer);
+        $senders = new SendersLocator([], new ServiceLocator(['original' => static fn() => $original]));
+        $bus = new MessageBus([new SendMessageMiddleware($senders)]);
+        $stamps = match ($trust) {
+            'verified' => [TrustStamp::trusted()],
+            'unverified' => [TrustStamp::untrusted()],
+            'serialized' => [\unserialize(\serialize(TrustStamp::trusted()))],
+            default => [],
+        };
+
+        $this->retryMessage(new Envelope(new MessageA(), [
+            new SentToFailureTransportStamp('original'),
+            new ReceivedStamp('failed'),
+            ...$stamps,
+        ]), $bus);
+
+        $this->assertCount(1, $original->getSent());
+        $retried = $original->getSent()[0];
+
+        if ('verified' === $trust) {
+            $this->assertInstanceOf(MessageA::class, $retried->getMessage());
+            $this->assertTrue($retried->last(TrustStamp::class)->isTrusted());
+
+            return;
+        }
+
+        $failure = $retried->getMessage();
+        $this->assertInstanceOf(MessageDecodingFailedException::class, $failure);
+        $this->assertInstanceOf(InvalidMessageSignatureException::class, $failure->getPrevious());
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function signatureTrust(): iterable
+    {
+        foreach (['absent', 'unverified', 'serialized', 'verified'] as $trust) {
+            yield $trust => [$trust];
+        }
+    }
+
+    /** @test */
+    public function a_manually_retried_decoding_failure_keeps_its_original_serializer_and_unverified_stamps(): void
+    {
+        if (!\class_exists(UnverifiedDecodingFailureStamp::class)) {
+            $this->markTestSkipped('Requires Symfony 8.2 message signing.');
+        }
+
+        $serializer = new SigningSerializer(new PhpSerializer(), 'signing-secret');
+        $original = new InMemoryTransport();
+        $senders = new SendersLocator([], new ServiceLocator(['original' => static fn() => $original]));
+        $bus = new MessageBus([
+            new DecodeFailedMessageMiddleware(new ServiceLocator(['original' => static fn() => $serializer])),
+            new SendMessageMiddleware($senders),
+        ]);
+        $forgedTag = new TagStamp('forged');
+        $failure = MessageDecodingFailedException::wrap($serializer->encode(new Envelope(new MessageA())), 'Decoding failed');
+
+        $this->retryMessage(new Envelope($failure->getMessage(), [
+            new SentToFailureTransportStamp('original'),
+            new ReceivedStamp('failed'),
+            $forgedTag,
+            new UnverifiedDecodingFailureStamp([$forgedTag]),
+        ]), $bus);
+
+        $this->assertCount(1, $original->getSent());
+        $retried = $original->getSent()[0];
+        $this->assertInstanceOf(MessageA::class, $retried->getMessage());
+        $this->assertFalse($retried->last(TrustStamp::class)->isTrusted());
+        $this->assertNull($retried->last(SentToFailureTransportStamp::class));
+        $this->assertSame(['retry', 'manual'], \array_map(static fn(TagStamp $stamp) => $stamp->value, $retried->all(TagStamp::class)));
+    }
+
+    /**
+     * @test
      * @dataProvider successfulActions
      */
     public function successful_actions_work_with_or_without_a_session(string $action, bool $withSession): void
@@ -193,6 +283,28 @@ final class MessengerMonitorControllerTest extends TestCase
             yield $action.' with a session' => [$action, true];
             yield $action.' without a session' => [$action, false];
         }
+    }
+
+    private function retryMessage(Envelope $envelope, MessageBusInterface $bus): void
+    {
+        $failed = $this->failureTransport();
+        $failed->send($envelope);
+        $workers = new Workers(new WorkerCache(new NullAdapter()));
+        $transports = new Transports(new ServiceLocator(['failed' => static fn() => $failed]), $workers);
+        $tokenManager = $this->createMock(CsrfTokenManagerInterface::class);
+        $tokenManager->expects($this->once())->method('isTokenValid')->with(new CsrfToken('zenstruck_messenger_monitor_retry', 'valid-token'))->willReturn(true);
+        $helper = new ViewHelper($transports, $workers, null, null, null, $tokenManager);
+        $controller = new class extends MessengerMonitorController {
+            /** @param array<array-key,mixed> $parameters */
+            protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
+            {
+                return new RedirectResponse('/transport/failed');
+            }
+        };
+
+        $controller->retryFailedMessage('failed', '1', new Request([], ['_token' => 'valid-token']), $helper, $bus);
+
+        $this->assertCount(1, $failed->getRejected());
     }
 
     private function failureTransport(): InMemoryTransport&ListableReceiverInterface
