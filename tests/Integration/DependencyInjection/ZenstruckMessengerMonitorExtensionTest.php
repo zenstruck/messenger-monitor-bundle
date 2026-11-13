@@ -17,8 +17,11 @@ use Matthias\SymfonyDependencyInjectionTest\PhpUnit\ContainerBuilderHasServiceDe
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
+use Symfony\Component\Messenger\Event\HandlerFailureEvent;
+use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Zenstruck\Messenger\Monitor\DependencyInjection\ZenstruckMessengerMonitorExtension;
 use Zenstruck\Messenger\Monitor\EventListener\AddMonitorStampListener;
+use Zenstruck\Messenger\Monitor\EventListener\CaptureExecutionListener;
 use Zenstruck\Messenger\Monitor\EventListener\HandleMonitorStampListener;
 use Zenstruck\Messenger\Monitor\EventListener\ReceiveMonitorStampListener;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
@@ -79,6 +82,23 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint('.zenstruck_messenger_monitor.listener.add_monitor_stamp')));
         $this->assertContainerBuilderHasService('.zenstruck_messenger_monitor.listener.receive_monitor_stamp', ReceiveMonitorStampListener::class);
         $this->assertContainerBuilderHasService('.zenstruck_messenger_monitor.listener.handle_monitor_stamp', HandleMonitorStampListener::class);
+    }
+
+    /** @test */
+    public function captures_execution_measurements_when_handler_events_are_available(): void
+    {
+        $this->load(['storage' => ['orm' => ['entity_class' => ProcessedMessageImpl::class]]]);
+        $service = '.zenstruck_messenger_monitor.listener.capture_execution';
+
+        if (!\class_exists(HandlerSuccessEvent::class)) {
+            $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint($service)));
+
+            return;
+        }
+
+        $this->assertContainerBuilderHasService($service, CaptureExecutionListener::class);
+        $this->assertContainerBuilderHasServiceDefinitionWithTag($service, 'kernel.event_listener', ['event' => HandlerSuccessEvent::class]);
+        $this->assertContainerBuilderHasServiceDefinitionWithTag($service, 'kernel.event_listener', ['event' => HandlerFailureEvent::class]);
     }
 
     /**

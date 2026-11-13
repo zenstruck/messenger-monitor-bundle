@@ -2,6 +2,8 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Symfony\Component\Messenger\Event\HandlerFailureEvent;
+use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
@@ -9,6 +11,7 @@ use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Zenstruck\Messenger\Monitor\Command\PurgeCommand;
 use Zenstruck\Messenger\Monitor\Command\SchedulePurgeCommand;
 use Zenstruck\Messenger\Monitor\EventListener\AddMonitorStampListener;
+use Zenstruck\Messenger\Monitor\EventListener\CaptureExecutionListener;
 use Zenstruck\Messenger\Monitor\EventListener\HandleMonitorStampListener;
 use Zenstruck\Messenger\Monitor\EventListener\ReceiveMonitorStampListener;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
@@ -65,4 +68,12 @@ return static function (ContainerConfigurator $container): void {
             ])
             ->tag('console.command')
     ;
+
+    if (\class_exists(HandlerSuccessEvent::class)) {
+        $container->services()
+            ->set('.zenstruck_messenger_monitor.listener.capture_execution', CaptureExecutionListener::class)
+                ->tag('kernel.event_listener', ['event' => HandlerSuccessEvent::class])
+                ->tag('kernel.event_listener', ['event' => HandlerFailureEvent::class])
+        ;
+    }
 };

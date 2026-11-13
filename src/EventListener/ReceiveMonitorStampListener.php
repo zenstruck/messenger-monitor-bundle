@@ -12,6 +12,7 @@
 namespace Zenstruck\Messenger\Monitor\EventListener;
 
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
@@ -19,6 +20,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
 use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
+use Zenstruck\Messenger\Monitor\Stamp\ExecutionStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\StoredInputStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
@@ -62,6 +64,11 @@ final class ReceiveMonitorStampListener
         }
 
         $event->addStamps($stamp->markReceived($event->getReceiverName()));
+
+        if (\class_exists(HandlerSuccessEvent::class)) {
+            $event->addStamps(new ExecutionStamp());
+        }
+
         $input = $this->captureInput($envelope);
 
         if (null !== $input || $envelope->last(StoredInputStamp::class)) {
