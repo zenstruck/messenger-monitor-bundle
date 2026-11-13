@@ -35,6 +35,7 @@ final class WorkerInfo
         private int $startTime,
         private int $messagesHandled,
         private int $memoryUsage,
+        private TransportCooldowns $cooldowns = new TransportCooldowns(),
     ) {
     }
 
@@ -75,6 +76,11 @@ final class WorkerInfo
     public function isIdle(): bool
     {
         return self::IDLE === $this->status;
+    }
+
+    public function cooldownFor(string $transport): ?TransportCooldown
+    {
+        return $this->cooldowns->forTransport($transport);
     }
 
     public function isProcessing(): bool

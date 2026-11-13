@@ -31,7 +31,20 @@
                         </td>
                         <td>
                             {% for transport in worker.transports %}
-                                <span class="badge align-text-top text-bg-secondary">{{ transport }}</span>
+                                {% set cooldown = worker.cooldownFor(transport) %}
+                                <div{% if not loop.last %} class="mb-1"{% endif %}>
+                                    <span class="badge align-text-top text-bg-secondary">{{ transport }}</span>
+                                    {% if cooldown %}
+                                        <span class="badge align-text-top text-bg-warning">Cooling down</span>
+                                        <div class="small text-secondary">
+                                            {% if cooldown.endsAt %}
+                                                Expected to resume <abbr title="{{ cooldown.endsAt|date('c') }}">{{ helper.formatTime(cooldown.endsAt) }}</abbr>
+                                            {% else %}
+                                                Resume time unknown
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
                             {% endfor %}
                         </td>
                         <td class="text-center">

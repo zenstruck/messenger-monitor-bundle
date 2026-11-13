@@ -6,7 +6,8 @@ This is a Symfony bundle. See `README.md` for installation and configuration in 
 
 - Install development dependencies with `composer install`.
 - Run `vendor/bin/phpunit` from the repo root. The local suite uses SQLite by default and needs `pdo_sqlite`.
-- Run `vendor/bin/phpstan analyse` for PHP static analysis. `make cs` checks PHP formatting with Docker.
+- Run `vendor/bin/phpstan analyse` for PHP static analysis.
+- Use locally installed PHP, Composer, PHPUnit, PHPStan, and PHP CS Fixer directly.
 - Keep changes compatible with the PHP and Symfony versions in `composer.json`. CI also tests Doctrine storage on MySQL, MariaDB, and PostgreSQL.
 
 ## Web UI

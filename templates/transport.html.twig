@@ -30,6 +30,13 @@
             {{ include('@ZenstruckMessengerMonitor/_refresh_button.html.twig') }}
         </div>
         <div class="tab-content">
+            {% set cooling_workers = transport.coolingDownWorkers|length %}
+            {% if cooling_workers %}
+                <div class="card-alert card-text alert alert-warning d-flex align-items-center" role="status">
+                    <svg fill="currentcolor" height="1em" width="1em" class="me-2" aria-hidden="true"><use xlink:href="#info-fill"/></svg>
+                    <div><strong>{{ cooling_workers }} of {{ transport.workers|length }} workers cooling down</strong> for this transport.</div>
+                </div>
+            {% endif %}
             {% if not selected_queue_count %}
                 <div class="card-alert card-text alert alert-light d-flex align-items-center" role="alert">
                     <svg fill="currentcolor" height="1em" width="1em" class="me-1 align-text-bottom" role="img" aria-label="Info:"><use xlink:href="#info-fill"/></svg>

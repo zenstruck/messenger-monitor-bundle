@@ -17,6 +17,7 @@ use Matthias\SymfonyDependencyInjectionTest\PhpUnit\ContainerBuilderHasServiceDe
 use PHPUnit\Framework\Constraint\LogicalNot;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
+use Symfony\Component\Messenger\Cooldown\CooldownStrategyInterface;
 use Symfony\Component\Messenger\Event\HandlerFailureEvent;
 use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Symfony\Component\Messenger\Middleware\InboxMiddleware;
@@ -32,6 +33,7 @@ use Zenstruck\Messenger\Monitor\Middleware\InboxMonitoringMiddleware;
 use Zenstruck\Messenger\Monitor\Middleware\SchedulerMonitoringMiddleware;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Entity\ProcessedMessage as ProcessedMessageImpl;
 use Zenstruck\Messenger\Monitor\Transports;
+use Zenstruck\Messenger\Monitor\Worker\CooldownStrategyLocator;
 use Zenstruck\Messenger\Monitor\Workers;
 
 /**
@@ -52,6 +54,22 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint('.zenstruck_messenger_monitor.listener.add_monitor_stamp')));
         $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint('.zenstruck_messenger_monitor.listener.receive_monitor_stamp')));
         $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint('.zenstruck_messenger_monitor.listener.handle_monitor_stamp')));
+    }
+
+    /** @test */
+    public function cooldown_monitoring_is_registered_only_when_supported(): void
+    {
+        $this->load();
+        $service = '.zenstruck_messenger_monitor.cooldown_strategy_locator';
+
+        if (!\interface_exists(CooldownStrategyInterface::class)) {
+            $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint($service)));
+
+            return;
+        }
+
+        $this->assertContainerBuilderHasService($service, CooldownStrategyLocator::class);
+        $this->assertSame('messenger.cooldown_strategy_locator', $this->container->getDefinition($service)->getDecoratedService()[0]);
     }
 
     /**

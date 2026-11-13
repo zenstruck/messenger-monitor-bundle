@@ -100,6 +100,12 @@ final class TransportInfo implements \IteratorAggregate, \Countable
         return (bool) \count($this->workers());
     }
 
+    /** @return WorkerInfo[] */
+    public function coolingDownWorkers(): array
+    {
+        return \array_filter($this->workers(), fn(WorkerInfo $worker) => null !== $worker->cooldownFor($this->name));
+    }
+
     public function getIterator(): \Traversable
     {
         yield from $this->list();
