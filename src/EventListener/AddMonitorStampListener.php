@@ -12,6 +12,8 @@
 namespace Zenstruck\Messenger\Monitor\EventListener;
 
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
+use Symfony\Component\Messenger\Stamp\OutboxStamp;
+use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 
 /**
@@ -23,6 +25,13 @@ final class AddMonitorStampListener
 {
     public function __invoke(SendMessageToTransportsEvent $event): void
     {
-        $event->setEnvelope($event->getEnvelope()->with(new MonitorStamp()));
+        $envelope = $event->getEnvelope();
+        $stamp = $envelope->last(MonitorStamp::class);
+
+        if ($stamp && $envelope->last(ReceivedStamp::class) && \class_exists(OutboxStamp::class) && isset($envelope->all()[OutboxStamp::class])) {
+            return;
+        }
+
+        $event->setEnvelope($envelope->with(new MonitorStamp()));
     }
 }

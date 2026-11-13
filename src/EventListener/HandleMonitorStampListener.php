@@ -17,6 +17,8 @@ use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
+use Symfony\Component\Messenger\Stamp\SentStamp;
+use Symfony\Component\Messenger\Transport\Sender\OutboxSender;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
@@ -38,11 +40,20 @@ final class HandleMonitorStampListener
 
     public function handleSuccess(WorkerMessageHandledEvent $event): void
     {
-        if (!$stamp = $event->getEnvelope()->last(MonitorStamp::class)) {
+        $envelope = $event->getEnvelope();
+
+        if (!$stamp = $envelope->last(MonitorStamp::class)) {
             return;
         }
 
         if (!$stamp->isReceived()) {
+            return;
+        }
+
+        $sent = $envelope->last(SentStamp::class);
+
+        // A successful outbox relay forwarded the message without handling it.
+        if ($sent && \class_exists(OutboxSender::class) && OutboxSender::class === $sent->getSenderClass() && $sent->getSenderAlias() !== $event->getReceiverName()) {
             return;
         }
 
