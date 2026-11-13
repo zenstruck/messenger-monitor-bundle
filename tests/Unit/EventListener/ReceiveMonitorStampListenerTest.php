@@ -24,6 +24,7 @@ use Zenstruck\Messenger\Monitor\EventListener\ReceiveMonitorStampListener;
 use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
 use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
+use Zenstruck\Messenger\Monitor\Stamp\InboxDeliveryStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\StoredInputStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
@@ -65,6 +66,21 @@ final class ReceiveMonitorStampListenerTest extends TestCase
         $this->assertTrue($event->getEnvelope()->last(MonitorStamp::class)->isReceived());
         $this->assertSame('foo', $event->getEnvelope()->last(MonitorStamp::class)->transport());
         $this->assertEmpty($event->getEnvelope()->all(TagStamp::class));
+    }
+
+    /** @test */
+    public function resets_the_inbox_decision_for_each_delivery(): void
+    {
+        $previous = new InboxDeliveryStamp();
+        $previous->markSkipped();
+        $event = new WorkerMessageReceivedEvent(new Envelope(new \stdClass(), [new MonitorStamp(), $previous]), 'async');
+        $listener = new ReceiveMonitorStampListener([]);
+
+        $listener($event);
+
+        $current = $event->getEnvelope()->last(InboxDeliveryStamp::class);
+        $this->assertNotSame($previous, $current);
+        $this->assertFalse($current->isSkipped());
     }
 
     /**
