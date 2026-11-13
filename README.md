@@ -106,6 +106,10 @@ If result normalization or history storage fails, the history entry is skipped a
 when a logger is available. Messenger continues acknowledging or retrying the message according to
 its handler outcome.
 
+> [!NOTE]
+> Messages sent through Symfony 8.2's [`messenger.transport.interop_serializer`](https://symfony.com/doc/8.2/messenger.html#exchanging-messages-with-other-applications) are not recorded in history by default because it strips `MonitorStamp` on the initial send.
+> The bundle does not currently provide a [stamp header mapper](https://symfony.com/doc/8.2/messenger.html#sharing-stamps-with-other-applications) to preserve monitoring metadata.
+
 #### Disable Monitoring
 
 You may want to disable monitoring for certain messages. There are several ways to do this:
