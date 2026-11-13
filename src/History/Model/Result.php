@@ -20,6 +20,8 @@ use Zenstruck\Messenger\Monitor\Type;
  *     handler?: string,
  *     exception?: class-string<\Throwable>,
  *     message?: string,
+ *     duration_ms?: int,
+ *     memory_change?: int,
  *     data: array<string,mixed>,
  * }
  */
@@ -37,6 +39,16 @@ final class Result
     public function isFailure(): bool
     {
         return isset($this->data['exception']);
+    }
+
+    public function duration(): ?int
+    {
+        return $this->data['duration_ms'] ?? null;
+    }
+
+    public function memoryChange(): ?int
+    {
+        return $this->data['memory_change'] ?? null;
     }
 
     public function handler(): ?Type

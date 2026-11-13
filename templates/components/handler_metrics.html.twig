@@ -1,0 +1,18 @@
+{% block handler_metrics %}
+    {% if result.duration is not null or result.memoryChange is not null %}
+        <dl class="d-flex flex-wrap gap-3 w-100 mb-0 small fw-normal" aria-label="Handler measurements">
+            {% if result.duration is not null %}
+                <div class="d-flex gap-1">
+                    <dt class="text-body-secondary fw-normal">Duration</dt>
+                    <dd class="mb-0">{{ helper.formatDuration(result.duration) }}</dd>
+                </div>
+            {% endif %}
+            {% if result.memoryChange is not null %}
+                <div class="d-flex gap-1">
+                    <dt class="text-body-secondary fw-normal"><abbr title="Net change in PHP memory during this handler. Negative values mean memory was freed.">Memory change</abbr></dt>
+                    <dd class="mb-0">{{ helper.formatMemoryChange(result.memoryChange) }}</dd>
+                </div>
+            {% endif %}
+        </dl>
+    {% endif %}
+{% endblock %}

@@ -22,6 +22,7 @@ use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
 use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\ExecutionStamp;
+use Zenstruck\Messenger\Monitor\Stamp\HandlerMetricsStamp;
 use Zenstruck\Messenger\Monitor\Stamp\InboxDeliveryStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\SchedulerDeliveryStamp;
@@ -70,7 +71,7 @@ final class ReceiveMonitorStampListener
         $event->addStamps($stamp->markReceived($event->getReceiverName()), new InboxDeliveryStamp());
 
         if (\class_exists(HandlerSuccessEvent::class)) {
-            $event->addStamps(new ExecutionStamp());
+            $event->addStamps(new ExecutionStamp(), new HandlerMetricsStamp());
         }
 
         $input = $this->captureInput($envelope);

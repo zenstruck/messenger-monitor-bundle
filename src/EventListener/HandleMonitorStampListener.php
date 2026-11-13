@@ -23,6 +23,7 @@ use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Stamp\ExecutionStamp;
+use Zenstruck\Messenger\Monitor\Stamp\HandlerMetricsStamp;
 use Zenstruck\Messenger\Monitor\Stamp\InboxDeliveryStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\SchedulerDeliveryStamp;
@@ -111,11 +112,13 @@ final class HandleMonitorStampListener
     private function createResults(Envelope $envelope, ?HandlerFailedException $exception = null): Results
     {
         $results = [];
+        $metrics = $envelope->last(HandlerMetricsStamp::class);
 
         foreach ($envelope->all(HandledStamp::class) as $stamp) {
             /** @var HandledStamp $stamp */
             $results[] = [
                 'handler' => $stamp->getHandlerName(),
+                ...($metrics?->forHandler($stamp->getHandlerName()) ?? []),
                 'data' => $this->normalizer->normalize($stamp->getResult()),
             ];
         }
@@ -127,6 +130,7 @@ final class HandleMonitorStampListener
         foreach ($exception->getWrappedExceptions() as $handler => $nested) {
             $results[] = [
                 'handler' => $handler,
+                ...($metrics?->forHandler($handler) ?? []),
                 'exception' => $nested::class,
                 'message' => $nested->getMessage(),
                 'data' => $this->normalizer->normalize($nested),

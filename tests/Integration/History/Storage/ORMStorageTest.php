@@ -30,6 +30,26 @@ final class ORMStorageTest extends KernelTestCase
 {
     use ClockSensitiveTrait, Factories, ResetDatabase;
 
+    /** @test */
+    public function preserves_optional_handler_measurements_in_results_json(): void
+    {
+        $data = [
+            ['data' => ['output' => 'legacy']],
+            ['data' => [], 'duration_ms' => 0, 'memory_change' => -1048576],
+        ];
+        $created = ProcessedMessageFactory::createOne(['results' => $data]);
+        $id = $created->id();
+        self::getContainer()->get('doctrine')->getManager()->clear();
+        $message = $this->storage()->find($id);
+
+        $this->assertSame($data, $message->results()->jsonSerialize());
+        $results = $message->results()->all();
+        $this->assertNull($results[0]->duration());
+        $this->assertNull($results[0]->memoryChange());
+        $this->assertSame(0, $results[1]->duration());
+        $this->assertSame(-1048576, $results[1]->memoryChange());
+    }
+
     /**
      * @test
      */

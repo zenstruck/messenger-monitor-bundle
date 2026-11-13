@@ -225,6 +225,16 @@ Doctrine storage fetches the list in one query without loading message inputs or
 Generate a migration for the three nullable identity columns and their indexes before using this version.
 Older Symfony versions keep their existing history behavior.
 
+#### Handler Measurements
+
+On Symfony 8.2+, message details show each handler's duration and memory change alongside its result,
+using Symfony's [per-handler events](https://symfony.com/doc/8.2/messenger.html#per-handler-events).
+Measurements are stored in the existing results JSON column, so no schema migration is needed.
+
+Memory change is the difference in PHP memory usage before and after the handler. It can be negative
+when memory is freed, and does not capture temporary allocations freed before the handler returns.
+Measurements are omitted for batch handlers, older Symfony versions, and existing history without them.
+
 #### Tags
 
 To help with filtering processed messages, they can have one or more _tags_. Some tags

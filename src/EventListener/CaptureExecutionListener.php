@@ -12,7 +12,9 @@
 namespace Zenstruck\Messenger\Monitor\EventListener;
 
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Handler\HandlerDescriptor;
 use Zenstruck\Messenger\Monitor\Stamp\ExecutionStamp;
+use Zenstruck\Messenger\Monitor\Stamp\HandlerMetricsStamp;
 
 /** @internal */
 final class CaptureExecutionListener
@@ -26,7 +28,36 @@ final class CaptureExecutionListener
             return;
         }
 
+        if (null !== $handler = $this->handlerName($event)) {
+            $metrics = $envelope->last(HandlerMetricsStamp::class);
+            $metrics?->finish($handler);
+        }
+
         $stamp = $envelope->last(ExecutionStamp::class);
         $stamp?->finish();
+    }
+
+    public function onStart(object $event): void
+    {
+        $envelope = \get_object_vars($event)['envelope'] ?? null;
+        $handler = $this->handlerName($event);
+
+        if (!$envelope instanceof Envelope || null === $handler) {
+            return;
+        }
+
+        $metrics = $envelope->last(HandlerMetricsStamp::class);
+        $metrics?->start($handler);
+    }
+
+    private function handlerName(object $event): ?string
+    {
+        $handler = \get_object_vars($event)['handlerDescriptor'] ?? null;
+
+        if (!$handler instanceof HandlerDescriptor || $handler->getBatchHandler()) {
+            return null;
+        }
+
+        return $handler->getName();
     }
 }

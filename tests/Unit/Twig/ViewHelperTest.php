@@ -30,6 +30,25 @@ use Zenstruck\Messenger\Monitor\Workers;
 
 final class ViewHelperTest extends TestCase
 {
+    /**
+     * @test
+     * @dataProvider memoryChanges
+     */
+    public function formats_signed_memory_changes(int $bytes, string $expected): void
+    {
+        $this->assertSame($expected, $this->helper(null)->formatMemoryChange($bytes));
+    }
+
+    /** @return iterable<array{int, string}> */
+    public static function memoryChanges(): iterable
+    {
+        yield [0, '0 B'];
+        yield [2000, '+2 kB'];
+        yield [-2000, '-2 kB'];
+        yield [2097152, '+2.10 MB'];
+        yield [-2097152, '-2.10 MB'];
+    }
+
     /** @test */
     public function token_generation_remains_optional_for_read_only_views(): void
     {
