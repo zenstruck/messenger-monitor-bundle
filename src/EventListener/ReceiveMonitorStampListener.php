@@ -14,6 +14,7 @@ namespace Zenstruck\Messenger\Monitor\EventListener;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Scheduler\Messenger\ScheduledStamp;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -23,6 +24,7 @@ use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\ExecutionStamp;
 use Zenstruck\Messenger\Monitor\Stamp\InboxDeliveryStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
+use Zenstruck\Messenger\Monitor\Stamp\SchedulerDeliveryStamp;
 use Zenstruck\Messenger\Monitor\Stamp\StoredInputStamp;
 use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
 
@@ -57,7 +59,8 @@ final class ReceiveMonitorStampListener
             // scheduler transport doesn't trigger SendMessageToTransportsEvent
             $stamp = new MonitorStamp($scheduledStamp->messageContext->triggeredAt);
 
-            $event->addStamps(TagStamp::forSchedule($scheduledStamp));
+            $delivery = new SchedulerDeliveryStamp($this->handledCount($envelope));
+            $event->addStamps(TagStamp::forSchedule($scheduledStamp), $delivery);
         }
 
         if (!$stamp instanceof MonitorStamp) {
@@ -75,6 +78,17 @@ final class ReceiveMonitorStampListener
         if (null !== $input || $envelope->last(StoredInputStamp::class)) {
             $event->addStamps(new StoredInputStamp($input));
         }
+    }
+
+    private function handledCount(Envelope $envelope): int
+    {
+        $message = $envelope->getMessage();
+
+        if ($message instanceof RedispatchMessage) {
+            $envelope = Envelope::wrap($message->envelope);
+        }
+
+        return \count($envelope->all(HandledStamp::class));
     }
 
     /** @return array<array-key, mixed>|null */

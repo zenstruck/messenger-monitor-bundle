@@ -22,6 +22,7 @@ use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
+use Zenstruck\Messenger\Monitor\Stamp\SchedulerDeliveryStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -62,6 +63,37 @@ final class HandleMonitorStampListenerTest extends TestCase
 
         $listener->handleSuccess(new WorkerMessageHandledEvent(new Envelope(new \stdClass()), 'foo'));
         $listener->handleSuccess(new WorkerMessageHandledEvent(new Envelope(new \stdClass(), [new MonitorStamp()]), 'foo'));
+    }
+
+    /**
+     * @test
+     * @dataProvider handlerExecution
+     */
+    public function preserves_forwarding_decisions_in_serialized_worker_results(bool $handlerRan): void
+    {
+        $envelope = new Envelope(new \stdClass(), [
+            (new MonitorStamp())->markReceived('scheduler_default'),
+            new HandledStamp('previous', 'previous-handler'),
+            new SchedulerDeliveryStamp(1),
+        ]);
+        $storage = $this->createMock(Storage::class);
+        $storage->expects($handlerRan ? $this->once() : $this->never())->method('save');
+        $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__));
+
+        if ($handlerRan) {
+            $envelope = $envelope->with(new HandledStamp('done', 'current-handler'));
+        }
+
+        $envelope->last(SchedulerDeliveryStamp::class)->markForwarded($envelope);
+        $envelope = \unserialize(\serialize($envelope));
+        $listener->handleSuccess(new WorkerMessageHandledEvent($envelope, 'scheduler_default'));
+    }
+
+    /** @return iterable<string, array{bool}> */
+    public static function handlerExecution(): iterable
+    {
+        yield 'only forwarded' => [false];
+        yield 'handled inline by a sender' => [true];
     }
 
     /**
