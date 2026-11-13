@@ -25,6 +25,7 @@ use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Stamp\ExecutionStamp;
 use Zenstruck\Messenger\Monitor\Stamp\InboxDeliveryStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
+use Zenstruck\Messenger\Monitor\Stamp\SchedulerDeliveryStamp;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -55,6 +56,12 @@ final class HandleMonitorStampListener
         $delivery = $envelope->last(InboxDeliveryStamp::class);
 
         if ($delivery?->isSkipped()) {
+            return;
+        }
+
+        $scheduledDelivery = $envelope->last(SchedulerDeliveryStamp::class);
+
+        if ($scheduledDelivery?->isForwarded()) {
             return;
         }
 

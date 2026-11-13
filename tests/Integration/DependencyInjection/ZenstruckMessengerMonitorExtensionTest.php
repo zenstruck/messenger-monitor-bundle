@@ -29,6 +29,7 @@ use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\History\Storage\ORMStorage;
 use Zenstruck\Messenger\Monitor\Middleware\InboxMonitoringMiddleware;
+use Zenstruck\Messenger\Monitor\Middleware\SchedulerMonitoringMiddleware;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Entity\ProcessedMessage as ProcessedMessageImpl;
 use Zenstruck\Messenger\Monitor\Transports;
 use Zenstruck\Messenger\Monitor\Workers;
@@ -84,6 +85,7 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint('.zenstruck_messenger_monitor.listener.add_monitor_stamp')));
         $this->assertContainerBuilderHasService('.zenstruck_messenger_monitor.listener.receive_monitor_stamp', ReceiveMonitorStampListener::class);
         $this->assertContainerBuilderHasService('.zenstruck_messenger_monitor.listener.handle_monitor_stamp', HandleMonitorStampListener::class);
+        $this->assertContainerBuilderHasService('.zenstruck_messenger_monitor.middleware.scheduler', SchedulerMonitoringMiddleware::class);
     }
 
     /** @test */

@@ -19,6 +19,7 @@ use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\History\Storage\ORMStorage;
 use Zenstruck\Messenger\Monitor\Middleware\InboxMonitoringMiddleware;
+use Zenstruck\Messenger\Monitor\Middleware\SchedulerMonitoringMiddleware;
 
 return static function (ContainerConfigurator $container): void {
     $container->parameters()
@@ -55,6 +56,8 @@ return static function (ContainerConfigurator $container): void {
             ])
             ->tag('kernel.event_listener', ['method' => 'handleSuccess', 'event' => WorkerMessageHandledEvent::class, 'priority' => -100])
             ->tag('kernel.event_listener', ['method' => 'handleFailure', 'event' => WorkerMessageFailedEvent::class, 'priority' => -100])
+
+        ->set('.zenstruck_messenger_monitor.middleware.scheduler', SchedulerMonitoringMiddleware::class)
 
         ->set('.zenstruck_messenger_monitor.command.purge', PurgeCommand::class)
             ->args([
