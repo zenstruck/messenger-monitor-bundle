@@ -33,11 +33,21 @@ final class SchedulerMonitoringMiddleware implements MiddlewareInterface
 
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
-        $delivery = $this->delivery($envelope);
+        $delivery = $envelope->last(SchedulerDeliveryStamp::class);
         $scheduled = $envelope->last(ScheduledStamp::class);
 
+        if (!$delivery && $scheduled) {
+            $delivery = $this->deliveries[$scheduled->messageContext] ?? null;
+        }
+
+        if (!$delivery) {
+            $next = $stack->next();
+
+            return $next->handle($envelope, $stack);
+        }
+
         // Older Symfony forwards a separate envelope sharing the wrapper's message context.
-        if ($delivery && $scheduled && $envelope->getMessage() instanceof RedispatchMessage) {
+        if ($scheduled && $envelope->getMessage() instanceof RedispatchMessage) {
             $context = $scheduled->messageContext;
             $this->deliveries[$context] = $delivery;
         }
@@ -47,27 +57,10 @@ final class SchedulerMonitoringMiddleware implements MiddlewareInterface
         $envelope = $next->handle($envelope, $stack);
         $forwarded = $envelope->last(SentStamp::class);
 
-        if ($delivery && $forwarded && $sent !== $forwarded) {
+        if ($forwarded && $sent !== $forwarded) {
             $delivery->markForwarded($envelope);
         }
 
         return $envelope;
-    }
-
-    private function delivery(Envelope $envelope): ?SchedulerDeliveryStamp
-    {
-        if ($delivery = $envelope->last(SchedulerDeliveryStamp::class)) {
-            return $delivery;
-        }
-
-        $scheduled = $envelope->last(ScheduledStamp::class);
-
-        if (!$scheduled) {
-            return null;
-        }
-
-        $context = $scheduled->messageContext;
-
-        return $this->deliveries[$context] ?? null;
     }
 }

@@ -36,6 +36,10 @@ use Zenstruck\Messenger\Monitor\Stamp\TagStamp;
  */
 final class ReceiveMonitorStampListener
 {
+    /** @var array<class-string, bool> */
+    private array $excluded = [];
+    private bool $captureExecution;
+
     /**
      * @param class-string[] $excludedClasses
      */
@@ -44,41 +48,50 @@ final class ReceiveMonitorStampListener
         private ?NormalizerInterface $normalizer = null,
         private bool $storeInput = false,
     ) {
+        $this->captureExecution = \class_exists(HandlerSuccessEvent::class);
     }
 
     public function __invoke(WorkerMessageReceivedEvent $event): void
     {
         $envelope = $event->getEnvelope();
 
-        if ($this->isMonitoringDisabled($envelope)) {
+        $stamp = $envelope->last(MonitorStamp::class);
+        $scheduledStamp = $envelope->last(ScheduledStamp::class);
+
+        if ((!$stamp && !$scheduledStamp) || $this->isMonitoringDisabled($envelope)) {
             return;
         }
 
-        $stamp = $envelope->last(MonitorStamp::class);
+        $stamps = [];
 
-        if (\class_exists(ScheduledStamp::class) && $scheduledStamp = $envelope->last(ScheduledStamp::class)) {
+        if ($scheduledStamp) {
             // scheduler transport doesn't trigger SendMessageToTransportsEvent
             $stamp = new MonitorStamp($scheduledStamp->messageContext->triggeredAt);
 
             $delivery = new SchedulerDeliveryStamp($this->handledCount($envelope));
-            $event->addStamps(TagStamp::forSchedule($scheduledStamp), $delivery);
+            $stamps[] = TagStamp::forSchedule($scheduledStamp);
+            $stamps[] = $delivery;
         }
 
         if (!$stamp instanceof MonitorStamp) {
             return;
         }
 
-        $event->addStamps($stamp->markReceived($event->getReceiverName()), new InboxDeliveryStamp());
+        $stamps[] = $stamp->markReceived($event->getReceiverName());
+        $stamps[] = new InboxDeliveryStamp();
 
-        if (\class_exists(HandlerSuccessEvent::class)) {
-            $event->addStamps(new ExecutionStamp(), new HandlerMetricsStamp());
+        if ($this->captureExecution) {
+            $stamps[] = new ExecutionStamp();
+            $stamps[] = new HandlerMetricsStamp();
         }
 
         $input = $this->captureInput($envelope);
 
         if (null !== $input || $envelope->last(StoredInputStamp::class)) {
-            $event->addStamps(new StoredInputStamp($input));
+            $stamps[] = new StoredInputStamp($input);
         }
+
+        $event->addStamps(...$stamps);
     }
 
     private function handledCount(Envelope $envelope): int
@@ -119,10 +132,8 @@ final class ReceiveMonitorStampListener
     {
         $messageClass = $envelope->getMessage()::class;
 
-        foreach ($this->excludedClasses as $excludedClass) {
-            if (\is_a($messageClass, $excludedClass, true)) {
-                return true;
-            }
+        if ($this->excluded[$messageClass] ??= $this->isExcluded($messageClass)) {
+            return true;
         }
 
         if (!$stamp = DisableMonitoringStamp::firstFrom($envelope)) {
@@ -139,5 +150,17 @@ final class ReceiveMonitorStampListener
     private function hasNoHandlers(Envelope $envelope): bool
     {
         return [] === $envelope->all(HandledStamp::class);
+    }
+
+    /** @param class-string $messageClass */
+    private function isExcluded(string $messageClass): bool
+    {
+        foreach ($this->excludedClasses as $excludedClass) {
+            if (\is_a($messageClass, $excludedClass, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

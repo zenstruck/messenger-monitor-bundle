@@ -47,7 +47,10 @@ final class MonitorStamp implements StampInterface
      */
     public static function from(array $data): self
     {
-        $stamp = new self();
+        // Restoring a stamp already supplies the run id and dispatch time.
+        static $reflection;
+        $reflection ??= new \ReflectionClass(self::class);
+        $stamp = $reflection->newInstanceWithoutConstructor();
         $stamp->runId = $data['runId'];
         $stamp->dispatchedAt = $data['dispatchedAt'];
 
@@ -81,15 +84,15 @@ final class MonitorStamp implements StampInterface
         return $clone;
     }
 
-    public function markFinished(): self
+    public function markFinished(?\DateTimeImmutable $finishedAt = null, ?int $memoryUsage = null): self
     {
         if (!$this->isReceived()) {
             throw new \LogicException('Message not yet received.');
         }
 
         $clone = clone $this;
-        $clone->finishedAt = now();
-        $clone->memoryUsage = \memory_get_usage(true);
+        $clone->finishedAt = $finishedAt ?? now();
+        $clone->memoryUsage = $memoryUsage ?? \memory_get_usage(true);
 
         return $clone;
     }
@@ -139,13 +142,24 @@ final class MonitorStamp implements StampInterface
      */
     public function toArray(): array
     {
-        return \array_filter([ // @phpstan-ignore-line
-            'runId' => $this->runId,
-            'dispatchedAt' => $this->dispatchedAt,
-            'transport' => $this->transport ?? null,
-            'receivedAt' => $this->receivedAt ?? null,
-            'finishedAt' => $this->finishedAt ?? null,
-            'memoryUsage' => $this->memoryUsage ?? null,
-        ]);
+        $data = ['runId' => $this->runId, 'dispatchedAt' => $this->dispatchedAt];
+
+        if (isset($this->transport)) {
+            $data['transport'] = $this->transport;
+        }
+
+        if (isset($this->receivedAt)) {
+            $data['receivedAt'] = $this->receivedAt;
+        }
+
+        if (isset($this->finishedAt)) {
+            $data['finishedAt'] = $this->finishedAt;
+        }
+
+        if (isset($this->memoryUsage)) {
+            $data['memoryUsage'] = $this->memoryUsage;
+        }
+
+        return $data;
     }
 }

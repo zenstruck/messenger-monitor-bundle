@@ -40,14 +40,12 @@ final class HandlerMetricsStamp implements StampInterface
     {
         $finishedAt = \hrtime(true);
         $memory = \memory_get_usage();
-        $measurement = $this->handlers[$handler] ?? null;
-
-        if (!$measurement || null !== $measurement['duration_ms']) {
+        if (!isset($this->handlers[$handler]) || null !== $this->handlers[$handler]['duration_ms']) {
             return;
         }
 
-        $this->handlers[$handler]['duration_ms'] = (int) \round(($finishedAt - $measurement['started_at']) / 1_000_000);
-        $this->handlers[$handler]['memory_change'] = $memory - $measurement['memory_before'];
+        $this->handlers[$handler]['duration_ms'] = (int) \round(($finishedAt - $this->handlers[$handler]['started_at']) / 1_000_000);
+        $this->handlers[$handler]['memory_change'] = $memory - $this->handlers[$handler]['memory_before'];
     }
 
     /** @return Metrics|array{} */

@@ -18,6 +18,8 @@ use Symfony\Component\Messenger\Event\WorkerRunningEvent;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\WorkerMetadata;
 
+use function Symfony\Component\Clock\now;
+
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
@@ -28,6 +30,7 @@ final class WorkerListener
     private int $id;
     private int $messagesHandled = 0;
     private int $messagesInFlight = 0;
+    private int $lastRefreshAt = 0;
     private ?WorkerMetadata $metadata = null;
     private TransportCooldowns $cooldowns;
 
@@ -43,6 +46,7 @@ final class WorkerListener
         $worker = $event->getWorker();
         $this->metadata = $worker->getMetadata();
         $this->cache->add($this->id, $this->metadata, $this->messagesHandled, \memory_get_usage(true));
+        $this->lastRefreshAt = now()->getTimestamp();
     }
 
     public function onStop(): void
@@ -54,6 +58,10 @@ final class WorkerListener
 
     public function onRunning(WorkerRunningEvent $event): void
     {
+        if (now()->getTimestamp() === $this->lastRefreshAt) {
+            return;
+        }
+
         $this->refresh();
     }
 
@@ -101,5 +109,6 @@ final class WorkerListener
             \memory_get_usage(true),
             cooldowns: $this->cooldowns,
         );
+        $this->lastRefreshAt = now()->getTimestamp();
     }
 }

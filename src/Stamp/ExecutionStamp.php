@@ -33,14 +33,6 @@ final class ExecutionStamp implements StampInterface
 
     public function finishMonitor(MonitorStamp $stamp): MonitorStamp
     {
-        if (null === $this->finishedAt || null === $this->memoryUsage) {
-            return $stamp->markFinished();
-        }
-
-        return MonitorStamp::from([
-            ...$stamp->toArray(),
-            'finishedAt' => $this->finishedAt,
-            'memoryUsage' => $this->memoryUsage,
-        ]);
+        return $stamp->markFinished($this->finishedAt, $this->memoryUsage);
     }
 }

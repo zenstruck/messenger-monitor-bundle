@@ -117,4 +117,40 @@ final class MonitorStampTest extends TestCase
         $this->assertSame($finishedAt, $stamp->finishedAt());
         $this->assertSame(123456, $stamp->memoryUsage());
     }
+
+    /** @test */
+    public function array_round_trip_preserves_empty_and_zero_values(): void
+    {
+        $stamp = MonitorStamp::from([
+            'runId' => 0,
+            'dispatchedAt' => new \DateTimeImmutable(),
+            'transport' => '',
+            'receivedAt' => new \DateTimeImmutable(),
+            'finishedAt' => new \DateTimeImmutable(),
+            'memoryUsage' => 0,
+        ]);
+
+        $restored = MonitorStamp::from($stamp->toArray());
+
+        $this->assertSame(0, $restored->runId());
+        $this->assertSame('', $restored->transport());
+        $this->assertSame(0, $restored->memoryUsage());
+    }
+
+    /** @test */
+    public function finishing_with_captured_measurements_preserves_the_original_stamp(): void
+    {
+        self::mockTime('2026-11-13 12:00:00 UTC');
+        $stamp = (new MonitorStamp())->markReceived('async');
+        $finishedAt = new \DateTimeImmutable('2026-11-13 11:59:00 UTC');
+
+        $finished = $stamp->markFinished($finishedAt, 0);
+
+        $this->assertFalse($stamp->isFinished());
+        $this->assertSame($stamp->runId(), $finished->runId());
+        $this->assertSame($stamp->dispatchedAt(), $finished->dispatchedAt());
+        $this->assertSame($stamp->receivedAt(), $finished->receivedAt());
+        $this->assertSame($finishedAt, $finished->finishedAt());
+        $this->assertSame(0, $finished->memoryUsage());
+    }
 }

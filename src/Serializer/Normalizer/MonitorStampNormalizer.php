@@ -48,10 +48,20 @@ final class MonitorStampNormalizer implements NormalizerInterface, DenormalizerI
 
     /**
      * @param MonitorStamp $object
+     *
+     * @return array<string, mixed>
      */
-    public function normalize(mixed $object, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null // @phpstan-ignore-line
+    public function normalize(mixed $object, ?string $format = null, array $context = []): array
     {
-        return $this->normalizer->normalize($object->toArray());
+        $data = $object->toArray();
+
+        foreach ($data as $key => $value) {
+            if ($value instanceof \DateTimeInterface) {
+                $data[$key] = $this->normalizer->normalize($value);
+            }
+        }
+
+        return $data;
     }
 
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
