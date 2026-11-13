@@ -53,7 +53,7 @@ final class Schedules implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     public function names(): array
     {

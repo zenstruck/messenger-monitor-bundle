@@ -49,7 +49,7 @@ final class QueuedMessage
      */
     public function stamps(): array
     {
-        $stamps = \array_merge(...\array_values($this->envelope->all())); // @phpstan-ignore-line
+        $stamps = \array_merge(...\array_values($this->envelope->all()));
 
         return \array_map(static fn(StampInterface $stamp) => new Type($stamp), $stamps);
     }
@@ -70,7 +70,10 @@ final class QueuedMessage
     public function exception(): ?Type
     {
         if ($stamp = $this->envelope->last(ErrorDetailsStamp::class)) {
-            return new Type($stamp->getExceptionClass(), $stamp->getExceptionMessage()); // @phpstan-ignore-line
+            /** @var class-string<\Throwable> $exceptionClass */
+            $exceptionClass = $stamp->getExceptionClass();
+
+            return new Type($exceptionClass, $stamp->getExceptionMessage());
         }
 
         return null;

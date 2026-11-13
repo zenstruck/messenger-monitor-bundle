@@ -1,11 +1,5 @@
 parameters:
     level: 8
     treatPhpDocTypesAsCertain: false
-    reportUnmatchedIgnoredErrors: false
     paths:
         - src
-
-    ignoreErrors:
-        # Can be dropped after minimum PHP Version is 8.2 or 8.3
-        - message: '#Cannot access offset ''LiveComponentBundle'' on array\|bool\|float\|int\|string\|UnitEnum.#'
-          path: src/DependencyInjection/ZenstruckMessengerMonitorExtension.php

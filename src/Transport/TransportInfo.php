@@ -111,6 +111,6 @@ final class TransportInfo implements \IteratorAggregate, \Countable
             throw new \LogicException(\sprintf('Transport "%s" does not implement "%s".', $this->name, MessageCountAwareInterface::class));
         }
 
-        return $this->transport->getMessageCount();
+        return \max(0, $this->transport->getMessageCount());
     }
 }

@@ -27,7 +27,7 @@ abstract class AttributeStamp implements StampInterface
     final public static function from(Envelope $envelope): iterable
     {
         foreach ($envelope->all(static::class) as $stamp) {
-            yield $stamp; // @phpstan-ignore generator.valueType
+            yield $stamp;
         }
 
         $original = $reflection = new \ReflectionClass($envelope->getMessage());

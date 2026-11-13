@@ -55,7 +55,7 @@ abstract class MessengerMonitorController extends AbstractController
         ViewHelper $helper,
     ): Response {
         $period = Period::parse($request->query->getString('period'));
-        $specification = Specification::create([ // @phpstan-ignore-line
+        $specification = Specification::create([
             'period' => $period,
         ]);
         $storage = $helper->storage();
