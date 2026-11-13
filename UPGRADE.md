@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* `ProcessedMessage` has three new nullable string columns: `message_id`, `correlation_id`, and
+  `causation_id`, with non-unique indexes on `message_id` and `correlation_id`. Generate and run
+  a Doctrine migration before restarting workers. Existing history rows keep null identities.
+  Custom history storage must implement `Storage::flow(string $correlationId): Flow` to provide the flow list on message details.
 * UI actions for removing or retrying messages and triggering tasks now require Symfony's CSRF protection.
   Install `symfony/security-csrf` and enable `framework.csrf_protection` in your app. Enable sessions for
   stateful protection, or configure stateless action IDs on Symfony 7.2+ as shown in the README.

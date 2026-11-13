@@ -4,7 +4,14 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                   http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
     <mapped-superclass name="Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage">
+        <indexes>
+            <index columns="message_id" />
+            <index columns="correlation_id" />
+        </indexes>
         <field name="runId" column="run_id" type="integer" />
+        <field name="messageId" column="message_id" nullable="true" />
+        <field name="correlationId" column="correlation_id" nullable="true" />
+        <field name="causationId" column="causation_id" nullable="true" />
         <field name="attempt" column="attempt" type="smallint" />
         <field name="type" column="message_type" />
         <field name="input" column="input" type="json" nullable="true" />

@@ -194,6 +194,12 @@
         </div>
     </div>
 
+    {% block message_flow %}
+        {% if flow is defined and flow|length > 1 %}
+            {% include '@ZenstruckMessengerMonitor/components/flow.html.twig' %}
+        {% endif %}
+    {% endblock %}
+
     {% if other_attempts|length > 1 %}
         <div class="card mb-3">
             <div class="card-header">Other Attempts</div>

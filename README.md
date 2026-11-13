@@ -202,6 +202,29 @@ use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 $bus->dispatch(new MyMessage(), [new DescriptionStamp('some custom description')])
 ```
 
+#### Message Flows
+
+On Symfony 8.2+, enable [identity stamps](https://symfony.com/doc/8.2/messenger.html#messenger-identity-stamps)
+to connect recorded messages in the same flow:
+
+```yaml
+framework:
+    messenger:
+        identity_stamps: true
+```
+
+[Message chains](https://symfony.com/doc/8.2/messenger.html#chaining-messages) still run when `identity_stamps` is disabled.
+Without identity stamps, the bundle records each message separately and hides the Flow section.
+Existing retry history remains available.
+
+Message details show related messages in parent-to-child order, with the current message highlighted,
+parallel branches nested, and retry attempts grouped per message. The list includes recorded history;
+queued steps and messages whose history has been purged are not reconstructed.
+
+Doctrine storage fetches the list in one query without loading message inputs or handler results.
+Generate a migration for the three nullable identity columns and their indexes before using this version.
+Older Symfony versions keep their existing history behavior.
+
 #### Tags
 
 To help with filtering processed messages, they can have one or more _tags_. Some tags

@@ -15,6 +15,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\Clock;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Stamp\CausationStamp;
+use Symfony\Component\Messenger\Stamp\CorrelationStamp;
+use Symfony\Component\Messenger\Stamp\MessageIdStamp;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
@@ -70,6 +73,9 @@ final class ProcessedMessageTest extends TestCase
         $this->assertSame(3000, $message->timeToProcess());
         $this->assertFalse($message->isFailure());
         $this->assertNull($message->failure());
+        $this->assertNull($message->messageId());
+        $this->assertNull($message->correlationId());
+        $this->assertNull($message->causationId());
         $this->assertTrue($message->memoryUsage()->isGreaterThan(0));
     }
 
@@ -118,6 +124,30 @@ final class ProcessedMessageTest extends TestCase
                 return null;
             }
         };
+    }
+
+    /** @test */
+    public function captures_identity_stamps_without_changing_retry_grouping(): void
+    {
+        if (!\class_exists(MessageIdStamp::class)) {
+            $this->markTestSkipped('Requires Symfony 8.2 identity stamps.');
+        }
+
+        $stamp = (new MonitorStamp())->markReceived('async')->markFinished();
+        $envelope = new Envelope(new \stdClass(), [
+            $stamp,
+            new MessageIdStamp('message'),
+            new CorrelationStamp('flow'),
+            new CausationStamp('parent'),
+            new RedeliveryStamp(1),
+        ]);
+        $message = new \Zenstruck\Messenger\Monitor\Tests\Fixture\Entity\ProcessedMessage($envelope, new Results([]));
+
+        $this->assertSame('message', $message->messageId());
+        $this->assertSame('flow', $message->correlationId());
+        $this->assertSame('parent', $message->causationId());
+        $this->assertSame($stamp->runId(), $message->runId());
+        $this->assertSame(2, $message->attempt());
     }
 
     /**

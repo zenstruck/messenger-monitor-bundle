@@ -110,7 +110,7 @@
                     fetch(this.element.getAttribute('href'))
                         .then(response => response.text())
                         .then(html => {
-                            const modal = new bootstrap.Modal(document.getElementById('message-details-modal'));
+                            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('message-details-modal'));
                             const modalContent = modal._element.querySelector('.modal-content');
 
                             modalContent.innerHTML = html;

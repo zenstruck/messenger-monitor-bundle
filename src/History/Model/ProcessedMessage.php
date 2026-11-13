@@ -12,6 +12,9 @@
 namespace Zenstruck\Messenger\Monitor\History\Model;
 
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Stamp\CausationStamp;
+use Symfony\Component\Messenger\Stamp\CorrelationStamp;
+use Symfony\Component\Messenger\Stamp\MessageIdStamp;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Bytes;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
@@ -28,6 +31,9 @@ abstract class ProcessedMessage
 {
     private int $runId;
     private int $attempt = 1;
+    private ?string $messageId = null;
+    private ?string $correlationId = null;
+    private ?string $causationId = null;
 
     /** @var class-string */
     private string $type;
@@ -60,6 +66,10 @@ abstract class ProcessedMessage
         $type = new Type($envelope->getMessage());
         $tags = new Tags($envelope);
         $storedInput = $envelope->last(StoredInputStamp::class);
+
+        $this->messageId = \class_exists(MessageIdStamp::class) ? self::stampId($envelope, MessageIdStamp::class) : null;
+        $this->correlationId = \class_exists(CorrelationStamp::class) ? self::stampId($envelope, CorrelationStamp::class) : null;
+        $this->causationId = \class_exists(CausationStamp::class) ? self::stampId($envelope, CausationStamp::class) : null;
 
         $this->runId = $monitorStamp->runId();
         $this->type = $type->class();
@@ -95,6 +105,21 @@ abstract class ProcessedMessage
     final public function attempt(): int
     {
         return $this->attempt;
+    }
+
+    final public function messageId(): ?string
+    {
+        return $this->messageId;
+    }
+
+    final public function correlationId(): ?string
+    {
+        return $this->correlationId;
+    }
+
+    final public function causationId(): ?string
+    {
+        return $this->causationId;
     }
 
     final public function type(): Type
@@ -187,5 +212,20 @@ abstract class ProcessedMessage
     final public function memoryUsage(): Bytes
     {
         return new Bytes($this->memoryUsage);
+    }
+
+    /** Read optional stamp IDs without requiring Symfony 8.2 classes. */
+    private static function stampId(Envelope $envelope, string $class): ?string
+    {
+        $stamps = $envelope->all()[$class] ?? [];
+        $stamp = \end($stamps);
+
+        if (!$stamp || !\method_exists($stamp, 'getId')) {
+            return null;
+        }
+
+        $id = $stamp->getId();
+
+        return \is_string($id) ? $id : null;
     }
 }
