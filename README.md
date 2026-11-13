@@ -14,17 +14,48 @@ Batteries included UI to monitor your Messenger workers, transports, schedules, 
 If the packaged UI is not to your liking, you can easily build your own with the
 [provided tools](#advanced-usage).
 
+- [Installation](#installation)
+- [Console monitor](#messengermonitor-command)
+- [Storage and message history](#storage)
+- [User interface](#user-interface)
+- [Advanced usage](#advanced-usage)
+- [Configuration reference](#full-default-bundle-configuration)
+
 ## Installation
+
+Requires PHP 8.1+ and Symfony 6.4 (6.4.1+), 7.x, or 8.x, with the PHP version required by your Symfony release.
 
 ```bash
 composer require zenstruck/messenger-monitor-bundle
 ```
+
+Symfony Flex registers the bundle automatically. Without Flex, add it to `config/bundles.php`:
+
+```php
+return [
+    // ...
+    Zenstruck\Messenger\Monitor\ZenstruckMessengerMonitorBundle::class => ['all' => true],
+];
+```
+
+Worker and transport monitoring work immediately. Configure [storage](#storage) for message
+history and the [user interface](#user-interface). See [UPGRADE.md](UPGRADE.md) when upgrading.
 
 ## `messenger:monitor` Command
 
 With zero configuration, you can run the `messenger:monitor` command to see information
 about your running workers and transports. If storage is configured, it displays a
 historical snapshot whose period can be customized with the `--period` option.
+
+```bash
+bin/console messenger:monitor
+bin/console messenger:monitor --no-interaction # print once instead of refreshing every second
+bin/console messenger:monitor --period in-last-week # requires storage
+```
+
+The default history period is `in-last-day`. Use `in-last-hour`, `in-last-day`, `in-last-week`,
+`in-last-month`, `today`, `yesterday`, `last-week`, `last-month`, or `all`.
+Workers and the command must use the same [cache pool](#worker-cache).
 
 ## Storage
 
@@ -33,6 +64,14 @@ historical snapshot whose period can be customized with the `--period` option.
 > Doctrine ORM is the supported storage engine.
 
 ### Configuration
+
+Install Doctrine ORM and migration tools if your app does not already have them:
+
+```bash
+composer require symfony/orm-pack
+```
+
+Configure your database connection before continuing.
 
 1. Create a `ProcessedMessage` entity that extends `Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage`
    in your app:
@@ -86,6 +125,13 @@ historical snapshot whose period can be customized with the `--period` option.
     bin/console doctrine:migrations:migrate
     ```
 
+5. Restart your Messenger workers so they load the new configuration:
+    ```bash
+    bin/console messenger:stop-workers
+    ```
+    Your process manager should start replacement workers. Start `messenger:consume` again
+    yourself if you run workers manually.
+
 > [!TIP]
 > For large message histories, index `finished_at` for pagination and time-based snapshots.
 > Index `run_id` to speed up retry lookups on the message details page. Add the relevant
@@ -98,9 +144,13 @@ historical snapshot whose period can be customized with the `--period` option.
 
 ### Usage
 
-Once configured, consumed messages are tracked and saved. These _processed messages_
-contain a lot of useful information and can be viewed in the [user interface](#user-interface)
-or the [provided tools](#history).
+Once configured, messages dispatched to a transport and consumed by a Messenger worker are
+tracked. Each completed attempt produces a history entry, including failed attempts that
+Messenger will retry. Synchronous handling outside a worker is not recorded.
+
+History includes the message class, description, tags, transport, timestamps, wait and handling
+times, memory usage, handler results, and failures. View it in the [user interface](#user-interface)
+or query it with the [history tools](#history).
 
 If result normalization or history storage fails, the history entry is skipped and an error is logged
 when a logger is available. Messenger continues acknowledging or retrying the message according to
@@ -120,7 +170,7 @@ You may want to disable monitoring for certain messages. There are several ways 
 
     /** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
 
-    $bus->dispatch(new MyMessage(), [new DisableMonitoringStamp()])
+    $bus->dispatch(new MyMessage(), [new DisableMonitoringStamp()]);
     ```
 2. Add the `DisableMonitoringStamp` as a class attribute to your message (or parent class/interface):
     ```php
@@ -188,6 +238,18 @@ or class attribute to exclude a message. It takes precedence over the configurat
 The message details show input normalized by the app's Symfony Serializer. If you disabled
 `framework.serializer` or `framework.property_access`, enable them to capture ordinary message objects.
 
+```php
+use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
+
+#[DisableInputStoreStamp]
+class SensitiveMessage
+{
+}
+```
+
+Input is captured when the worker receives the message, before handling it. If normalization
+fails, input is omitted and the message can still be handled and recorded.
+
 #### Description
 
 The stored `ProcessedMessage` has a description property. This is helpful to differentiate between
@@ -199,8 +261,12 @@ use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
 
 /** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
 
-$bus->dispatch(new MyMessage(), [new DescriptionStamp('some custom description')])
+$bus->dispatch(new MyMessage(), [new DescriptionStamp('some custom description')]);
 ```
+
+When Symfony Mailer queues an `Email`, the bundle automatically uses its subject as the
+description and includes the recipient when there is exactly one. A Mailer `TagHeader`
+(`X-Tag`) is also copied to the message's monitoring tags.
 
 #### Message Flows
 
@@ -247,7 +313,7 @@ add your own in one of two ways:
 
     /** @var \Symfony\Component\Messenger\MessageBusInterface $bus */
 
-    $bus->dispatch(new MyMessage(), [new TagStamp('tag-1'), new TagStamp('tag-2')])
+    $bus->dispatch(new MyMessage(), [new TagStamp('tag-1'), new TagStamp('tag-2')]);
     ```
 2. Add the `TagStamp` as a class attribute to your message (and parent class/interface):
     ```php
@@ -267,9 +333,9 @@ matches `schedule:default:task`. Characters such as `%` and `_` are matched lite
 
 #### `messenger:monitor:purge` Command
 
-If your app handles a lot of messages, the processed message database table will get very large.
-The `messenger:monitor:purge` clears messages older than a specific date:
-See [`Period`](https://github.com/zenstruck/messenger-monitor-bundle/blob/1.x/src/History/Period.php#L19) for allowed values.
+Use `messenger:monitor:purge` to control the size of your history table. It deletes history
+entries without removing messages from transports. `--older-than` accepts `1-hour`, `1-day`,
+`1-week`, `1-month` (the default), or `all`.
 
 ```bash
 bin/console messenger:monitor:purge # by default, purges all messages older than 1 month
@@ -286,13 +352,21 @@ bin/console messenger:monitor:purge --exclude-schedules # ignore messages tagged
 The `--status` option accepts `success` or `failed`. Invalid values stop the command before
 any history is deleted. Omit the option to purge both statuses.
 
+Limit deletion with `--type`, `--transport`, `--tag`, and `--not-tag`. Tags can be repeated;
+all included tags must match, and any excluded tag prevents deletion.
+
+```bash
+bin/console messenger:monitor:purge --older-than 1-week --transport async --status success
+bin/console messenger:monitor:purge --type 'App\Message\MyMessage' --tag reports --not-tag important
+```
+
 > [!NOTE]
 > Schedule this command to run daily with `symfony/scheduler` and
 > [`RunCommandMessage`](https://symfony.com/doc/6.4/messenger.html#trigger-a-command).
 
 #### `messenger:monitor:schedule:purge` Command
 
-If using `symfony/scheduler`, you might want to keep a specific # of these messages as they might run
+If using `symfony/scheduler`, you might want to keep a specific number of these messages as they might run
 very infrequently. When running `messenger:monitor:purge`, add the `--exclude-schedules` option to
 avoid deleting schedule history. Then run `messenger:monitor:schedule:purge` to keep a specific number
 (10 by default) of _task run histories_.
@@ -301,6 +375,7 @@ avoid deleting schedule history. Then run `messenger:monitor:schedule:purge` to 
 bin/console messenger:monitor:schedule:purge # by default, keeps 10 runs for each task
 
 bin/console messenger:monitor:schedule:purge --keep 5 # keep only 5
+bin/console messenger:monitor:schedule:purge default maintenance --keep 5 # selected schedules
 ```
 
 Use the `--remove-orphans` option to delete schedule task runs that are no longer associated with a schedule.
@@ -317,6 +392,12 @@ bin/console messenger:monitor:schedule:purge --remove-orphans
 
 > [!NOTE]
 > [Storage](#storage) must be configured for this feature.
+
+Install Twig and Symfony's SecurityBundle if your app does not already use them:
+
+```bash
+composer require symfony/twig-bundle symfony/security-bundle
+```
 
 Create a controller that extends `Zenstruck\Messenger\Monitor\Controller\MessengerMonitorController`
 in your app:
@@ -338,6 +419,11 @@ final class MessengerMonitorController extends BaseMessengerMonitorController
 ```
 
 You can now access the dashboard at: `/admin/messenger` or with the route `zenstruck_messenger_monitor_dashboard`.
+
+The UI includes a dashboard, searchable history, per-message statistics, transport queues,
+message details, and schedules when `symfony/scheduler` is installed. Queue counts require a
+transport implementing `MessageCountAwareInterface`; browsing, retrying, and removing messages
+require `ListableReceiverInterface`.
 
 > [!WARNING]
 > It is important that your `MessengerMonitorController` is only accessible by
@@ -385,6 +471,19 @@ friendlier times and durations in the UI. Install `lorisleiva/cron-translator`
 (`composer require lorisleiva/cron-translator`) to display friendlier cron expressions
 for your scheduled tasks.
 
+The default layout loads its CSS and JavaScript from jsDelivr, with no asset build required.
+Live widgets refresh every five seconds while the tab is visible and have pause/resume controls.
+
+### Customizing templates
+
+Override bundle templates under `templates/bundles/ZenstruckMessengerMonitorBundle/`, keeping
+the same relative path as the bundle's [`templates/`](templates) directory. Extend the original
+with the `@!ZenstruckMessengerMonitor` namespace, as in the navigation example below.
+
+Override the layout's `stylesheets` and `javascripts` blocks to use your own assets. Keep the
+refresh and action controllers when replacing the JavaScript. Live widget content is rendered
+from `components/` templates on both the initial page and subsequent refreshes.
+
 ### Custom navigation links
 
 To add links under **Application** in the sidebar, override `navbar_custom_menu` in
@@ -400,9 +499,44 @@ To add links under **Application** in the sidebar, override `navbar_custom_menu`
 
 ## Advanced Usage
 
+Autowire the following services by their class or interface to build your own dashboards,
+commands, or health checks. The examples assume the services have been injected into your code.
+
 ### `Workers` Service
 
+`Zenstruck\Messenger\Monitor\Workers` provides a live view of workers through the configured
+[cache pool](#worker-cache). It does not require history storage.
+
+```php
+use Zenstruck\Messenger\Monitor\Workers;
+
+/** @var Workers $workers */
+$running = $workers->isRunning();
+$workerCount = count($workers);
+$asyncWorkers = $workers->forTransport('async');
+$queueWorkers = $workers->forQueue('high_priority');
+
+foreach ($workers as $worker) {
+    $status = $worker->status();
+    $handled = $worker->messagesHandled();
+
+    printf("%s: %d messages handled\n", $status, $handled);
+}
+```
+
+`all()`, `forTransport()`, and `forQueue()` return arrays of `WorkerInfo` objects. Queue names
+reflect workers started with `messenger:consume --queues`.
+
 #### `WorkerInfo`
+
+| Method | Value |
+| --- | --- |
+| `status()`, `isIdle()`, `isProcessing()` | Current worker state: `idle` or `processing` |
+| `startTime()`, `runningFor()` | Start time as `DateTimeImmutable`, uptime in seconds |
+| `transports()`, `queues()` | Transport and queue names consumed by this worker |
+| `messagesHandled()` | Messages handled since the worker started |
+| `memoryUsage()` | Last reported memory usage as a `Zenstruck\Bytes` object |
+| `cooldownFor($transport)` | Active `TransportCooldown`, or `null` |
 
 On Symfony 8.2+, the dashboard shows each worker's transport cooldowns and the number of
 workers cooling down per transport. Known resume times expire automatically; cooldowns
@@ -414,21 +548,159 @@ Use `$worker->cooldownFor('async')` to inspect an active cooldown, or
 `$transport->coolingDownWorkers()` to find the affected workers. Older Symfony versions
 keep their existing worker monitoring without cooldown indicators.
 
+`TransportCooldown::endsAt()` returns a `DateTimeImmutable`, or `null` when the resume time
+is unknown. `transport()` returns the transport name.
+
+### Worker cache
+
+Workers report their state to `cache.app` by default. The console monitor, web application,
+and workers must use the same pool and cache namespace. For workers on separate hosts or in
+containers, configure a shared pool, for example Redis:
+
+```yaml
+# config/packages/cache.yaml
+framework:
+    cache:
+        prefix_seed: my_app
+        pools:
+            cache.messenger_monitor:
+                adapter: cache.adapter.redis
+                provider: '%env(REDIS_URL)%'
+
+# config/packages/zenstruck_messenger_monitor.yaml
+zenstruck_messenger_monitor:
+    cache:
+        pool: cache.messenger_monitor
+        expired_worker_ttl: 3600
+```
+
+Set `REDIS_URL` to your Redis connection DSN and use a stable `prefix_seed` unique to your app.
+Worker entries expire after `expired_worker_ttl` seconds without an update. Gracefully stopped workers are removed
+immediately; crashed workers remain visible until their entries expire. Set the TTL longer
+than your longest message handling time to avoid active workers temporarily disappearing.
+
 ### `Transports` Service
+
+`Zenstruck\Messenger\Monitor\Transports` exposes the configured Messenger receivers without
+requiring history storage. Iterate it for `TransportInfo` objects keyed by transport name,
+or use `get($name)`, `names()`, `all()`, and `count()`.
+
+```php
+use Zenstruck\Messenger\Monitor\Transports;
+
+/** @var Transports $transports */
+$async = $transports->get('async');
+$running = $async->isRunning();
+
+$filter = $transports->filter();
+$filter = $filter->countable();
+$filter = $filter->excludeSync();
+$filter = $filter->excludeSchedules();
+
+foreach ($filter as $name => $transport) {
+    printf("%s: %d queued messages\n", $name, count($transport));
+}
+```
+
+Filters return new filter objects and can be combined. Available filters are `countable()`,
+`listable()`, `excludeSync()`, `excludeSchedules()`, and `excludeFailed()`.
+Use `names()` or `all()` to get the filtered result as an array.
+
+`failure()` returns the first transport whose name contains `fail`, or `null`.
+`TransportInfo::isFailure()` and `excludeFailed()` use the same naming convention.
 
 #### `TransportInfo`
 
+| Method | Value |
+| --- | --- |
+| `name()`, `get()` | Transport name and underlying `TransportInterface` |
+| `isCountable()`, `isListable()` | Whether the transport supports counting or browsing |
+| `count()` | Queued message count; requires `MessageCountAwareInterface` |
+| `list($limit = null)` | Collection of `QueuedMessage` objects; requires `ListableReceiverInterface` |
+| `find($id)` | A `QueuedMessage`, or `null`; requires `ListableReceiverInterface` |
+| `workers()`, `isRunning()` | Workers consuming this transport and whether any are running |
+| `coolingDownWorkers()` | Workers currently cooling down for this transport |
+
+Check the capabilities before counting, listing, or finding messages. Unsupported operations
+throw `LogicException`. Iterating a `TransportInfo` is equivalent to iterating its `list()`.
+
 #### `QueuedMessage`
+
+Represents a message still in a transport, including a failed transport.
+
+| Method | Value |
+| --- | --- |
+| `id()` | Transport message ID, or `null` when no ID stamp exists |
+| `envelope()` | Original Messenger `Envelope` |
+| `message()` | Message [type and description](#type) |
+| `stamps()`, `tags()` | Stamp types and monitoring tags |
+| `dispatchedAt()` | Dispatch time, or `null` without a `MonitorStamp` |
+| `exception()`, `exceptionTrace()` | Failure type/message and trace when available |
 
 ### `Schedules` Service
 
+`Zenstruck\Messenger\Monitor\Schedules` is available when `symfony/scheduler` is installed.
+It discovers registered schedule providers automatically. History storage is only required
+for the `history()` methods.
+
+```php
+use Zenstruck\Messenger\Monitor\Schedules;
+
+/** @var Schedules $schedules */
+$schedule = $schedules->get('default');
+$running = $schedule->isRunning();
+
+foreach ($schedule as $task) {
+    $trigger = $task->trigger();
+    $nextRun = $trigger->nextRunDate();
+    $nextRunLabel = $nextRun?->format('c') ?? 'no upcoming run';
+    $taskId = $task->id();
+
+    printf("%s: %s\n", $taskId, $nextRunLabel);
+}
+```
+
+Use `names()` to list schedule names, iterate the service for `ScheduleInfo` objects, or
+`count()` it. Calling `get()` without a name selects the first registered schedule.
+`history($specification = null)` returns a [snapshot](#snapshot) across all scheduled tasks.
+
 #### `ScheduleInfo`
+
+Iterate a schedule for its `TaskInfo` objects, or use `task($id)` to select one. `count()`
+returns the number of recurring tasks. `name()` identifies the schedule and `get()` returns
+the underlying Symfony `Schedule`.
+
+`transport()` returns the `scheduler_<name>` transport. `workers()` and `isRunning()` report
+whether workers are consuming it. Upcoming run dates describe the schedule; a worker must
+be consuming the scheduler transport for tasks to execute.
+
+`history($specification = null)` returns a snapshot restricted to this schedule's tasks.
+Pass a `Specification` or an array of filters to narrow the history further.
 
 #### `TaskInfo`
 
+`id()` identifies the recurring task, `schedule()` returns its `ScheduleInfo`, and `get()`
+returns the underlying `RecurringMessage`. Use `messages()` for an array of `MessageInfo`
+objects and `trigger()` for its `TriggerInfo`.
+
+`history($specification = null)` returns a snapshot restricted to this task's schedule tag.
+Pass a `Specification` or an array of filters, for example `['period' => 'in-last-week']`.
+With no filters it includes all retained attempts. Automatically assigned task tags have the
+form `schedule:<schedule-name>:<task-id>`; manually triggered UI runs also carry `manual`.
+
 #### `MessageInfo`
 
+`type()` returns the [type](#type) of the message after unwrapping envelopes and
+`RedispatchMessage` wrappers. `isRedispatch()` identifies a redispatched message and
+`redispatchTransports()` returns its destination transport names. `get()` returns the
+original object, including any wrapper.
+
 #### `TriggerInfo`
+
+`nextRunDate()` returns the next run after the current time, or `null` if there is none.
+`isCron()` identifies a cron trigger even when it is decorated. `get()` returns the original
+trigger, `inner()` the undecorated trigger, and `decorators()` its decorators.
+`type()`, `innerType()`, and `decoratorTypes()` provide their [type information](#type).
 
 ### History
 
@@ -437,33 +709,171 @@ keep their existing worker monitoring without cooldown indicators.
 
 #### `Storage` Service
 
+Autowire `Zenstruck\Messenger\Monitor\History\Storage` to access processed message history.
+The bundle registers its Doctrine implementation when `storage.orm.entity_class` is configured.
+
+```php
+use Zenstruck\Messenger\Monitor\History\Specification;
+use Zenstruck\Messenger\Monitor\History\Storage;
+
+/** @var Storage $storage */
+$specification = Specification::create([
+    'period' => 'in-last-week',
+    'transport' => 'async',
+    'status' => Specification::FAILED,
+]);
+
+$messages = $storage->filter($specification);
+$total = count($messages);
+$latest = $messages->first(); // ProcessedMessage or null
+$page = $messages->paginate(page: 1, limit: 20);
+
+foreach ($page as $message) {
+    $finishedAt = $message->finishedAt();
+    $description = $message->description();
+
+    printf("%s: %s\n", $finishedAt->format('c'), $description);
+}
+```
+
+`filter()` returns a `Zenstruck\Collection` supporting iteration, `first()`, `take()`, and
+`paginate()`. Doctrine applies limits and pagination in the database.
+`find($id)` returns a `ProcessedMessage` or `null`.
+
+`delete($id)` removes one history entry. `purge($specification)` removes matching history
+entries and returns the number deleted. Neither operation changes queued messages.
+
 #### `Specification`
 
+`Zenstruck\Messenger\Monitor\History\Specification` describes history filters. `new()`
+creates an unrestricted specification, sorted by finish time descending.
+`create()` accepts an array, a `Period` enum, a period string, or an existing specification.
+
+| Array key | Accepted value |
+| --- | --- |
+| `period` | A `Period` enum or [period string](#messengermonitor-command); replaces `from` and `to` |
+| `from`, `to` | `DateTimeImmutable`, date string, or `null`; inclusive bounds on finish time |
+| `status` | `Specification::SUCCESS`, `Specification::FAILED`, or `null` for both |
+| `message_type` | Fully qualified message class name |
+| `transport` | Transport name |
+| `tags`, `not_tags` | A tag string or array of tags to include or exclude |
+| `run_id` | Monitoring run ID, shared by retry attempts |
+| `search` | Text to search in descriptions, tags, failure messages, stored input, and handler output |
+| `sort` | `Specification::ASC` or `Specification::DESC` |
+
+Filters combine with AND. Every included tag must match; any excluded tag prevents a match.
+Tags match their colon-separated descendants as described under [Tags](#tags). Search is
+case-insensitive and treats `%` and `_` literally.
+
+The fluent methods return a new specification, leaving the original unchanged:
+
+```php
+use Zenstruck\Messenger\Monitor\History\Specification;
+
+$specification = Specification::new();
+$specification = $specification->from('-7 days');
+$specification = $specification->on('async');
+$specification = $specification->failures();
+$specification = $specification->with('reports');
+$specification = $specification->without('manual');
+```
+
+Other fluent filters are `to($date)`, `for($messageClass)`, `successes()`, `sortAscending()`,
+and `sortDescending()`. `with()` and `without()` each accept multiple tags and replace their
+previous tag list. Use `toArray()` to inspect the resulting filters.
+
 #### `Snapshot`
+
+Create a `Zenstruck\Messenger\Monitor\History\Snapshot` from a specification and storage:
+
+```php
+use Zenstruck\Messenger\Monitor\History\Period;
+use Zenstruck\Messenger\Monitor\History\Specification;
+use Zenstruck\Messenger\Monitor\History\Storage;
+
+/** @var Storage $storage */
+$specification = Specification::create(Period::IN_LAST_DAY);
+$snapshot = $specification->snapshot($storage);
+
+$total = $snapshot->totalCount();
+$failed = $snapshot->failureCount();
+$failurePercentage = $snapshot->failRate() * 100;
+$averageHandlingMilliseconds = $snapshot->averageHandlingTime();
+$messagesPerHour = $snapshot->handledPerHour();
+```
+
+| Method | Value |
+| --- | --- |
+| `totalCount()`, `successCount()`, `failureCount()` | Attempt counts, including retries as separate attempts |
+| `failRate()` | Failed attempts divided by total attempts, from 0 to 1 |
+| `averageWaitTime()`, `averageHandlingTime()`, `averageProcessingTime()` | Average durations in milliseconds |
+| `handledPerMinute()`, `handledPerHour()`, `handledPerDay()` | Average throughput over the specification's time range |
+| `messages()` | Matching history collection |
+| `perMessageTypeMetrics()` | Collection of metrics grouped by message class |
+
+Counts include both statuses even when the specification filters by status. That status
+filter applies to `messages()` and the average durations. Empty counts, failure rates, and
+average durations are zero. With no `from` date, throughput uses the oldest retained history
+entry as its starting point. Prefer an explicit period for reporting.
+
+Snapshot counts and averages are loaded once per instance. Create a new snapshot for fresh
+metrics. Per-message-type metrics expose `type()`, total and failure counts, average durations,
+failure rate, and throughput. They ignore the specification's message-type filter so you can
+compare classes; the other filters still apply.
+
+#### `ProcessedMessage` and handler results
+
+Each `ProcessedMessage` represents one processing attempt. `id()` is the history entry's ID,
+`runId()` groups retry attempts, and `attempt()` starts at 1. Use a specification with `run_id`
+to fetch the other attempts.
+
+`type()`, `description()`, `transport()`, and `tags()` describe the message. `input()` returns
+its captured input or `null`. `dispatchedAt()`, `receivedAt()`, and `finishedAt()` return
+`DateTimeImmutable` values. `timeInQueue()`, `timeToHandle()`, and `timeToProcess()` are in
+milliseconds; `memoryUsage()` returns a `Zenstruck\Bytes` object.
+
+`isFailure()` identifies a failed attempt and `failure()` returns its exception type and
+message, or `null`. Iterate `results()` for individual handler results, or select
+`successes()` and `failures()`. Each result exposes `handler()`, `data()`, `isFailure()`,
+and `failure()`. On supported Symfony versions, `duration()` returns milliseconds and
+`memoryChange()` returns a signed byte count; both are nullable. See [Handler Measurements](#handler-measurements).
+
+On Symfony 8.2+, `messageId()`, `correlationId()`, and `causationId()` expose the optional
+[message flow identities](#message-flows).
+
+### `Type`
+
+`Zenstruck\Messenger\Monitor\Type` describes a message, handler, stamp, trigger, or exception.
+Use `class()` for its fully qualified class name, `shortName()` for the name without its
+namespace, and `description()` for an optional human-readable description.
+`object()` returns the wrapped object when available. History types contain class names
+without reconstructing the original objects.
 
 ## Others
 
 ### Hide Log-Entries
 
-While you run `php bin/console messenger:consume async [-vv]` you see a lot of messages like this one.
+While running `bin/console messenger:consume async -vv`, you may see cache log entries such as:
 
 ```
 [cache] Lock acquired, now computing item "zenstruck_messenger_monitor.worker.xxx" ["key" => "zenstruck_messenger_monitor.worker.xxx"]
 ```
 
-If you want to not display them, you can disable them with adding `"!cache"` to the console-channels in `config/packages/monolog.yaml`
+Exclude the `cache` channel from your console handler in `config/packages/monolog.yaml`:
 
 ```yaml
 when@dev:
-  monolog:
-    handlers:
-      #...
-      console:
-        #...
-          channels: ["!event", "!doctrine", "!console", "!cache"]
+    monolog:
+        handlers:
+            console:
+                # ...
+                channels: ['!event', '!doctrine', '!console', '!cache']
 ```
 
 ## Full Default Bundle Configuration
+
+Storage is disabled until `storage.orm.entity_class` is set. These are the available options
+and their defaults:
 
 ```yaml
 zenstruck_messenger_monitor:
@@ -479,13 +889,15 @@ zenstruck_messenger_monitor:
         exclude:              []
         orm:
 
-            # Your Doctrine entity class that extends "Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage"
-            entity_class:         ~
+            # Set a subclass of "Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage" to enable storage.
+            # entity_class: App\Entity\ProcessedMessage
 
             # Doctrine entity manager to use.
             entity_manager:       default
     cache:
-      pool: app.cache # If using workers in docker. You can use shared cache pool for all workers
-      expired_worker_ttl:  3600
+        # Cache pool used by both workers and the monitor. Share it across hosts/containers.
+        pool:                 cache.app
 
+        # Seconds without an update before a worker entry expires.
+        expired_worker_ttl:    3600
 ```
