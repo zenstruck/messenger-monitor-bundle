@@ -57,7 +57,7 @@ final class ViewHelper
 
         $seconds = $milliseconds / 1000;
 
-        if ($this->timeFormatter && \method_exists($this->timeFormatter, 'formatDuration')) {
+        if ($this->timeFormatter && \method_exists($this->timeFormatter, 'formatDuration')) { // @phpstan-ignore function.alreadyNarrowedType (Support older knp-time-bundle versions.)
             return $this->timeFormatter->formatDuration($seconds);
         }
 

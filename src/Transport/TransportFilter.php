@@ -22,8 +22,6 @@ use Zenstruck\Messenger\Monitor\Workers;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
- * @immutable
- *
  * @implements \IteratorAggregate<string,TransportInfo>
  */
 final class TransportFilter implements \IteratorAggregate, \Countable

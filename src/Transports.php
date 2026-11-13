@@ -19,8 +19,6 @@ use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  *
- * @immutable
- *
  * @implements \IteratorAggregate<string,TransportInfo>
  */
 final class Transports implements \IteratorAggregate, \Countable
@@ -76,7 +74,7 @@ final class Transports implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     public function names(): array
     {

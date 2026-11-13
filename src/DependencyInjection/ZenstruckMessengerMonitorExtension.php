@@ -31,7 +31,7 @@ final class ZenstruckMessengerMonitorExtension extends ConfigurableExtension imp
     {
         $builder = new TreeBuilder('zenstruck_messenger_monitor');
 
-        $builder->getRootNode() // @phpstan-ignore-line
+        $builder->getRootNode()
             ->children()
                 ->arrayNode('storage')
                     ->children()

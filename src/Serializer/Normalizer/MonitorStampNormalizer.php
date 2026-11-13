@@ -26,7 +26,7 @@ final class MonitorStampNormalizer implements NormalizerInterface, DenormalizerI
 {
     use DenormalizerAwareTrait, NormalizerAwareTrait;
 
-    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed // @phpstan-ignore-line
+    public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
         $data['dispatchedAt'] = $this->denormalizer->denormalize($data['dispatchedAt'], \DateTimeImmutable::class, $format, $context);
 
@@ -41,7 +41,7 @@ final class MonitorStampNormalizer implements NormalizerInterface, DenormalizerI
         return MonitorStamp::from($data);
     }
 
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool // @phpstan-ignore-line
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
     {
         return MonitorStamp::class === $type && \is_array($data);
     }
@@ -54,7 +54,7 @@ final class MonitorStampNormalizer implements NormalizerInterface, DenormalizerI
         return $this->normalizer->normalize($object->toArray());
     }
 
-    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool // @phpstan-ignore-line
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof MonitorStamp;
     }

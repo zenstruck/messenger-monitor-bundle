@@ -48,7 +48,10 @@ abstract class ProcessedMessage
     private ?string $failureType = null;
     private ?string $failureMessage = null;
 
-    /** @var Structure[]|Results|null */
+    /**
+     * @var Structure[]|Results|null
+     * @phpstan-ignore property.unusedType, property.unusedType (Doctrine hydrates arrays and null.)
+     */
     private array|Results|null $results;
 
     public function __construct(Envelope $envelope, Results $results, ?\Throwable $exception = null)
@@ -61,7 +64,7 @@ abstract class ProcessedMessage
         $this->runId = $monitorStamp->runId();
         $this->type = $type->class();
         $this->input = $storedInput?->input;
-        $this->description = $envelope->last(DescriptionStamp::class)?->value ?? $type->description();
+        $this->description = $envelope->last(DescriptionStamp::class)->value ?? $type->description();
         $this->dispatchedAt = $monitorStamp->dispatchedAt();
         $this->receivedAt = $monitorStamp->receivedAt();
         $this->finishedAt = $monitorStamp->finishedAt();
