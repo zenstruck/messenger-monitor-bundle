@@ -12,9 +12,6 @@
 namespace Zenstruck\Messenger\Monitor\History\Model;
 
 use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Stamp\CausationStamp;
-use Symfony\Component\Messenger\Stamp\CorrelationStamp;
-use Symfony\Component\Messenger\Stamp\MessageIdStamp;
 use Symfony\Component\Messenger\Stamp\RedeliveryStamp;
 use Zenstruck\Bytes;
 use Zenstruck\Messenger\Monitor\Stamp\DescriptionStamp;
@@ -67,9 +64,9 @@ abstract class ProcessedMessage
         $tags = new Tags($envelope);
         $storedInput = $envelope->last(StoredInputStamp::class);
 
-        $this->messageId = \class_exists(MessageIdStamp::class) ? self::stampId($envelope, MessageIdStamp::class) : null;
-        $this->correlationId = \class_exists(CorrelationStamp::class) ? self::stampId($envelope, CorrelationStamp::class) : null;
-        $this->causationId = \class_exists(CausationStamp::class) ? self::stampId($envelope, CausationStamp::class) : null;
+        $this->messageId = self::stampId($envelope, 'Symfony\Component\Messenger\Stamp\MessageIdStamp');
+        $this->correlationId = self::stampId($envelope, 'Symfony\Component\Messenger\Stamp\CorrelationStamp');
+        $this->causationId = self::stampId($envelope, 'Symfony\Component\Messenger\Stamp\CausationStamp');
 
         $this->runId = $monitorStamp->runId();
         $this->type = $type->class();

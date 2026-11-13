@@ -22,15 +22,16 @@ final class CaptureExecutionListener
     /** Handler event classes are unavailable on older supported Symfony versions. */
     public function __invoke(object $event): void
     {
-        $envelope = \get_object_vars($event)['envelope'] ?? null;
+        $envelope = $event->envelope ?? null;
 
         if (!$envelope instanceof Envelope) {
             return;
         }
 
-        if (null !== $handler = $this->handlerName($event)) {
-            $metrics = $envelope->last(HandlerMetricsStamp::class);
-            $metrics?->finish($handler);
+        $metrics = $envelope->last(HandlerMetricsStamp::class);
+
+        if ($metrics && null !== $handler = $this->handlerName($event)) {
+            $metrics->finish($handler);
         }
 
         $stamp = $envelope->last(ExecutionStamp::class);
@@ -39,20 +40,24 @@ final class CaptureExecutionListener
 
     public function onStart(object $event): void
     {
-        $envelope = \get_object_vars($event)['envelope'] ?? null;
-        $handler = $this->handlerName($event);
+        $envelope = $event->envelope ?? null;
 
-        if (!$envelope instanceof Envelope || null === $handler) {
+        if (!$envelope instanceof Envelope) {
             return;
         }
 
         $metrics = $envelope->last(HandlerMetricsStamp::class);
-        $metrics?->start($handler);
+
+        if (!$metrics || null === $handler = $this->handlerName($event)) {
+            return;
+        }
+
+        $metrics->start($handler);
     }
 
     private function handlerName(object $event): ?string
     {
-        $handler = \get_object_vars($event)['handlerDescriptor'] ?? null;
+        $handler = $event->handlerDescriptor ?? null;
 
         if (!$handler instanceof HandlerDescriptor || $handler->getBatchHandler()) {
             return null;

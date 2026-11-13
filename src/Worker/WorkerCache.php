@@ -73,24 +73,14 @@ final class WorkerCache implements \IteratorAggregate
         ?int $startedAt = null,
         ?TransportCooldowns $cooldowns = null,
     ): void {
-        $entryWasMissing = false;
-        $startedAt ??= $this->startedAt[$id] ?? null;
-
-        $worker = $this->cache->get(
-            self::WORKER_KEY_PREFIX.$id,
-            function(CacheItemInterface $item) use ($metadata, $status, $id, $messagesHandled, $memoryUsage, $startedAt, $cooldowns, &$entryWasMissing) {
-                $item->expiresAfter($this->expiredWorkerTtl);
-
-                $entryWasMissing = !$item->isHit();
-
-                // A worker reported from another process (or before this one knew it): take the start time
-                // from its entry, or from the shared index when the entry expired.
-                $startedAt ??= $item->get()['startedAt'] ?? $this->ids()[0][$id] ?? now()->getTimestamp();
-
-                return [$metadata, $status, $id, $messagesHandled, $memoryUsage, 'startedAt' => $startedAt, 'cooldowns' => $cooldowns?->values() ?? []];
-            },
-            \INF, // force saving
-        );
+        $now = now()->getTimestamp();
+        $item = $this->cache->getItem(self::WORKER_KEY_PREFIX.$id);
+        $entryWasMissing = !$item->isHit();
+        $startedAt ??= $this->startedAt[$id] ?? $item->get()['startedAt'] ?? $this->ids()[0][$id] ?? $now;
+        $worker = [$metadata, $status, $id, $messagesHandled, $memoryUsage, 'startedAt' => $startedAt, 'cooldowns' => $cooldowns?->values() ?? []];
+        $item->set($worker);
+        $item->expiresAfter($this->expiredWorkerTtl);
+        $this->cache->save($item);
 
         // Remember the start time in this process. When a message runs longer than the ttl, the worker entry
         // expires and another worker's registration prunes this one from the index, so the cache no longer
@@ -100,8 +90,6 @@ final class WorkerCache implements \IteratorAggregate
         // The shared index holds every worker and is only needed to register this one. Reading it on each
         // heartbeat makes every worker fetch the whole index on every loop, so only compare when the worker
         // entry was missing (new worker, or expired and possibly pruned) or when the periodic check is due.
-        $now = now()->getTimestamp();
-
         if (!$entryWasMissing && $now < ($this->nextIndexCheckAt[$id] ?? 0)) {
             return;
         }

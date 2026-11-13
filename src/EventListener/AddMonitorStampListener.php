@@ -26,9 +26,8 @@ final class AddMonitorStampListener
     public function __invoke(SendMessageToTransportsEvent $event): void
     {
         $envelope = $event->getEnvelope();
-        $stamp = $envelope->last(MonitorStamp::class);
 
-        if ($stamp && $envelope->last(ReceivedStamp::class) && \class_exists(OutboxStamp::class) && isset($envelope->all()[OutboxStamp::class])) {
+        if ($envelope->last(ReceivedStamp::class) && \class_exists(OutboxStamp::class) && isset($envelope->all()[OutboxStamp::class]) && $envelope->last(MonitorStamp::class)) {
             return;
         }
 

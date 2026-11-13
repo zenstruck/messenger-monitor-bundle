@@ -12,6 +12,7 @@
 namespace Zenstruck\Messenger\Monitor\Tests\Unit\Worker;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Cache\CacheItemInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Messenger\Envelope;
@@ -138,5 +139,44 @@ final class WorkerListenerTest extends TestCase
         $workers = \iterator_to_array($cache);
         $this->assertTrue($workers[0]->isIdle());
         $this->assertSame(0, $workers[0]->messagesHandled());
+    }
+
+    /** @test */
+    public function coalesces_running_heartbeats_without_delaying_message_updates(): void
+    {
+        $clock = self::mockTime();
+        $pool = new class extends ArrayAdapter {
+            public int $writes = 0;
+
+            public function save(CacheItemInterface $item): bool
+            {
+                ++$this->writes;
+
+                return parent::save($item);
+            }
+        };
+        $cache = new WorkerCache($pool);
+        $listener = new WorkerListener($cache);
+        $worker = new Worker([], new MessageBus());
+        $listener->onStart(new WorkerStartedEvent($worker));
+        $writes = $pool->writes;
+        $running = new WorkerRunningEvent($worker, false);
+
+        for ($i = 0; $i < 1000; ++$i) {
+            $listener->onRunning($running);
+        }
+
+        $this->assertSame($writes, $pool->writes);
+        $envelope = new Envelope(new \stdClass());
+        $listener->onMessageReceived(new WorkerMessageReceivedEvent($envelope, 'async'));
+        $this->assertTrue(\iterator_to_array($cache)[0]->isProcessing());
+        $listener->onMessageFinished(new WorkerMessageHandledEvent($envelope, 'async'));
+        $this->assertSame(1, \iterator_to_array($cache)[0]->messagesHandled());
+        $listener->onRunning($running);
+        $this->assertSame($writes + 2, $pool->writes);
+
+        $clock->sleep(1);
+        $listener->onRunning($running);
+        $this->assertSame($writes + 3, $pool->writes);
     }
 }
