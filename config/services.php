@@ -2,6 +2,9 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Event\WorkerRunningEvent;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\Event\WorkerStoppedEvent;
@@ -40,6 +43,9 @@ return static function (ContainerConfigurator $container): void {
             ->tag('kernel.event_listener', ['method' => 'onStart', 'event' => WorkerStartedEvent::class])
             ->tag('kernel.event_listener', ['method' => 'onStop', 'event' => WorkerStoppedEvent::class])
             ->tag('kernel.event_listener', ['method' => 'onRunning', 'event' => WorkerRunningEvent::class])
+            ->tag('kernel.event_listener', ['method' => 'onMessageReceived', 'event' => WorkerMessageReceivedEvent::class, 'priority' => -1024])
+            ->tag('kernel.event_listener', ['method' => 'onMessageFinished', 'event' => WorkerMessageHandledEvent::class])
+            ->tag('kernel.event_listener', ['method' => 'onMessageFinished', 'event' => WorkerMessageFailedEvent::class])
 
         ->set('.zenstruck_messenger_monitor.command.monitor', MonitorCommand::class)
             ->args([

@@ -11,8 +11,12 @@
 
 namespace Zenstruck\Messenger\Monitor\Worker;
 
+use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Event\WorkerRunningEvent;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
+use Symfony\Component\Messenger\WorkerMetadata;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -23,6 +27,8 @@ final class WorkerListener
 {
     private int $id;
     private int $messagesHandled = 0;
+    private int $messagesInFlight = 0;
+    private ?WorkerMetadata $metadata = null;
 
     public function __construct(private WorkerCache $cache)
     {
@@ -31,24 +37,53 @@ final class WorkerListener
 
     public function onStart(WorkerStartedEvent $event): void
     {
-        $this->cache->add($this->id, $event->getWorker()->getMetadata(), $this->messagesHandled, \memory_get_usage(true));
+        $worker = $event->getWorker();
+        $this->metadata = $worker->getMetadata();
+        $this->cache->add($this->id, $this->metadata, $this->messagesHandled, \memory_get_usage(true));
     }
 
     public function onStop(): void
     {
         $this->cache->remove($this->id);
+        $this->metadata = null;
     }
 
     public function onRunning(WorkerRunningEvent $event): void
     {
-        if (!$event->isWorkerIdle()) {
-            ++$this->messagesHandled;
+        $this->refresh();
+    }
+
+    public function onMessageReceived(WorkerMessageReceivedEvent $event): void
+    {
+        if (!$this->metadata || !$event->shouldHandle()) {
+            return;
+        }
+
+        ++$this->messagesInFlight;
+        $this->refresh();
+    }
+
+    public function onMessageFinished(WorkerMessageHandledEvent|WorkerMessageFailedEvent $event): void
+    {
+        if (!$this->metadata) {
+            return;
+        }
+
+        $this->messagesInFlight = \max(0, $this->messagesInFlight - 1);
+        ++$this->messagesHandled;
+        $this->refresh();
+    }
+
+    private function refresh(): void
+    {
+        if (!$this->metadata) {
+            return;
         }
 
         $this->cache->set(
             $this->id,
-            $event->getWorker()->getMetadata(),
-            $event->isWorkerIdle() ? WorkerInfo::IDLE : WorkerInfo::PROCESSING,
+            $this->metadata,
+            $this->messagesInFlight ? WorkerInfo::PROCESSING : WorkerInfo::IDLE,
             $this->messagesHandled,
             \memory_get_usage(true),
         );

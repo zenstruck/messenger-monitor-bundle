@@ -13,6 +13,9 @@ namespace Zenstruck\Messenger\Monitor\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
+use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Event\WorkerRunningEvent;
 use Symfony\Component\Messenger\Event\WorkerStartedEvent;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -114,12 +117,15 @@ final class WorkersTest extends TestCase
         $this->assertSame(0, $monitor->all()[0]->messagesHandled());
         $this->assertTrue($monitor->all()[0]->memoryUsage()->isGreaterThan(1));
 
+        $envelope = new Envelope(new \stdClass());
+        $listener->onMessageReceived(new WorkerMessageReceivedEvent($envelope, 'first'));
         $listener->onRunning(new WorkerRunningEvent($worker, isWorkerIdle: false));
 
         $this->assertSame(WorkerInfo::PROCESSING, $monitor->all()[0]->status());
-        $this->assertSame(1, $monitor->all()[0]->messagesHandled());
+        $this->assertSame(0, $monitor->all()[0]->messagesHandled());
         $this->assertTrue($monitor->all()[0]->memoryUsage()->isGreaterThan(1));
 
+        $listener->onMessageFinished(new WorkerMessageHandledEvent($envelope, 'first'));
         $listener->onRunning(new WorkerRunningEvent($worker, isWorkerIdle: true));
 
         $this->assertSame(WorkerInfo::IDLE, $monitor->all()[0]->status());

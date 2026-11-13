@@ -22,6 +22,7 @@ use Symfony\Component\Messenger\Transport\Sender\OutboxSender;
 use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
+use Zenstruck\Messenger\Monitor\Stamp\ExecutionStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 
 /**
@@ -57,7 +58,8 @@ final class HandleMonitorStampListener
             return;
         }
 
-        $event->addStamps($stamp->markFinished());
+        $execution = $envelope->last(ExecutionStamp::class);
+        $event->addStamps($execution?->finishMonitor($stamp) ?? $stamp->markFinished());
 
         $this->save($event->getEnvelope());
     }
@@ -72,7 +74,8 @@ final class HandleMonitorStampListener
             return;
         }
 
-        $event->addStamps($stamp->markFinished());
+        $execution = $event->getEnvelope()->last(ExecutionStamp::class);
+        $event->addStamps($execution?->finishMonitor($stamp) ?? $stamp->markFinished());
 
         $this->save($event->getEnvelope(), $event->getThrowable());
     }
