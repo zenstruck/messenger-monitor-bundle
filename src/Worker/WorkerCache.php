@@ -71,13 +71,14 @@ final class WorkerCache implements \IteratorAggregate
         int $messagesHandled,
         int $memoryUsage,
         ?int $startedAt = null,
+        ?TransportCooldowns $cooldowns = null,
     ): void {
         $entryWasMissing = false;
         $startedAt ??= $this->startedAt[$id] ?? null;
 
         $worker = $this->cache->get(
             self::WORKER_KEY_PREFIX.$id,
-            function(CacheItemInterface $item) use ($metadata, $status, $id, $messagesHandled, $memoryUsage, $startedAt, &$entryWasMissing) {
+            function(CacheItemInterface $item) use ($metadata, $status, $id, $messagesHandled, $memoryUsage, $startedAt, $cooldowns, &$entryWasMissing) {
                 $item->expiresAfter($this->expiredWorkerTtl);
 
                 $entryWasMissing = !$item->isHit();
@@ -86,7 +87,7 @@ final class WorkerCache implements \IteratorAggregate
                 // from its entry, or from the shared index when the entry expired.
                 $startedAt ??= $item->get()['startedAt'] ?? $this->ids()[0][$id] ?? now()->getTimestamp();
 
-                return [$metadata, $status, $id, $messagesHandled, $memoryUsage, 'startedAt' => $startedAt];
+                return [$metadata, $status, $id, $messagesHandled, $memoryUsage, 'startedAt' => $startedAt, 'cooldowns' => $cooldowns?->values() ?? []];
             },
             \INF, // force saving
         );
@@ -132,9 +133,10 @@ final class WorkerCache implements \IteratorAggregate
                 continue;
             }
 
-            [$metadata, $status, $id, $messagesHandled, $memoryUsage] = $item->get();
+            $entry = $item->get();
+            [$metadata, $status, $id, $messagesHandled, $memoryUsage] = $entry;
 
-            yield new WorkerInfo($metadata, $status, $ids[$id], $messagesHandled, $memoryUsage);
+            yield new WorkerInfo($metadata, $status, $ids[$id], $messagesHandled, $memoryUsage, new TransportCooldowns($entry['cooldowns'] ?? []));
         }
     }
 

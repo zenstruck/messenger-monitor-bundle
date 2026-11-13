@@ -29,14 +29,17 @@ final class WorkerListener
     private int $messagesHandled = 0;
     private int $messagesInFlight = 0;
     private ?WorkerMetadata $metadata = null;
+    private TransportCooldowns $cooldowns;
 
     public function __construct(private WorkerCache $cache)
     {
         $this->id = \random_int(1, 1000000);
+        $this->cooldowns = new TransportCooldowns();
     }
 
     public function onStart(WorkerStartedEvent $event): void
     {
+        $this->cooldowns = new TransportCooldowns();
         $worker = $event->getWorker();
         $this->metadata = $worker->getMetadata();
         $this->cache->add($this->id, $this->metadata, $this->messagesHandled, \memory_get_usage(true));
@@ -46,6 +49,7 @@ final class WorkerListener
     {
         $this->cache->remove($this->id);
         $this->metadata = null;
+        $this->cooldowns = new TransportCooldowns();
     }
 
     public function onRunning(WorkerRunningEvent $event): void
@@ -74,6 +78,15 @@ final class WorkerListener
         $this->refresh();
     }
 
+    public function onCooldown(string $transport, bool $coolingDown, ?\DateTimeImmutable $endsAt): void
+    {
+        if (!$this->metadata || !$this->cooldowns->update($transport, $coolingDown, $endsAt)) {
+            return;
+        }
+
+        $this->refresh();
+    }
+
     private function refresh(): void
     {
         if (!$this->metadata) {
@@ -86,6 +99,7 @@ final class WorkerListener
             $this->messagesInFlight ? WorkerInfo::PROCESSING : WorkerInfo::IDLE,
             $this->messagesHandled,
             \memory_get_usage(true),
+            cooldowns: $this->cooldowns,
         );
     }
 }

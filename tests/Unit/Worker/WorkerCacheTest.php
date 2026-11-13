@@ -13,9 +13,11 @@ namespace Zenstruck\Messenger\Monitor\Tests\Unit\Worker;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Messenger\WorkerMetadata;
+use Zenstruck\Messenger\Monitor\Worker\TransportCooldowns;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
 
@@ -33,6 +35,39 @@ final class WorkerCacheTest extends TestCase
     {
         $this->cache = new ArrayAdapter();
         $this->workerCache = new WorkerCache($this->cache, 3600);
+    }
+
+    /** @test */
+    public function cooldown_snapshots_survive_serialization_and_are_scoped_to_a_worker(): void
+    {
+        $clock = self::mockTime();
+        $pool = new FilesystemAdapter('cooldown-'.\bin2hex(\random_bytes(8)), 3600, \sys_get_temp_dir().'/messenger-monitor-tests');
+        $cache = new WorkerCache($pool);
+        $metadata = new WorkerMetadata(['transportNames' => ['async']]);
+        $end = $clock->now()->modify('+30 seconds');
+        $cache->set(1, $metadata, WorkerInfo::IDLE, 0, 1000, cooldowns: new TransportCooldowns(['async' => $end]));
+        $cache->add(2, $metadata, 0, 1000);
+
+        $workers = \iterator_to_array($cache);
+        $this->assertEquals($end, $workers[0]->cooldownFor('async')->endsAt());
+        $this->assertNull($workers[1]->cooldownFor('async'));
+        $pool->clear();
+    }
+
+    /** @test */
+    public function entries_written_by_older_bundle_versions_have_no_cooldowns(): void
+    {
+        $metadata = new WorkerMetadata(['transportNames' => ['async']]);
+        $this->workerCache->add(123, $metadata, 5, 1000);
+        $entry = $this->cache->getItem('zenstruck_messenger_monitor.worker.123');
+        $data = $entry->get();
+        unset($data['cooldowns']);
+        $entry->set($data);
+        $this->cache->save($entry);
+
+        $workers = \iterator_to_array($this->workerCache);
+        $this->assertNull($workers[0]->cooldownFor('async'));
+        $this->assertSame(5, $workers[0]->messagesHandled());
     }
 
     /**

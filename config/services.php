@@ -2,6 +2,8 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Messenger\Cooldown\CooldownStrategyInterface;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
@@ -12,6 +14,7 @@ use Zenstruck\Messenger\Monitor\Command\MonitorCommand;
 use Zenstruck\Messenger\Monitor\Serializer\Normalizer\MonitorStampNormalizer;
 use Zenstruck\Messenger\Monitor\Transports;
 use Zenstruck\Messenger\Monitor\Twig\ViewHelper;
+use Zenstruck\Messenger\Monitor\Worker\CooldownStrategyLocator;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
 use Zenstruck\Messenger\Monitor\Worker\WorkerListener;
 use Zenstruck\Messenger\Monitor\Workers;
@@ -71,4 +74,15 @@ return static function (ContainerConfigurator $container): void {
             ->tag('serializer.denormalizer')
         ;
     ;
+
+    if (\interface_exists(CooldownStrategyInterface::class)) {
+        $container->services()
+            ->set('.zenstruck_messenger_monitor.cooldown_strategy_locator', CooldownStrategyLocator::class)
+                ->decorate('messenger.cooldown_strategy_locator', null, 0, ContainerInterface::IGNORE_ON_INVALID_REFERENCE)
+                ->args([
+                    service('.zenstruck_messenger_monitor.cooldown_strategy_locator.inner'),
+                    service('.zenstruck_messenger_monitor.worker_listener'),
+                ])
+        ;
+    }
 };

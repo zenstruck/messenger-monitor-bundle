@@ -47,9 +47,14 @@
                             {% if transport.isFailure %}
                                 <em class="text-secondary">n/a</em>
                             {% else %}
-                                <strong class="{{ transport.workers|length > 0 ? 'text-success' : 'text-danger' }}">
-                                    {{ transport.workers|length }}
+                                {% set running_workers = transport.workers|length %}
+                                {% set cooling_workers = transport.coolingDownWorkers|length %}
+                                <strong class="{{ running_workers > 0 ? 'text-success' : 'text-danger' }}">
+                                    {{ running_workers }}
                                 </strong>
+                                {% if cooling_workers %}
+                                    <div><span class="badge text-bg-warning">{{ cooling_workers }} of {{ running_workers }} cooling down</span></div>
+                                {% endif %}
                             {% endif %}
                         </td>
                     </tr>

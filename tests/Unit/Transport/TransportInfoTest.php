@@ -12,14 +12,19 @@
 namespace Zenstruck\Messenger\Monitor\Tests\Unit\Transport;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\NullAdapter;
+use Symfony\Component\Clock\Test\ClockSensitiveTrait;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
+use Symfony\Component\Messenger\WorkerMetadata;
 use Zenstruck\Messenger\Monitor\Tests\Unit\Stub\CountableTransport;
 use Zenstruck\Messenger\Monitor\Tests\Unit\Stub\ListableTransport;
 use Zenstruck\Messenger\Monitor\Transport\QueuedMessage;
 use Zenstruck\Messenger\Monitor\Transport\TransportInfo;
+use Zenstruck\Messenger\Monitor\Worker\TransportCooldowns;
 use Zenstruck\Messenger\Monitor\Worker\WorkerCache;
+use Zenstruck\Messenger\Monitor\Worker\WorkerInfo;
 use Zenstruck\Messenger\Monitor\Workers;
 
 /**
@@ -27,6 +32,26 @@ use Zenstruck\Messenger\Monitor\Workers;
  */
 final class TransportInfoTest extends TestCase
 {
+    use ClockSensitiveTrait;
+
+    /** @test */
+    public function counts_only_workers_cooling_down_this_transport(): void
+    {
+        $clock = self::mockTime();
+        $cache = new WorkerCache(new ArrayAdapter());
+        $metadata = new WorkerMetadata(['transportNames' => ['async', 'other']]);
+        $cache->set(1, $metadata, WorkerInfo::IDLE, 0, 1000, cooldowns: new TransportCooldowns(['async' => $clock->now()->modify('+1 second')]));
+        $cache->set(2, $metadata, WorkerInfo::PROCESSING, 0, 1000, cooldowns: new TransportCooldowns(['other' => null]));
+        $transport = new TransportInfo('async', $this->createMock(TransportInterface::class), new Workers($cache));
+
+        $this->assertCount(2, $transport->workers());
+        $this->assertCount(1, $transport->coolingDownWorkers());
+
+        $clock->sleep(1);
+        $this->assertCount(0, $transport->coolingDownWorkers());
+        $this->assertTrue($transport->isRunning());
+    }
+
     /**
      * @test
      */

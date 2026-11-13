@@ -371,6 +371,16 @@ To add links under **Application** in the sidebar, override `navbar_custom_menu`
 
 #### `WorkerInfo`
 
+On Symfony 8.2+, the dashboard shows each worker's transport cooldowns and the number of
+workers cooling down per transport. Known resume times expire automatically; cooldowns
+with no known end remain visible until polling resumes. Other transports can still be consumed.
+Transport pages show the same worker-count summary for the selected transport.
+See Symfony's [transport cooldown documentation](https://symfony.com/doc/8.2/messenger.html#cooling-down-a-transport-after-failures).
+
+Use `$worker->cooldownFor('async')` to inspect an active cooldown, or
+`$transport->coolingDownWorkers()` to find the affected workers. Older Symfony versions
+keep their existing worker monitoring without cooldown indicators.
+
 ### `Transports` Service
 
 #### `TransportInfo`
