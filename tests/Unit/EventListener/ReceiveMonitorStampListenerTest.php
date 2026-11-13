@@ -13,6 +13,7 @@ namespace Zenstruck\Messenger\Monitor\Tests\Unit\EventListener;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Stamp\StampInterface;
@@ -24,6 +25,7 @@ use Zenstruck\Messenger\Monitor\EventListener\ReceiveMonitorStampListener;
 use Zenstruck\Messenger\Monitor\Stamp\DisableInputStoreStamp;
 use Zenstruck\Messenger\Monitor\Stamp\DisableMonitoringStamp;
 use Zenstruck\Messenger\Monitor\Stamp\EnableInputStoreStamp;
+use Zenstruck\Messenger\Monitor\Stamp\HandlerMetricsStamp;
 use Zenstruck\Messenger\Monitor\Stamp\InboxDeliveryStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 use Zenstruck\Messenger\Monitor\Stamp\StoredInputStamp;
@@ -81,6 +83,26 @@ final class ReceiveMonitorStampListenerTest extends TestCase
         $current = $event->getEnvelope()->last(InboxDeliveryStamp::class);
         $this->assertNotSame($previous, $current);
         $this->assertFalse($current->isSkipped());
+    }
+
+    /** @test */
+    public function resets_handler_measurements_for_each_delivery(): void
+    {
+        if (!\class_exists(HandlerSuccessEvent::class)) {
+            $this->markTestSkipped('Requires Symfony 8.2 handler events.');
+        }
+
+        $previous = new HandlerMetricsStamp();
+        $previous->start('handler');
+        $previous->finish('handler');
+        $event = new WorkerMessageReceivedEvent(new Envelope(new \stdClass(), [new MonitorStamp(), $previous]), 'async');
+        $listener = new ReceiveMonitorStampListener([]);
+
+        $listener($event);
+
+        $current = $event->getEnvelope()->last(HandlerMetricsStamp::class);
+        $this->assertNotSame($previous, $current);
+        $this->assertSame([], $current->forHandler('handler'));
     }
 
     /**

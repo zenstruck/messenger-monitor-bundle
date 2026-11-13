@@ -19,6 +19,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
 use Symfony\Component\Messenger\Cooldown\CooldownStrategyInterface;
 use Symfony\Component\Messenger\Event\HandlerFailureEvent;
+use Symfony\Component\Messenger\Event\HandlerStartingEvent;
 use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Symfony\Component\Messenger\Middleware\InboxMiddleware;
 use Zenstruck\Messenger\Monitor\DependencyInjection\ZenstruckMessengerMonitorExtension;
@@ -119,6 +120,7 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         }
 
         $this->assertContainerBuilderHasService($service, CaptureExecutionListener::class);
+        $this->assertContainerBuilderHasServiceDefinitionWithTag($service, 'kernel.event_listener', ['event' => HandlerStartingEvent::class, 'method' => 'onStart']);
         $this->assertContainerBuilderHasServiceDefinitionWithTag($service, 'kernel.event_listener', ['event' => HandlerSuccessEvent::class]);
         $this->assertContainerBuilderHasServiceDefinitionWithTag($service, 'kernel.event_listener', ['event' => HandlerFailureEvent::class]);
     }

@@ -13,6 +13,7 @@ use Psr\Container\ContainerInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\Messenger\Event\HandlerFailureEvent;
+use Symfony\Component\Messenger\Event\HandlerStartingEvent;
 use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Symfony\Component\Messenger\Handler\HandlersLocator;
 use Symfony\Component\Messenger\MessageBus;
@@ -27,6 +28,7 @@ $dispatcher = new EventDispatcher();
 
 if (\class_exists(CaptureExecutionListener::class)) {
     $listener = new CaptureExecutionListener();
+    $dispatcher->addListener(HandlerStartingEvent::class, $listener->onStart(...));
     $dispatcher->addListener(HandlerSuccessEvent::class, $listener);
     $dispatcher->addListener(HandlerFailureEvent::class, $listener);
 }

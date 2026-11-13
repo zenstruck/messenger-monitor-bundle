@@ -16,6 +16,7 @@ use Symfony\Component\Console\Helper\Helper;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Zenstruck\Bytes;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Schedules;
 use Zenstruck\Messenger\Monitor\Transports;
@@ -66,6 +67,14 @@ final class ViewHelper
         }
 
         return \sprintf('%.3f s', $seconds);
+    }
+
+    public function formatMemoryChange(int $bytes): string
+    {
+        $sign = $bytes > 0 ? '+' : ($bytes < 0 ? '-' : '');
+        $amount = new Bytes(\abs($bytes));
+
+        return $sign.$amount;
     }
 
     public function generateCsrfToken(string $action): string

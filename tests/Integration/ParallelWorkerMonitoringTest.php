@@ -55,7 +55,7 @@ final class ParallelWorkerMonitoringTest extends TestCase
         $history = [];
         $storage = $this->createMock(Storage::class);
         $storage->expects($this->once())->method('save')->willReturnCallback(static function(Envelope $envelope, Results $results, ?\Throwable $error = null) use (&$history): void {
-            $history[] = [$envelope, $error];
+            $history[] = [$envelope, $error, $results];
         });
         $listener = new HandleMonitorStampListener($storage, new ResultNormalizer(__DIR__));
         $dispatcher = new EventDispatcher();
@@ -69,12 +69,16 @@ final class ParallelWorkerMonitoringTest extends TestCase
         $worker->run(['stop_when_empty' => true, 'sleep' => 0]);
 
         $this->assertCount(1, $history);
-        [$envelope, $error] = $history[0];
+        [$envelope, $error, $results] = $history[0];
         $stamp = $envelope->last(MonitorStamp::class);
         $result = $envelope->last(HandledStamp::class)?->getResult();
 
+        if (!$handlerFails) {
+            $this->assertNull($error, $error?->getMessage() ?? '');
+        }
+
         if ($handlerFails) {
-            $this->assertInstanceOf(HandlerFailedException::class, $error);
+            $this->assertInstanceOf(HandlerFailedException::class, $error, $error?->getMessage() ?? '');
             $exceptions = $error->getWrappedExceptions();
             $result = \json_decode(\reset($exceptions)->getMessage(), true, flags: \JSON_THROW_ON_ERROR);
         }
@@ -85,6 +89,12 @@ final class ParallelWorkerMonitoringTest extends TestCase
 
         $this->assertGreaterThanOrEqual($result['memory'], $stamp->memoryUsage());
         $this->assertEquals($startedAt->modify('+3 seconds'), $stamp->finishedAt());
+        $this->assertCount(1, $results);
+        $handler = $results->all()[0];
+        $this->assertSame($handlerFails, $handler->isFailure());
+        $this->assertNotNull($handler->duration());
+        $this->assertGreaterThanOrEqual(0, $handler->duration());
+        $this->assertGreaterThanOrEqual(63 * 1024 * 1024, $handler->memoryChange());
     }
 
     /** @return iterable<string, array{bool}> */

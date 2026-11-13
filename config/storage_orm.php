@@ -3,6 +3,7 @@
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Symfony\Component\Messenger\Event\HandlerFailureEvent;
+use Symfony\Component\Messenger\Event\HandlerStartingEvent;
 use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
 use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
@@ -77,6 +78,7 @@ return static function (ContainerConfigurator $container): void {
     if (\class_exists(HandlerSuccessEvent::class)) {
         $container->services()
             ->set('.zenstruck_messenger_monitor.listener.capture_execution', CaptureExecutionListener::class)
+                ->tag('kernel.event_listener', ['event' => HandlerStartingEvent::class, 'method' => 'onStart'])
                 ->tag('kernel.event_listener', ['event' => HandlerSuccessEvent::class])
                 ->tag('kernel.event_listener', ['event' => HandlerFailureEvent::class])
         ;

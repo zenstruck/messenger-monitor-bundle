@@ -151,6 +151,7 @@
                         {% else %}
                             <small class="text-secondary"><em>Unknown Handler</em></small>
                         {% endif %}
+                        {% include '@ZenstruckMessengerMonitor/components/handler_metrics.html.twig' %}
                     </div>
                     {% if result.isFailure %}
                         <div class="alert card-alert alert-danger mb-0">
