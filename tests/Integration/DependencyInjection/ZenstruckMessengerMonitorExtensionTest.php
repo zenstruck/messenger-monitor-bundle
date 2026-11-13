@@ -19,6 +19,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Compiler\MergeExtensionConfigurationPass;
 use Symfony\Component\Messenger\Event\HandlerFailureEvent;
 use Symfony\Component\Messenger\Event\HandlerSuccessEvent;
+use Symfony\Component\Messenger\Middleware\InboxMiddleware;
 use Zenstruck\Messenger\Monitor\DependencyInjection\ZenstruckMessengerMonitorExtension;
 use Zenstruck\Messenger\Monitor\EventListener\AddMonitorStampListener;
 use Zenstruck\Messenger\Monitor\EventListener\CaptureExecutionListener;
@@ -27,6 +28,7 @@ use Zenstruck\Messenger\Monitor\EventListener\ReceiveMonitorStampListener;
 use Zenstruck\Messenger\Monitor\History\Model\ProcessedMessage;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\History\Storage\ORMStorage;
+use Zenstruck\Messenger\Monitor\Middleware\InboxMonitoringMiddleware;
 use Zenstruck\Messenger\Monitor\Tests\Fixture\Entity\ProcessedMessage as ProcessedMessageImpl;
 use Zenstruck\Messenger\Monitor\Transports;
 use Zenstruck\Messenger\Monitor\Workers;
@@ -99,6 +101,21 @@ final class ZenstruckMessengerMonitorExtensionTest extends AbstractExtensionTest
         $this->assertContainerBuilderHasService($service, CaptureExecutionListener::class);
         $this->assertContainerBuilderHasServiceDefinitionWithTag($service, 'kernel.event_listener', ['event' => HandlerSuccessEvent::class]);
         $this->assertContainerBuilderHasServiceDefinitionWithTag($service, 'kernel.event_listener', ['event' => HandlerFailureEvent::class]);
+    }
+
+    /** @test */
+    public function registers_inbox_monitoring_only_when_supported(): void
+    {
+        $this->load(['storage' => ['orm' => ['entity_class' => ProcessedMessageImpl::class]]]);
+        $service = '.zenstruck_messenger_monitor.middleware.inbox';
+
+        if (!\class_exists(InboxMiddleware::class)) {
+            $this->assertThat($this->container, new LogicalNot(new ContainerBuilderHasServiceDefinitionConstraint($service)));
+
+            return;
+        }
+
+        $this->assertContainerBuilderHasService($service, InboxMonitoringMiddleware::class);
     }
 
     /**

@@ -12,8 +12,10 @@
 namespace Zenstruck\Messenger\Monitor;
 
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\Compiler\DoctrineOrmMappingsPass;
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Zenstruck\Messenger\Monitor\DependencyInjection\Compiler\InboxMonitoringPass;
 
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
@@ -23,6 +25,9 @@ final class ZenstruckMessengerMonitorBundle extends Bundle
     public function build(ContainerBuilder $container): void
     {
         parent::build($container);
+
+        // MessengerPass builds the middleware lists at priority -16.
+        $container->addCompilerPass(new InboxMonitoringPass(), PassConfig::TYPE_BEFORE_OPTIMIZATION, -32);
 
         if (\class_exists(DoctrineOrmMappingsPass::class)) {
             $reflection = new \ReflectionClass(DoctrineOrmMappingsPass::class);

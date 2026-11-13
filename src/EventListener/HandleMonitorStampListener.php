@@ -23,6 +23,7 @@ use Zenstruck\Messenger\Monitor\History\Model\Results;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\Stamp\ExecutionStamp;
+use Zenstruck\Messenger\Monitor\Stamp\InboxDeliveryStamp;
 use Zenstruck\Messenger\Monitor\Stamp\MonitorStamp;
 
 /**
@@ -48,6 +49,12 @@ final class HandleMonitorStampListener
         }
 
         if (!$stamp->isReceived()) {
+            return;
+        }
+
+        $delivery = $envelope->last(InboxDeliveryStamp::class);
+
+        if ($delivery?->isSkipped()) {
             return;
         }
 

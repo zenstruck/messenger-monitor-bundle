@@ -8,6 +8,7 @@ use Symfony\Component\Messenger\Event\SendMessageToTransportsEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageFailedEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageHandledEvent;
 use Symfony\Component\Messenger\Event\WorkerMessageReceivedEvent;
+use Symfony\Component\Messenger\Middleware\InboxMiddleware;
 use Zenstruck\Messenger\Monitor\Command\PurgeCommand;
 use Zenstruck\Messenger\Monitor\Command\SchedulePurgeCommand;
 use Zenstruck\Messenger\Monitor\EventListener\AddMonitorStampListener;
@@ -17,6 +18,7 @@ use Zenstruck\Messenger\Monitor\EventListener\ReceiveMonitorStampListener;
 use Zenstruck\Messenger\Monitor\History\ResultNormalizer;
 use Zenstruck\Messenger\Monitor\History\Storage;
 use Zenstruck\Messenger\Monitor\History\Storage\ORMStorage;
+use Zenstruck\Messenger\Monitor\Middleware\InboxMonitoringMiddleware;
 
 return static function (ContainerConfigurator $container): void {
     $container->parameters()
@@ -74,6 +76,13 @@ return static function (ContainerConfigurator $container): void {
             ->set('.zenstruck_messenger_monitor.listener.capture_execution', CaptureExecutionListener::class)
                 ->tag('kernel.event_listener', ['event' => HandlerSuccessEvent::class])
                 ->tag('kernel.event_listener', ['event' => HandlerFailureEvent::class])
+        ;
+    }
+
+    if (\class_exists(InboxMiddleware::class)) {
+        $container->services()
+            ->set('.zenstruck_messenger_monitor.middleware.inbox', InboxMonitoringMiddleware::class)
+                ->args([service('messenger.middleware.inbox')])
         ;
     }
 };
