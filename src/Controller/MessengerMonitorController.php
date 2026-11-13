@@ -15,6 +15,8 @@ use Lorisleiva\CronTranslator\CronTranslator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Failure\FailedMessageRepository;
 use Symfony\Component\Messenger\Message\RedispatchMessage;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\ErrorDetailsStamp;
@@ -182,10 +184,7 @@ abstract class MessengerMonitorController extends AbstractController
         $failureStamp = $failedEnvelope->last(SentToFailureTransportStamp::class);
         $originalTransportName = $failureStamp?->getOriginalReceiverName() ?? throw $this->createNotFoundException('Original transport not found.');
 
-        $retryEnvelope = $failedEnvelope->withoutAll(SentToFailureTransportStamp::class);
-        $retryEnvelope = $retryEnvelope->withoutAll(RedeliveryStamp::class);
-        $retryEnvelope = $retryEnvelope->withoutAll(ErrorDetailsStamp::class);
-        $retryEnvelope = $retryEnvelope->withoutAll(ReceivedStamp::class);
+        $retryEnvelope = $this->prepareForRetry($failedEnvelope);
 
         $bus->dispatch($retryEnvelope, [
             new TransportNamesStamp($originalTransportName),
@@ -317,5 +316,19 @@ abstract class MessengerMonitorController extends AbstractController
             'messages' => Specification::new()->snapshot($helper->storage())->messages(),
             'helper' => $helper,
         ]);
+    }
+
+    private function prepareForRetry(Envelope $envelope): Envelope
+    {
+        $envelope = $envelope->withoutAll(RedeliveryStamp::class);
+        $envelope = $envelope->withoutAll(ErrorDetailsStamp::class);
+
+        if (\class_exists(FailedMessageRepository::class)) {
+            return FailedMessageRepository::prepareForRedispatch($envelope);
+        }
+
+        $envelope = $envelope->withoutAll(SentToFailureTransportStamp::class);
+
+        return $envelope->withoutAll(ReceivedStamp::class);
     }
 }
