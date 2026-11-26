@@ -64,7 +64,7 @@ final class ParallelWorkerMonitoringTest extends TestCase
         $dispatcher->addListener(WorkerMessageFailedEvent::class, static fn() => $clock->sleep(20), 100);
         $dispatcher->addListener(WorkerMessageHandledEvent::class, $listener->handleSuccess(...), -100);
         $dispatcher->addListener(WorkerMessageFailedEvent::class, $listener->handleFailure(...), -100);
-        $strategy = new ParallelExecutionStrategy(__DIR__.'/../Fixture/parallel-worker.php', 2);
+        $strategy = new ParallelExecutionStrategy(__DIR__.'/../Fixture/parallel-worker.php', 1);
         $worker = new Worker(['async' => $transport], new MessageBus(), $dispatcher, messageExecutionStrategy: $strategy);
         $worker->run(['stop_when_empty' => true, 'sleep' => 0]);
 
